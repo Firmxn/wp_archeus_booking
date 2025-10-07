@@ -1,0 +1,234 @@
+/* Calendar Styles - Modern UI */
+:root {
+  --primary-color: #54b335;
+  --primary-hover: #629e40;
+  --secondary-color: #6c757d;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+  --light-color: #f3f4f6;
+  --dark-color: #1f2937;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --transition: all 0.3s ease;
+}
+
+.booking-calendar-container {
+  max-width: 100%;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.booking-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+}
+
+.booking-calendar.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.calendar-nav-btn {
+  background-color: var(--primary-color) !important;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.calendar-nav-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.current-month {
+  margin: 0;
+  font-size: 1.5em;
+  color: var(--dark-color);
+  font-weight: 600;
+}
+
+.booking-calendar {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 600;
+  padding: 10px 0;
+  /* background-color: var(--primary-color); */
+  background-color: #54b335;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.calendar-weekdays div {
+  padding: 8px;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 5px;
+}
+
+.calendar-day {
+  aspect-ratio: 1/1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 5px;
+  border-radius: var(--border-radius);
+  min-height: 60px;
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition);
+  margin: 2px;
+}
+
+.calendar-day.empty {
+  background-color: transparent;
+  border: none;
+  cursor: default;
+}
+
+.calendar-day.available {
+  background-color: #edfbe2;
+  color: var(--success-color);
+}
+
+.calendar-day.available:hover {
+  background-color: #629e40; /* Lighter green for hover */
+  transform: scale(1.05);
+  color: white;
+}
+
+.calendar-day.selected-date:hover {
+  background-color: #629e40; /* Warna lebih gelap untuk hover */
+}
+
+.calendar-day.unavailable {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+  text-decoration: line-through;
+}
+
+.calendar-day.holiday {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+}
+
+.calendar-day.full {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--danger-color);
+}
+
+.calendar-day.limited {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--info-color);
+}
+
+.calendar-day.past {
+  background-color: var(--light-color);
+  color: var(--dark-color);
+  text-decoration: line-through;
+}
+
+.calendar-day.selected-date {
+  background-color: #54b335;
+  color: #ffffff !important;
+}
+
+.day-number {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.booking-count {
+  font-size: 10px;
+  display: block;
+  margin-top: 2px;
+}
+
+.calendar-legend {
+    margin: 20px;
+}
+
+.calendar-legend h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: var(--dark-color);
+}
+
+.calendar-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.calendar-legend li {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--dark-color);
+}
+
+.legend-color {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.legend-color.available {
+  background-color: #edfbe2;
+}
+
+.legend-color.unavailable {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.legend-color.holiday {
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.legend-color.full {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.legend-color.limited {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.legend-color.selected-date {
+  background-color: #54b335 !important;
+}

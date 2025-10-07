@@ -1,0 +1,79 @@
+/* Time Slot Selection - Card Layout */
+:root {
+  --primary-color: #54b335;
+  --primary-hover: #629e40;
+  --secondary-color: #edfbe2;
+}
+
+.time-slots-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+/* Ensure 3-per-row inside booking flow regardless of other admin styles */
+.booking-flow-container .time-slots-container {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+.time-slot-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px; /* Matched to service-card */
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.time-slot-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+}
+
+.time-slot-card.selected {
+    border-color: var(--primary-color); /* Use primary color to match service selection */
+    box-shadow: 0 0 0 3px var(--secondary-color); /* Use primary color shadow */
+    transform: translateY(-3px);
+    background-color: var(--secondary-color);
+}
+
+.time-slot-card h5 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #1f2937;
+}
+
+.visually-hidden {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Placeholder Message */
+.time-slots-container p {
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .time-slots-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .booking-flow-container .time-slots-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .time-slots-container {
+        grid-template-columns: 1fr;
+    }
+    .booking-flow-container .time-slots-container {
+        grid-template-columns: 1fr !important;
+    }
+}

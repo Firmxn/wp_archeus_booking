@@ -1,0 +1,15 @@
+{
+    "version": "1.2.2",
+    "name": "Archeus Booking System",
+    "description": "Advanced booking system with flexible time slots and booking flow management",
+    "features": [
+        "Flexible time slots management",
+        "Customizable booking flows", 
+        "Multiple section booking process",
+        "File upload support",
+        "Calendar integration",
+        "Service management",
+        "Time slot & service combined section"
+    ],
+    "date": "2025-10-01"
+}

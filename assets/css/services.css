@@ -1,0 +1,75 @@
+/* Service Selection - Card Layout */
+
+:root {
+  --primary-color: #54b335;
+  --primary-hover: #629e40;
+  --secondary-color: #edfbe2;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.service-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.service-card.selected {
+  border-color: var(--primary-color); /* Primary color */
+  box-shadow: 0 0 0 3px var(--secondary-color);
+  transform: translateY(-5px);
+  background-color: var(--secondary-color);
+}
+
+.service-card h4 {
+  margin-top: 0;
+  font-size: 1.1em;
+  color: #1f2937;
+}
+
+.service-card .service-price {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin: 10px 0;
+}
+
+.service-card .service-duration {
+  font-size: 0.9em;
+  color: #6b7280;
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}

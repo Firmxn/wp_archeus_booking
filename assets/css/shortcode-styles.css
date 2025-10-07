@@ -1,0 +1,33 @@
+/**
+ * Booking Shortcode Styles
+ */
+:root {
+  --primary-color: #54b335;
+  --primary-hover: #629e40;
+  --secondary-color: #6c757d;
+  --border-color: #ddd;
+  --background-color: #fff;
+}
+
+/* Booking Form Styles */
+.booking-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--background-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+/* Calendar Shortcode Styles */
+.booking-calendar-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .booking-form-container {
+    padding: 15px;
+  }
+}

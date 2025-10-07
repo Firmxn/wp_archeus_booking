@@ -1,0 +1,583 @@
+# Indonesian translation for Archeus Booking System
+# Copyright (C) YEAR Archeus Catalyst
+# This file is distributed under the same license as the archeus-booking package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: archeus-booking 1.0.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-30 19:20+0000\n"
+"PO-Revision-Date: 2025-09-30 19:20+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: id_ID\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: admin/class-booking-admin.php:47
+msgid "Archeus Booking Dashboard"
+msgstr "Dasbor Pemesanan Archeus"
+
+#: admin/class-booking-admin.php:48
+msgid "Archeus Bookings"
+msgstr "Pemesanan Archeus"
+
+#: admin/class-booking-admin.php:59
+#: admin/class-booking-admin.php:1103
+msgid "Calendar Availability"
+msgstr "Ketersediaan Kalender"
+
+#: admin/class-booking-admin.php:63
+msgid "Calendar"
+msgstr "Kalender"
+
+#: admin/class-booking-admin.php:68
+msgid "Booking Form Settings"
+msgstr "Pengaturan Form Pemesanan"
+
+#: admin/class-booking-admin.php:69
+msgid "Booking Forms"
+msgstr "Form Pemesanan"
+
+#: admin/class-booking-admin.php:74
+msgid "Email Settings"
+msgstr "Pengaturan Email"
+
+#: admin/class-booking-admin.php:80
+msgid "Plugin Settings"
+msgstr "Pengaturan Plugin"
+
+#: admin/class-booking-admin.php:81
+msgid "Settings"
+msgstr "Pengaturan"
+
+#: admin/class-booking-admin.php:134
+msgid "Form updated successfully."
+msgstr "Form berhasil diperbarui."
+
+#: admin/class-booking-admin.php:134
+msgid "Error updating form."
+msgstr "Kesalahan saat memperbarui form."
+
+#: admin/class-booking-admin.php:140
+msgid "Form created successfully."
+msgstr "Form berhasil dibuat."
+
+#: admin/class-booking-admin.php:140
+msgid "Error creating form."
+msgstr "Kesalahan saat membuat form."
+
+#: admin/class-booking-admin.php:151
+msgid "Form deleted successfully."
+msgstr "Form berhasil dihapus."
+
+#: admin/class-booking-admin.php:151
+msgid "Error deleting form."
+msgstr "Kesalahan saat menghapus form."
+
+#: admin/class-booking-admin.php:164
+msgid "Booking Forms"
+msgstr "Form Pemesanan"
+
+#: admin/class-booking-admin.php:166
+msgid "Edit Form"
+msgstr "Edit Form"
+
+#: admin/class-booking-admin.php:170
+msgid "Create New Form"
+msgstr "Buat Form Baru"
+
+#: admin/class-booking-admin.php:188
+msgid "Form Name"
+msgstr "Nama Form"
+
+#: admin/class-booking-admin.php:190
+msgid "Enter a descriptive name for this form"
+msgstr "Masukkan nama deskriptif untuk form ini"
+
+#: admin/class-booking-admin.php:196
+msgid "Form Slug"
+msgstr "Slug Form"
+
+#: admin/class-booking-admin.php:198
+msgid "Unique identifier for this form (used in shortcodes)"
+msgstr "Identifikasi unik untuk form ini (digunakan dalam shortcodes)"
+
+#: admin/class-booking-admin.php:205
+msgid "Description"
+msgstr "Deskripsi"
+
+#: admin/class-booking-admin.php:207
+msgid "Brief description of this form's purpose"
+msgstr "Deskripsi singkat tujuan dari form ini"
+
+#: admin/class-booking-admin.php:213
+msgid "Form Fields"
+msgstr "Kolom Form"
+
+#: admin/class-booking-admin.php:217
+msgid "Label"
+msgstr "Label"
+
+#: admin/class-booking-admin.php:218
+msgid "Type"
+msgstr "Tipe"
+
+#: admin/class-booking-admin.php:219
+msgid "Required"
+msgstr "Wajib"
+
+#: admin/class-booking-admin.php:220
+msgid "Placeholder"
+msgstr "Placeholder"
+
+#: admin/class-booking-admin.php:221
+msgid "Actions"
+msgstr "Tindakan"
+
+#: admin/class-booking-admin.php:277
+msgid "Remove"
+msgstr "Hapus"
+
+#: admin/class-booking-admin.php:285
+msgid "Add Field"
+msgstr "Tambah Kolom"
+
+#: admin/class-booking-admin.php:288
+msgid "Update Form"
+msgstr "Perbarui Form"
+
+#: admin/class-booking-admin.php:288
+msgid "Create Form"
+msgstr "Buat Form"
+
+#: admin/class-booking-admin.php:299
+msgid "Existing Forms"
+msgstr "Form yang Ada"
+
+#: admin/class-booking-admin.php:301
+msgid "No forms have been created yet."
+msgstr "Belum ada form yang dibuat."
+
+#: admin/class-booking-admin.php:315
+msgid "Name"
+msgstr "Nama"
+
+#: admin/class-booking-admin.php:316
+msgid "Slug"
+msgstr "Slug"
+
+#: admin/class-booking-admin.php:317
+msgid "Description"
+msgstr "Deskripsi"
+
+#: admin/class-booking-admin.php:318
+msgid "Fields"
+msgstr "Kolom"
+
+#: admin/class-booking-admin.php:319
+msgid "Shortcode"
+msgstr "Shortcode"
+
+#: admin/class-booking-admin.php:327
+msgid "Are you sure you want to delete this form?"
+msgstr "Apakah Anda yakin ingin menghapus form ini?"
+
+#: admin/class-booking-admin.php:328
+msgid "Edit"
+msgstr "Edit"
+
+#: admin/class-booking-admin.php:329
+msgid "Delete"
+msgstr "Hapus"
+
+#: admin/class-booking-admin.php:376
+msgid "Email settings updated successfully."
+msgstr "Pengaturan email berhasil diperbarui."
+
+#: admin/class-booking-admin.php:380
+msgid "Email Settings"
+msgstr "Pengaturan Email"
+
+#: admin/class-booking-admin.php:383
+msgid "Customer Confirmation Email"
+msgstr "Email Konfirmasi Pelanggan"
+
+#: admin/class-booking-admin.php:386
+msgid "Enable Confirmation Email"
+msgstr "Aktifkan Email Konfirmasi"
+
+#: admin/class-booking-admin.php:388
+msgid "Send confirmation email to customer after booking"
+msgstr "Kirim email konfirmasi ke pelanggan setelah pemesanan"
+
+#: admin/class-booking-admin.php:392
+msgid "Email Subject"
+msgstr "Subjek Email"
+
+#: admin/class-booking-admin.php:398
+msgid "Email Content"
+msgstr "Isi Email"
+
+#: admin/class-booking-admin.php:400
+msgid "Available tags: {customer_name}, {booking_date}, {booking_time}, {service_type}, {special_requests}"
+msgstr "Tag yang tersedia: {customer_name}, {booking_date}, {booking_time}, {service_type}, {special_requests}"
+
+#: admin/class-booking-admin.php:404
+msgid "Admin Notification Email"
+msgstr "Email Notifikasi Admin"
+
+#: admin/class-booking-admin.php:407
+msgid "Enable Admin Notification"
+msgstr "Aktifkan Notifikasi Admin"
+
+#: admin/class-booking-admin.php:409
+msgid "Send notification email to admin when new booking is received"
+msgstr "Kirim email notifikasi ke admin saat pemesanan baru diterima"
+
+#: admin/class-booking-admin.php:422
+msgid "Save Email Settings"
+msgstr "Simpan Pengaturan Email"
+
+#: admin/class-booking-admin.php:492
+msgid "Total Bookings"
+msgstr "Total Pemesanan"
+
+#: admin/class-booking-admin.php:495
+msgid "Pending"
+msgstr "Tertunda"
+
+#: admin/class-booking-admin.php:500
+msgid "Confirmed"
+msgstr "Dikonfirmasi"
+
+#: admin/class-booking-admin.php:505
+msgid "Completed"
+msgstr "Selesai"
+
+#: admin/class-booking-admin.php:510
+msgid "Cancelled"
+msgstr "Dibatalkan"
+
+#: admin/class-booking-admin.php:521
+msgid "All Statuses"
+msgstr "Semua Status"
+
+#: admin/class-booking-admin.php:525
+msgid "Refresh"
+msgstr "Segarkan"
+
+#: admin/class-booking-admin.php:537
+msgid "ID"
+msgstr "ID"
+
+#: admin/class-booking-admin.php:538
+msgid "Customer Name"
+msgstr "Nama Pelanggan"
+
+#: admin/class-booking-admin.php:539
+msgid "Customer Email"
+msgstr "Email Pelanggan"
+
+#: admin/class-booking-admin.php:540
+msgid "Date"
+msgstr "Tanggal"
+
+#: admin/class-booking-admin.php:541
+msgid "Time"
+msgstr "Waktu"
+
+#: admin/class-booking-admin.php:542
+msgid "Service"
+msgstr "Layanan"
+
+#: admin/class-booking-admin.php:543
+msgid "Status"
+msgstr "Status"
+
+#: admin/class-booking-admin.php:544
+msgid "Date Created"
+msgstr "Tanggal Dibuat"
+
+#: admin/class-booking-admin.php:545
+msgid "Actions"
+msgstr "Tindakan"
+
+#: admin/class-booking-admin.php:560
+msgid "View Details"
+msgstr "Lihat Detail"
+
+#: admin/class-booking-admin.php:561
+msgid "Delete"
+msgstr "Hapus"
+
+#: admin/class-booking-admin.php:568
+msgid "Additional Information"
+msgstr "Informasi Tambahan"
+
+#: admin/class-booking-admin.php:572
+msgid "No additional information provided."
+msgstr "Tidak ada informasi tambahan yang diberikan."
+
+#: admin/class-booking-admin.php:580
+msgid "Booking Management"
+msgstr "Manajemen Pemesanan"
+
+#: admin/class-booking-admin.php:627
+msgid "Language Settings"
+msgstr "Pengaturan Bahasa"
+
+#: admin/class-booking-admin.php:630
+msgid "Plugin Language"
+msgstr "Bahasa Plugin"
+
+#: admin/class-booking-admin.php:636
+msgid "Select the language for the booking plugin interface"
+msgstr "Pilih bahasa untuk antarmuka plugin pemesanan"
+
+#: admin/class-booking-admin.php:639
+msgid "About Archeus Booking System"
+msgstr "Tentang Sistem Pemesanan Archeus"
+
+#: admin/class-booking-admin.php:640
+msgid "Version: 1.0.0"
+msgstr "Versi: 1.0.0"
+
+#: admin/class-booking-admin.php:641
+msgid "Developed by: Archeus Catalyst"
+msgstr "Dikembangkan oleh: Archeus Catalyst"
+
+#: admin/class-booking-admin.php:644
+msgid "Save Language Settings"
+msgstr "Simpan Pengaturan Bahasa"
+
+#: admin/class-booking-admin.php:1104
+msgid "Use the [booking_calendar] shortcode on your website to display the calendar to visitors."
+msgstr "Gunakan shortcode [booking_calendar] di situs web Anda untuk menampilkan kalender kepada pengunjung."
+
+#: admin/class-booking-admin.php:1108
+msgid "This will display the calendar on your page with the availability settings you configure here."
+msgstr "Ini akan menampilkan kalender di halaman Anda dengan pengaturan ketersediaan yang Anda konfigurasi di sini."
+
+#: admin/class-booking-admin.php:1113
+msgid "Previous"
+msgstr "Sebelumnya"
+
+#: admin/class-booking-admin.php:1116
+msgid "Next"
+msgstr "Berikutnya"
+
+#: admin/class-booking-admin.php:1120
+msgid "Sun"
+msgstr "Min"
+
+#: admin/class-booking-admin.php:1121
+msgid "Mon"
+msgstr "Sen"
+
+#: admin/class-booking-admin.php:1122
+msgid "Tue"
+msgstr "Sel"
+
+#: admin/class-booking-admin.php:1123
+msgid "Wed"
+msgstr "Rab"
+
+#: admin/class-booking-admin.php:1124
+msgid "Thu"
+msgstr "Kam"
+
+#: admin/class-booking-admin.php:1125
+msgid "Fri"
+msgstr "Jum"
+
+#: admin/class-booking-admin.php:1126
+msgid "Sat"
+msgstr "Sab"
+
+#: admin/class-booking-admin.php:1152
+msgid "Legend"
+msgstr "Legenda"
+
+#: admin/class-booking-admin.php:1155
+msgid "Available"
+msgstr "Tersedia"
+
+#: admin/class-booking-admin.php:1156
+msgid "Unavailable"
+msgstr "Tidak Tersedia"
+
+#: admin/class-booking-admin.php:1157
+msgid "Holiday"
+msgstr "Hari Libur"
+
+#: admin/class-booking-admin.php:1158
+msgid "Fully Booked"
+msgstr "Penuh"
+
+#: admin/class-booking-admin.php:1159
+msgid "Limited Availability"
+msgstr "Ketersediaan Terbatas"
+
+#: admin/class-booking-admin.php:1160
+msgid "Today"
+msgstr "Hari Ini"
+
+#: admin/class-booking-admin.php:1200
+msgid "Set Individual Date Availability"
+msgstr "Atur Ketersediaan Tanggal Individu"
+
+#: admin/class-booking-admin.php:1207
+msgid "Date"
+msgstr "Tanggal"
+
+#: admin/class-booking-admin.php:1215
+msgid "Availability Status"
+msgstr "Status Ketersediaan"
+
+#: admin/class-booking-admin.php:1226
+msgid "Daily Limit"
+msgstr "Batas Harian"
+
+#: admin/class-booking-admin.php:1228
+msgid "Maximum number of bookings allowed for this date (set to 0 for no limit)"
+msgstr "Jumlah maksimum pemesanan yang diizinkan untuk tanggal ini (set ke 0 untuk tanpa batas)"
+
+#: admin/class-booking-admin.php:1232
+msgid "Save Availability"
+msgstr "Simpan Ketersediaan"
+
+#: admin/class-booking-admin.php:1240
+msgid "Batch Update Availability"
+msgstr "Perbarui Ketersediaan Batch"
+
+#: admin/class-booking-admin.php:1247
+msgid "Start Date"
+msgstr "Tanggal Mulai"
+
+#: admin/class-booking-admin.php:1252
+msgid "End Date"
+msgstr "Tanggal Selesai"
+
+#: admin/class-booking-admin.php:1257
+msgid "Availability Status"
+msgstr "Status Ketersediaan"
+
+#: admin/class-booking-admin.php:1268
+msgid "Daily Limit"
+msgstr "Batas Harian"
+
+#: admin/class-booking-admin.php:1270
+msgid "Maximum number of bookings allowed for these dates (set to 0 for no limit)"
+msgstr "Jumlah maksimum pemesanan yang diizinkan untuk tanggal-tanggal ini (set ke 0 untuk tanpa batas)"
+
+#: admin/class-booking-admin.php:1274
+msgid "Update Dates"
+msgstr "Perbarui Tanggal"
+
+#: admin/class-booking-admin.php:1282
+msgid "Calendar Display Settings"
+msgstr "Pengaturan Tampilan Kalender"
+
+#: admin/class-booking-admin.php:1288
+msgid "Max Months to Display"
+msgstr "Jumlah Bulan Maksimal untuk Ditampilkan"
+
+#: admin/class-booking-admin.php:1290
+msgid "Maximum number of months to display in the calendar (default: 6, max: 24)"
+msgstr "Jumlah maksimal bulan untuk ditampilkan dalam kalender (default: 6, maks: 24)"
+
+#: admin/class-booking-admin.php:1294
+msgid "Save Settings"
+msgstr "Simpan Pengaturan"
+
+#: includes/class-booking-database.php:40
+msgid "Default Booking Form"
+msgstr "Form Pemesanan Default"
+
+#: includes/class-booking-database.php:42
+msgid "Default booking form for general appointments"
+msgstr "Form pemesanan default untuk janji temu umum"
+
+#: public/class-booking-calendar-public.php:166
+msgid "Available"
+msgstr "Tersedia"
+
+#: public/class-booking-calendar-public.php:167
+msgid "Fully Booked"
+msgstr "Penuh"
+
+#: public/class-booking-calendar-public.php:168
+msgid "Holiday"
+msgstr "Hari Libur"
+
+#: public/class-booking-calendar-public.php:169
+msgid "Limited Availability"
+msgstr "Ketersediaan Terbatas"
+
+#: public/class-booking-calendar-public.php:334
+msgid "No dates available"
+msgstr "Tidak ada tanggal yang tersedia"
+
+#: public/class-booking-public.php:18
+msgid "Book an Appointment"
+msgstr "Pesan Janji Temu"
+
+#: public/class-booking-public.php:29
+msgid "Name"
+msgstr "Nama"
+
+#: public/class-booking-public.php:30
+msgid "Email"
+msgstr "Email"
+
+#: public/class-booking-public.php:31
+msgid "Phone"
+msgstr "Telepon"
+
+#: public/class-booking-public.php:32
+msgid "Booking Date"
+msgstr "Tanggal Pemesanan"
+
+#: public/class-booking-public.php:34
+msgid "Notes"
+msgstr "Catatan"
+
+#: public/class-booking-public.php:42
+msgid "Select a date:"
+msgstr "Pilih tanggal:"
+
+#: public/class-booking-public.php:43
+msgid "Select a time:"
+msgstr "Pilih waktu:"
+
+#: public/class-booking-public.php:45
+msgid "Submit Booking"
+msgstr "Kirim Pemesanan"
+
+#: public/class-booking-public.php:67
+msgid "Please fill in all required fields."
+msgstr "Silakan isi semua kolom yang wajib."
+
+#: public/class-booking-public.php:69
+msgid "Booking submitted successfully!"
+msgstr "Pemesanan berhasil dikirim!"
+
+#: public/class-booking-public.php:71
+msgid "There was an error submitting your booking. Please try again."
+msgstr "Terjadi kesalahan saat mengirim pemesanan Anda. Silakan coba lagi."
+
+#: public/class-booking-public.php:113
+msgid "Morning (9:00 AM - 12:00 PM)"
+msgstr "Pagi (09:00 - 12:00)"
+
+#: public/class-booking-public.php:114
+msgid "Afternoon (1:00 PM - 5:00 PM)"
+msgstr "Siang (13:00 - 17:00)"
+
+#: public/class-booking-public.php:115
+msgid "Evening (6:00 PM - 9:00 PM)"
+msgstr "Sore (18:00 - 21:00)"

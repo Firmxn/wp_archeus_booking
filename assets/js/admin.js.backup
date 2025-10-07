@@ -1,0 +1,1280 @@
+// Debug: Check if functions are loaded
+jQuery(document).ready(function($) {
+    console.log('Archeus Admin JS loaded - Functions available:', {
+        showStatusChangeDialog: typeof window.showStatusChangeDialog,
+        showDeleteConfirmationDialog: typeof window.showDeleteConfirmationDialog,
+        showDeleteConfirm: typeof window.showDeleteConfirm,
+        updateBookingStatus: typeof window.updateBookingStatus,
+        jQuery: typeof jQuery
+    });
+
+    // Define global functions directly on window object
+    window.showStatusChangeDialog = function(callback, newStatus, prevStatus) {
+    console.log('showStatusChangeDialog called with:', { newStatus, prevStatus });
+    // Remove any existing dialogs
+    $('.ab-dialog-overlay').remove();
+
+    var statusLabels = {
+        'pending': 'Menunggu',
+        'approved': 'Disetujui',
+        'completed': 'Selesai',
+        'rejected': 'Ditolak'
+    };
+
+    var statusTo = statusLabels[newStatus] || newStatus;
+    var statusFrom = statusLabels[prevStatus] || prevStatus;
+
+    var dialogHtml = '<div class="ab-dialog-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100000;">' +
+        '<div class="ab-dialog" style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 90%;">' +
+            '<h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;">Konfirmasi Perubahan Status</h3>' +
+            '<p style="margin: 0 0 20px 0; color: #4b5563; line-height: 1.5;">Apakah Anda yakin ingin mengubah status booking dari <strong>"' + statusFrom + '"</strong> ke <strong>"' + statusTo + '"</strong>?</p>' +
+            '<div style="display: flex; gap: 12px; justify-content: flex-end;">' +
+                '<button type="button" class="ab-dialog-cancel button button-secondary" style="padding: 8px 16px; font-size: 14px;">Batal</button>' +
+                '<button type="button" class="ab-dialog-confirm button button-primary" style="padding: 8px 16px; font-size: 14px;">Ya, Ubah Status</button>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+
+    var $dialog = $(dialogHtml).appendTo('body');
+
+    // Handle button clicks
+    $dialog.find('.ab-dialog-cancel').on('click', function() {
+        console.log('Dialog cancelled');
+        $dialog.remove();
+        callback(false);
+    });
+
+    $dialog.find('.ab-dialog-confirm').on('click', function() {
+        console.log('Dialog confirmed');
+        $dialog.remove();
+        callback(true);
+    });
+
+    // Close on overlay click
+    $dialog.on('click', function(e) {
+        if (e.target === this) {
+            console.log('Dialog overlay clicked - cancelled');
+            $dialog.remove();
+            callback(false);
+        }
+    });
+
+    // Add enter key support
+    $dialog.on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            $dialog.find('.ab-dialog-confirm').click();
+        } else if (e.key === 'Escape') {
+            $dialog.find('.ab-dialog-cancel').click();
+        }
+    });
+
+    // Focus confirm button
+    setTimeout(function() {
+        $dialog.find('.ab-dialog-confirm').focus();
+    }, 100);
+};
+
+window.showDeleteConfirmationDialog = function(callback, bookingId) {
+    console.log('showDeleteConfirmationDialog called with:', { bookingId });
+    // Remove any existing dialogs
+    $('.ab-dialog-overlay').remove();
+
+    var dialogHtml = '<div class="ab-dialog-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100000;">' +
+        '<div class="ab-dialog" style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 90%;">' +
+            '<h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;">Konfirmasi Hapus Booking</h3>' +
+            '<p style="margin: 0 0 20px 0; color: #4b5563; line-height: 1.5;">Apakah Anda yakin ingin menghapus booking ini? Tindakan ini tidak dapat dibatalkan.</p>' +
+            '<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 20px;">' +
+                '<p style="margin: 0; color: #991b1b; font-size: 14px;">Booking ID: <strong>#' + bookingId + '</strong></p>' +
+            '</div>' +
+            '<div style="display: flex; gap: 12px; justify-content: flex-end;">' +
+                '<button type="button" class="ab-dialog-cancel button button-secondary" style="padding: 8px 16px; font-size: 14px;">Batal</button>' +
+                '<button type="button" class="ab-dialog-confirm button button-primary" style="background: #dc2626; border-color: #dc2626; padding: 8px 16px; font-size: 14px;">Ya, Hapus</button>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+
+    var $dialog = $(dialogHtml).appendTo('body');
+
+    // Handle button clicks
+    $dialog.find('.ab-dialog-cancel').on('click', function() {
+        console.log('Delete dialog cancelled');
+        $dialog.remove();
+        callback(false);
+    });
+
+    $dialog.find('.ab-dialog-confirm').on('click', function() {
+        console.log('Delete dialog confirmed');
+        $dialog.remove();
+        callback(true);
+    });
+
+    // Close on overlay click
+    $dialog.on('click', function(e) {
+        if (e.target === this) {
+            console.log('Delete dialog overlay clicked - cancelled');
+            $dialog.remove();
+            callback(false);
+        }
+    });
+
+    // Add enter key support
+    $dialog.on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            $dialog.find('.ab-dialog-confirm').click();
+        } else if (e.key === 'Escape') {
+            $dialog.find('.ab-dialog-cancel').click();
+        }
+    });
+
+    // Focus confirm button
+    setTimeout(function() {
+        $dialog.find('.ab-dialog-confirm').focus();
+    }, 100);
+};
+
+// Legacy function for compatibility with inline script in admin class
+// Helper function to update booking status via AJAX
+window.updateBookingStatus = function(bookingId, newStatus, prevStatus, $sel, $menu, $item, $label) {
+    console.log('Archeus: Sending status change request - Booking ID:', bookingId, 'New Status:', newStatus);
+    console.log('Archeus: AJAX request data:', { action: 'update_booking_status', booking_id: bookingId, status: newStatus, nonce: archeus_booking_ajax.nonce });
+
+    // Proceed to save with full-page overlay
+    if (!document.getElementById('ab-loading-style')) {
+        var css = '\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n';
+        var styleTag = document.createElement('style');
+        styleTag.id = 'ab-loading-style';
+        styleTag.type = 'text/css';
+        styleTag.appendChild(document.createTextNode(css));
+        document.head.appendChild(styleTag);
+    }
+    var $overlay = $('<div class="ab-loading-overlay"><div class="ab-loading-spinner"></div><div class="ab-loading-text">Menyimpan...</div></div>').appendTo('body');
+
+    // Disable the dropdown
+    if ($sel) $sel.prop('disabled', true);
+
+    $.ajax({
+        url: archeus_booking_ajax.ajax_url,
+        type: 'POST',
+        dataType: 'text',
+        data: { action: 'update_booking_status', booking_id: bookingId, status: newStatus, nonce: archeus_booking_ajax.nonce },
+        success: function(resp) {
+            console.log('Archeus: AJAX response received:', resp);
+            try {
+                if (typeof resp === 'string') {
+                    var firstBrace = resp.indexOf('{');
+                    if (firstBrace > 0) resp = resp.slice(firstBrace);
+                    resp = JSON.parse(resp);
+                }
+                console.log('Archeus: Parsed response:', resp);
+            } catch (e) {
+                console.error('Admin JSON parse error (update status)', e, resp);
+                showToast('Invalid server response while updating status.', 'error');
+                if ($sel) $sel.val(prevStatus);
+                if ($overlay) { $overlay.remove(); }
+                return;
+            }
+            if (resp && resp.success) {
+                showToast((resp.data && resp.data.message) || 'Status updated.', 'success');
+
+                // Update UI elements if provided
+                if ($sel && $menu && $item && $label) {
+                    // Update the select value
+                    $sel.val(newStatus);
+                    $menu.find('.ab-dd-item').removeClass('is-selected');
+                    $item.addClass('is-selected');
+                    $label.text($item.text());
+
+                    // Adjust visibility of 'completed' option
+                    if (newStatus === 'approved') {
+                        if ($sel.find('option[value="completed"]').length === 0) {
+                            $sel.append('<option value="completed">Selesai</option>');
+                        }
+                    } else if (newStatus !== 'completed') {
+                        // Hide completed unless status is approved or already completed
+                        $sel.find('option[value="completed"]').remove();
+                    }
+
+                    $sel.data('prev', newStatus);
+                }
+
+                // Show loading overlay a bit longer, then refresh page to show updated data
+                setTimeout(function() {
+                    console.log('Refreshing page to show updated booking data...');
+                    window.location.reload();
+                }, 1500); // Wait 1.5 seconds before refresh to show success message
+            } else {
+                var msg = (resp && resp.data && resp.data.message) ? resp.data.message : 'Failed to update status.';
+                showToast(msg, 'error');
+                if ($sel) $sel.val(prevStatus);
+                if ($sel) $sel.prop('disabled', false);
+                if ($overlay) { $overlay.remove(); }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Archeus: AJAX error occurred:', { xhr: xhr, status: status, error: error });
+            showToast('An error occurred while updating the booking status.', 'error');
+            if ($sel) $sel.val(prevStatus);
+            if ($sel) $sel.prop('disabled', false);
+            if ($overlay) { $overlay.remove(); }
+        }
+    });
+};
+
+window.showDeleteConfirm = function(message, redirectUrl) {
+    console.log('showDeleteConfirm called with:', { message, redirectUrl });
+
+    // Remove any existing dialogs
+    $('.ab-dialog-overlay').remove();
+
+    // Check if this is a booking delete (no redirectUrl) or other delete (with redirectUrl)
+    var isBookingDelete = !redirectUrl || redirectUrl === '';
+
+    var dialogHtml = '<div class="ab-dialog-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100000;">' +
+        '<div class="ab-dialog" style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 90%;">' +
+            '<h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;">Konfirmasi Hapus</h3>' +
+            '<p style="margin: 0 0 20px 0; color: #4b5563; line-height: 1.5;">' + message + '</p>' +
+            '<div style="display: flex; gap: 12px; justify-content: flex-end;">' +
+                '<button type="button" class="ab-dialog-cancel button button-secondary" style="padding: 8px 16px; font-size: 14px;">Batal</button>' +
+                '<button type="button" class="ab-dialog-confirm button button-primary" style="background: #dc2626; border-color: #dc2626; padding: 8px 16px; font-size: 14px;">Ya, Hapus</button>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+
+    var $dialog = $(dialogHtml).appendTo('body');
+
+    // Handle button clicks
+    $dialog.find('.ab-dialog-cancel').on('click', function() {
+        console.log('Delete confirm dialog cancelled');
+        $dialog.remove();
+        // Clean up any pending delete markers
+        $('.delete-booking[data-delete-pending="true"]').removeAttr('data-delete-pending');
+    });
+
+    $dialog.find('.ab-dialog-confirm').on('click', function() {
+        console.log('Delete confirm dialog confirmed');
+        $dialog.remove();
+
+        if (isBookingDelete) {
+            // For booking delete, we'll handle it differently since we don't have the booking ID here
+            // The actual delete will be handled by the event handler that called this dialog
+            console.log('Booking delete confirmed - event handler will execute the delete');
+            // We need to trigger the delete confirmation in a different way
+            // Since we can't easily get the booking ID here, we'll use a different approach
+            setTimeout(function() {
+                // Find the last clicked delete button and trigger its confirm action
+                var $deleteBtn = $('.delete-booking[data-delete-pending="true"]');
+                if ($deleteBtn.length) {
+                    var bookingId = $deleteBtn.data('id');
+                    $deleteBtn.removeAttr('data-delete-pending');
+
+                    // Show loading overlay
+                    var $overlay = $('<div class="ab-loading-overlay" style="position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;"><div class="ab-loading-spinner" style="width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;"></div><div class="ab-loading-text" style="margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;">Menghapus...</div></div>').appendTo('body');
+
+                    $.ajax({
+                        url: archeus_booking_ajax.ajax_url,
+                        type: 'POST',
+                        data: {
+                            action: 'delete_booking',
+                            booking_id: bookingId,
+                            nonce: archeus_booking_ajax.nonce
+                        },
+                        success: function(response) {
+                            if ($overlay) $overlay.remove();
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                alert('Gagal menghapus booking: ' + (response.data || 'Unknown error'));
+                            }
+                        },
+                        error: function() {
+                            if ($overlay) $overlay.remove();
+                            alert('Terjadi kesalahan saat menghapus booking.');
+                        }
+                    });
+                }
+            }, 100);
+        } else if (redirectUrl) {
+            // For other deletes, redirect to URL
+            window.location.href = redirectUrl;
+        }
+    });
+
+    // Close on overlay click
+    $dialog.on('click', function(e) {
+        if (e.target === this) {
+            console.log('Delete confirm dialog overlay clicked - cancelled');
+            $dialog.remove();
+            // Clean up any pending delete markers
+            $('.delete-booking[data-delete-pending="true"]').removeAttr('data-delete-pending');
+        }
+    });
+
+    // Add enter key support
+    $dialog.on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            $dialog.find('.ab-dialog-confirm').click();
+        } else if (e.key === 'Escape') {
+            $dialog.find('.ab-dialog-cancel').click();
+        }
+    });
+
+    // Focus confirm button
+    setTimeout(function() {
+        $dialog.find('.ab-dialog-confirm').focus();
+    }, 100);
+};
+
+  // Status control: show custom confirmation dialog
+    $(document).on('focusin', '.booking-status', function(){
+        $(this).data('prev', $(this).val());
+    });
+    $(document).on('change', '.booking-status', function() {
+        console.log('Booking status change event triggered!');
+        try { if (window.console && console.debug) console.debug('[archeus] booking-status change detected'); } catch(e) {}
+        var $sel = $(this);
+        var bookingId = $sel.data('id');
+        var newStatus = $sel.val();
+        var prevStatus = $sel.data('prev');
+
+        console.log('Status change details:', { bookingId, newStatus, prevStatus });
+
+        console.log('Archeus: Sending status change request - Booking ID:', bookingId, 'New Status:', newStatus);
+        console.log('Archeus: AJAX request data:', { action: 'update_booking_status', booking_id: bookingId, status: newStatus, nonce: archeus_booking_ajax.nonce });
+
+        // Proceed to save with full-page overlay
+        if (!document.getElementById('ab-loading-style')) {
+            var css = '\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n';
+            var styleTag = document.createElement('style');
+            styleTag.id = 'ab-loading-style';
+            styleTag.type = 'text/css';
+            styleTag.appendChild(document.createTextNode(css));
+            document.head.appendChild(styleTag);
+        }
+        var $overlay = $('<div class="ab-loading-overlay"><div class="ab-loading-spinner"></div><div class="ab-loading-text">Memperbarui status...</div></div>').appendTo('body');
+        $sel.prop('disabled', true);
+
+        $.ajax({
+            url: archeus_booking_ajax.ajax_url,
+            type: 'POST',
+            dataType: 'text',
+            data: { action: 'update_booking_status', booking_id: bookingId, status: newStatus, nonce: archeus_booking_ajax.nonce },
+            success: function(resp) {
+                console.log('Archeus: AJAX response received:', resp);
+                try {
+                    if (typeof resp === 'string') {
+                        var firstBrace = resp.indexOf('{');
+                        if (firstBrace > 0) resp = resp.slice(firstBrace);
+                        resp = JSON.parse(resp);
+                    }
+                    console.log('Archeus: Parsed response:', resp);
+                } catch (e) {
+                    console.error('Admin JSON parse error (update status)', e, resp);
+                    showToast('Invalid server response while updating status.', 'error');
+                    $sel.val(prevStatus);
+                    if ($overlay) { $overlay.remove(); }
+                    return;
+                }
+                if (resp && resp.success) {
+                    showToast((resp.data && resp.data.message) || 'Status berhasil diperbarui.', 'success');
+                    try {
+                        var __abMap = { pending: '#ab-count-pending', approved: '#ab-count-approved', completed: '#ab-count-completed', rejected: '#ab-count-rejected' };
+                        if (prevStatus && __abMap[prevStatus]) {
+                            var __p = jQuery(__abMap[prevStatus]);
+                            if (__p.length) {
+                                var __pv = parseInt((__p.text()||'0').replace(/[^0-9]/g,''))||0;
+                                __p.text(Math.max(__pv-1,0));
+                            }
+                        }
+                        if (newStatus && __abMap[newStatus]) {
+                            var __n = jQuery(__abMap[newStatus]);
+                            if (__n.length) {
+                                var __nv = parseInt((__n.text()||'0').replace(/[^0-9]/g,''))||0;
+                                __n.text(__nv+1);
+                            }
+                        }
+                    } catch(e){}
+                    // Adjust visibility of 'completed' option
+                    if (newStatus === 'approved') {
+                        if ($sel.find('option[value="completed"]').length === 0) {
+                            $sel.append('<option value="completed">Selesai</option>');
+                        }
+                    } else if (newStatus !== 'completed') {
+                        // Hide completed unless status is approved or already completed
+                        $sel.find('option[value="completed"]').remove();
+                    }
+                    $sel.data('prev', newStatus);
+                    $sel.prop('disabled', false);
+
+                    // Show loading overlay a bit longer, then refresh page to show updated data and send email notification
+                    setTimeout(function() {
+                        console.log('Refreshing page to show updated booking data...');
+                        window.location.reload();
+                    }, 1500); // Wait 1.5 seconds before refresh to show success message and allow email notification
+                } else {
+                    var msg = (resp && resp.data && resp.data.message) ? resp.data.message : 'Failed to update status.';
+                    showToast(msg, 'error');
+                    $sel.val(prevStatus);
+                    $sel.prop('disabled', false);
+                    if ($overlay) { $overlay.remove(); }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Archeus: AJAX error occurred:', { xhr: xhr, status: status, error: error });
+                showToast('An error occurred while updating the booking status.', 'error');
+                $sel.val(prevStatus);
+                $sel.prop('disabled', false);
+                if ($overlay) { $overlay.remove(); }
+            }
+        });
+
+    // Handle delete booking buttons
+    $(document).on('click', '.delete-booking', function(e) {
+        e.preventDefault();
+
+        var $btn = $(this);
+        var bookingId = $btn.data('id');
+
+        console.log('Delete booking button clicked:', { bookingId });
+
+        // Mark this button as pending deletion so the dialog can find it
+        $btn.attr('data-delete-pending', 'true');
+
+        // Call the custom delete confirmation dialog
+        if (typeof showDeleteConfirm === 'function') {
+            showDeleteConfirm('Yakin ingin menghapus booking ini?', '');
+        } else {
+            // Fallback to browser confirm
+            if (confirm('Yakin ingin menghapus booking ini?')) {
+                // Handle the delete directly
+                var $overlay = $('<div class="ab-loading-overlay" style="position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;"><div class="ab-loading-spinner" style="width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;"></div><div class="ab-loading-text" style="margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;">Menghapus...</div></div>').appendTo('body');
+
+                $.ajax({
+                    url: archeus_booking_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'delete_booking',
+                        booking_id: bookingId,
+                        nonce: archeus_booking_ajax.nonce
+                    },
+                    success: function(response) {
+                        if ($overlay) $overlay.remove();
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Gagal menghapus booking: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        if ($overlay) $overlay.remove();
+                        alert('Terjadi kesalahan saat menghapus booking.');
+                    }
+                });
+            } else {
+                // Clean up the marker if cancelled
+                $btn.removeAttr('data-delete-pending');
+            }
+        }
+    });
+
+    // Handle view details button
+    $(document).on('click', '.view-details-btn', function(e) {
+        e.preventDefault();
+        
+        var bookingId = $(this).data('id');
+        var detailsRow = $('tr.booking-details-row[data-id="' + bookingId + '"]');
+        
+        // If visible, hide
+        if (detailsRow.is(':visible')) { detailsRow.hide(); return; }
+        
+        // Show loading
+        var container = detailsRow.find('.booking-details');
+        container.html('<div class="loading">Memuat detail...</div>');
+        detailsRow.show();
+        
+        $.ajax({
+            url: archeus_booking_ajax.ajax_url,
+            type: 'POST',
+            dataType: 'text',
+            data: { action: 'get_booking_details', booking_id: bookingId, nonce: archeus_booking_ajax.nonce },
+            success: function(resp){
+                try {
+                    if (typeof resp === 'string'){
+                        var firstBrace = resp.indexOf('{');
+                        if (firstBrace > 0) resp = resp.slice(firstBrace);
+                        resp = JSON.parse(resp);
+                    }
+                } catch(e){
+                    console.error('Details JSON parse error', e, resp);
+                    container.html('<div class="error">Gagal memuat detail.</div>');
+                    return;
+                }
+                if (!resp || !resp.success || !resp.data){
+                    container.html('<div class="error">Gagal memuat detail.</div>');
+                    return;
+                }
+                var data = resp.data;
+                var keys = Object.keys(data);
+                var exclude = ['payload','form_id','schedule_id','flow_id','flowname','flow_name'];
+                var html = '';
+                html += '<div class="booking-details-card">';
+                html +=   '<h4 class="booking-details-title">Detail Reservasi</h4>';
+                html +=   '<table class="booking-details-table"><tbody>';
+                var previewId = 'bv-preview-' + bookingId;
+                keys.forEach(function(k){
+                    if (exclude.indexOf(k) !== -1) return;
+                    var v = data[k];
+                    if (k === 'bukti_vaksin' && v) {
+                        var fileName = (function(u){ try{ var p=u.split('?')[0]; return decodeURIComponent(p.substring(p.lastIndexOf('/')+1)); }catch(e){ return u; } })(v);
+                        var actions = '' +
+                          '<div class="bv-actions">' +
+                          '  <button type="button" class="button bv-preview" data-url="' + v + '" data-target="#' + previewId + '" aria-label="Lihat pratinjau">' +
+                          '    <span class="dashicons dashicons-visibility" aria-hidden="true"></span><span>Lihat</span>' +
+                          '  </button>' +
+                          '  <a class="button bv-open" href="' + v + '" target="_blank" rel="noopener" aria-label="Buka di tab baru">' +
+                          '    <span class="dashicons dashicons-external" aria-hidden="true"></span><span>Buka Tab</span>' +
+                          '  </a>' +
+                          '  <a class="button bv-download" href="' + v + '" download aria-label="Unduh berkas">' +
+                          '    <span class="dashicons dashicons-download" aria-hidden="true"></span><span>Unduh</span>' +
+                          '  </a>' +
+                          '</div>';
+                        html += '<tr><th>' + k.replace(/_/g,' ') + '</th><td>' + fileName + ' ' + actions + '</td></tr>';
+                    } else {
+                        html += '<tr><th>' + k.replace(/_/g,' ') + '</th><td>' + (v == null ? '' : v) + '</td></tr>';
+                    }
+                });
+                html +=   '</tbody></table>';
+                html +=   '<div id="' + previewId + '" class="bv-preview-container" style="margin-top:12px; display:none;"></div>';
+                html += '</div>';
+                container.html(html);
+            },
+            error: function(){
+                container.html('<div class="error">Gagal memuat detail.</div>');
+            }
+        });
+    });
+
+    // Preview bukti_vaksin inline
+    $(document).on('click', '.bv-preview', function(){
+        var url = $(this).data('url');
+        var target = $(this).data('target');
+        var $target = $(target);
+        if (!$target.length) return;
+        // Toggle if already visible
+        if ($target.is(':visible')) { $target.hide().empty(); return; }
+        var lower = (url || '').toLowerCase();
+        var html = '';
+        if (/(\.png|\.jpe?g|\.gif|\.webp|\.bmp)$/.test(lower)) {
+            html = '<img src="' + url + '" alt="Bukti Vaksin" style="max-width:100%;height:auto;border:1px solid #ddd;padding:4px;background:#fff;">';
+        } else if (/\.pdf$/.test(lower)) {
+            html = '<iframe src="' + url + '#toolbar=1" style="width:100%;height:520px;border:1px solid #ddd;background:#fff;"></iframe>';
+        } else {
+            html = '<div class="notice">Tidak dapat melakukan pratinjau berkas ini. Gunakan tombol Buka atau Unduh.</div>';
+        }
+        $target.html(html).show();
+    });
+    
+    // Handle status filter (with overlay)
+    $('#booking-status-filter').on('change', function(event, data) {
+        var isInitial = data && data.isInitialLoad;
+        var status = $(this).val();
+        var flowId = $('#booking-flow-filter').length ? $('#booking-flow-filter').val() : ($('#ab-flow-select').length ? $('#ab-flow-select').val() : 0);
+        var $overlay = null;
+
+        if (!isInitial) {
+            if (!document.getElementById('ab-loading-style')) {
+                var css = '\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n';
+                var st = document.createElement('style'); st.id='ab-loading-style'; st.appendChild(document.createTextNode(css)); document.head.appendChild(st);
+            }
+            $overlay = $('<div class="ab-loading-overlay"><div class="ab-loading-spinner"></div><div class="ab-loading-text">Memuat...</div></div>').appendTo('body');
+        }
+
+        $.ajax({
+            url: archeus_booking_ajax.ajax_url,
+            type: 'POST',
+            dataType: 'text',
+            data: { action: 'get_bookings', status: status, flow_id: flowId, nonce: archeus_booking_ajax.nonce },
+            success: function(resp) {
+                try { if (typeof resp === 'string') { var fb = resp.indexOf('{'); if (fb > 0) resp = resp.slice(fb); resp = JSON.parse(resp); } } catch (e) { console.error('Admin JSON parse error (filter bookings)', e, resp); showToast('Invalid server response while loading bookings.', 'error'); if ($overlay) { $overlay.remove(); } return; }
+                if (resp && resp.success) {
+                    var bookings = resp.data && (resp.data.bookings || resp.data);
+                    updateBookingsTable(bookings);
+                    if (resp.data && resp.data.stats) { updateDashboardStats(resp.data.stats); }
+                } else {
+                    var msg = (resp && resp.data && resp.data.message) ? resp.data.message : 'Failed to load bookings.';
+                    showToast(msg, 'error');
+                }
+                if ($overlay) { $overlay.remove(); }
+            },
+            error: function() {
+                showToast('An error occurred while refreshing bookings.', 'error');
+                if ($overlay) { $overlay.remove(); }
+            }
+        });
+    });
+
+    // Handle flow filter (silent)
+    $('#booking-flow-filter').on('change', function(event, data) {
+        var status = $('#booking-status-filter').val();
+        var flowId = $(this).val();
+        $.ajax({
+            url: archeus_booking_ajax.ajax_url,
+            type: 'POST',
+            dataType: 'text',
+            data: { action: 'get_bookings', status: status, flow_id: flowId, nonce: archeus_booking_ajax.nonce },
+            success: function(resp) {
+                try { if (typeof resp === 'string') { var fb = resp.indexOf('{'); if (fb > 0) resp = resp.slice(fb); resp = JSON.parse(resp); } } catch (e) { console.error('Admin JSON parse error (filter bookings)', e, resp); showToast('Invalid server response while loading bookings.', 'error'); return; }
+                if (resp && resp.success) {
+                    var bookings = resp.data && (resp.data.bookings || resp.data);
+                    updateBookingsTable(bookings);
+                    if (resp.data && resp.data.stats) { updateDashboardStats(resp.data.stats); }
+                } else {
+                    var msg = (resp && resp.data && resp.data.message) ? resp.data.message : 'Failed to load bookings.';
+                    showToast(msg, 'error');
+                }
+            },
+            error: function() {
+                showToast('An error occurred while refreshing bookings.', 'error');
+            }
+        });
+    });
+    
+    // Handle refresh button
+    $('#refresh-bookings').on('click', function() {
+        var status = $('#booking-status-filter').val();
+        var flowId = $('#booking-flow-filter').length ? $('#booking-flow-filter').val() : ($('#ab-flow-select').length ? $('#ab-flow-select').val() : 0);
+        // Overlay while refreshing
+        if (!document.getElementById('ab-loading-style')) {
+            var css = '\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n';
+            var st = document.createElement('style'); st.id='ab-loading-style'; st.appendChild(document.createTextNode(css)); document.head.appendChild(st);
+        }
+        var $overlay2 = $('<div class="ab-loading-overlay"><div class="ab-loading-spinner"></div><div class="ab-loading-text">Memuat...</div></div>').appendTo('body');
+        $.ajax({
+            url: archeus_booking_ajax.ajax_url,
+            type: 'POST',
+            dataType: 'text',
+            data: {
+                action: 'get_bookings',
+                status: status,
+                flow_id: flowId,
+                nonce: archeus_booking_ajax.nonce
+            },
+            success: function(resp) {
+                try {
+                    if (typeof resp === 'string') {
+                        var firstBrace = resp.indexOf('{');
+                        if (firstBrace > 0) resp = resp.slice(firstBrace);
+                        resp = JSON.parse(resp);
+                    }
+                } catch (e) {
+                    console.error('Admin JSON parse error (refresh bookings)', e, resp);
+                    showToast('Invalid server response while refreshing.', 'error');
+                    if ($overlay2) { $overlay2.remove(); }
+                    return;
+                }
+                if (resp && resp.success) {
+                    var bookings = resp.data && (resp.data.bookings || resp.data);
+                    updateBookingsTable(bookings);
+                    if (resp.data && resp.data.stats) { updateDashboardStats(resp.data.stats); }
+                    showToast('Bookings refreshed successfully.', 'success');
+                    if ($overlay2) { $overlay2.remove(); }
+                } else {
+                    var msg = (resp && resp.data && resp.data.message) ? resp.data.message : 'Failed to refresh bookings.';
+                    showToast(msg, 'error');
+                    if ($overlay2) { $overlay2.remove(); }
+                }
+            },
+            error: function() {
+                showToast('An error occurred while refreshing bookings.', 'error');
+                if ($overlay2) { $overlay2.remove(); }
+            }
+        });
+    });
+    
+    // Function to update the bookings table
+    function updateBookingsTable(bookings) {
+        var tbody = $('#bookings-table-body');
+        tbody.empty();
+        
+        if (!bookings || !bookings.length) {
+            tbody.append('<tr class="no-data"><td colspan="8" class="no-data-cell">Data tidak tersedia atau data kosong.</td></tr>');
+            return;
+        }
+
+        $.each(bookings, function(index, booking) {
+            var completedAllowed = (booking.status === 'approved' || booking.status === 'completed');
+            var row = '<tr data-id="' + booking.id + '">' +
+                '<td class="col-id">' + booking.id + '</td>' +
+                '<td class="col-name" title="' + (booking.display_name || '') + '">' + (booking.display_name || '') + '</td>' +
+                '<td>' + formatDate(booking.booking_date) + '</td>' +
+                '<td>' + (booking.booking_time || '') + '</td>' +
+                '<td>' + booking.service_type + '</td>' +
+                '<td>' +
+                    '<div class="status-control">' +
+                        '<select class="booking-status ab-select ab-dropdown" data-id="' + booking.id + '">' +
+                            '<option value="pending"' + (booking.status === 'pending' ? ' selected' : '') + '>Menunggu</option>' +
+                            '<option value="approved"' + (booking.status === 'approved' ? ' selected' : '') + '>Disetujui</option>' +
+                            
+                            (completedAllowed ? ('<option value="completed"' + (booking.status === 'completed' ? ' selected' : '') + '>Selesai</option>') : '') +
+                            '<option value="rejected"' + (booking.status === 'rejected' ? ' selected' : '') + '>Ditolak</option>' +
+                        '</select>' +
+                    '</div>' +
+                '</td>' +
+                '<td>' + formatDateFull(booking.created_at) + '</td>' +
+                '<td class="col-actions">' +
+                    '<div class="action-buttons">' +
+                        '<button class="view-details-btn button" data-id="' + booking.id + '">Lihat Detail</button>' +
+                        '<button class="delete-booking button" data-id="' + booking.id + '" title="Hapus Booking"><span class="dashicons dashicons-trash" aria-hidden="true"></span><span class="text">Hapus</span></button>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>' +
+            '<tr class="booking-details-row" data-id="' + booking.id + '" style="display: none;">' +
+                '<td colspan="7">' +
+                    '<div class="booking-details">' +
+                        '<h4>Additional Information</h4>' +
+                        '<p>Tidak ada detail tambahan.</p>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
+            
+            tbody.append(row);
+    });
+
+    }
+
+    // Update dashboard stats counters
+    function updateDashboardStats(stats) {
+        try {
+            if (typeof stats !== 'object' || !stats) return;
+            if (typeof stats.total !== 'undefined') jQuery('#ab-count-total').text(stats.total);
+            if (typeof stats.pending !== 'undefined') jQuery('#ab-count-pending').text(stats.pending);
+            if (typeof stats.approved !== 'undefined') jQuery('#ab-count-approved').text(stats.approved);
+            if (typeof stats.completed !== 'undefined') jQuery('#ab-count-completed').text(stats.completed);
+            if (typeof stats.rejected !== 'undefined') jQuery('#ab-count-rejected').text(stats.rejected);
+        } catch(e) {}
+    }
+
+    // Update active flow label near stats
+    function updateFlowLabel(){
+        try {
+            var $sel = jQuery('#ab-flow-select');
+            var label = ($sel.length && $sel.find('option:selected').text()) ? $sel.find('option:selected').text() : 'Semua Flow';
+            var $lbl = jQuery('#ab-flow-active'); if ($lbl.length) $lbl.text(label);
+        } catch(e) {}
+    }
+    // Initialize label on load
+    updateFlowLabel();
+    // Ensure initial data matches current flow selection
+    setTimeout(function(){
+        try {
+            if (jQuery('#booking-status-filter').length) {
+                jQuery('#booking-status-filter').trigger('change', { isInitialLoad: true });
+            } else if (jQuery('#ab-flow-select').length) {
+                jQuery('#ab-flow-select').trigger('change', { isInitialLoad: true });
+            }
+        } catch(e) {}
+    }, 0);
+    
+    // Function to show messages    // Lightweight toast helper (non-intrusive)
+    function showToast(message, type) {
+        try {
+            if (!document.getElementById('ab-toast-style')) {
+                var css = '.ab-toast{position:fixed;right:16px;bottom:16px;background:#1f2937;color:#fff;padding:10px 14px;border-radius:6px;box-shadow:0 6px 16px rgba(0,0,0,.2);z-index:100000;opacity:.98;transition:opacity .3s ease, transform .3s ease;transform:translateY(8px);} .ab-toast.success{background:#16a34a} .ab-toast.error{background:#dc2626}';
+                var st = document.createElement('style'); st.id='ab-toast-style'; st.appendChild(document.createTextNode(css)); document.head.appendChild(st);
+            }
+            var el = document.createElement('div'); el.className='ab-toast ' + (type||'success'); el.textContent = message; document.body.appendChild(el);
+            setTimeout(function(){ el.style.opacity=0; el.style.transform='translateY(0)'; setTimeout(function(){ if(el && el.parentNode){ el.parentNode.removeChild(el); } }, 400); }, 2500);
+        } catch(e) {
+            showMessage(message, type==='error'?'error':'success');
+        }
+    }
+function showMessage(message, type) {
+        // Remove any existing messages
+        $('.booking-message').remove();
+        
+        var messageClass = type === 'success' ? 'notice notice-success' : 'notice notice-error';
+        var messageHtml = '<div class="booking-message ' + messageClass + '"><p>' + message + '</p></div>';
+        
+        $('.wrap').prepend(messageHtml);
+        
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(function() {
+                $('.booking-message').fadeOut();
+            }, 5000);
+        }
+    }
+    
+    // Helper function to format date
+    function formatDate(dateString) {
+        var date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
+    
+    // Helper function to format full date/time
+    function formatDateFull(dateTimeString) {
+        var date = new Date(dateTimeString);
+        return date.toLocaleString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Copy shortcode button (robust: recompute from current select value if available)
+    $(document).on('click', '.ab-copy-btn', function(){
+        var text = '';
+        try {
+            var sel = document.getElementById('ab-flow-select');
+            var pickedId = sel && sel.value ? String(sel.value).replace(/[^0-9]/g,'') : '';
+            if (pickedId) {
+                text = '[archeus_booking id="' + pickedId + '"]';
+            }
+        } catch(e) {}
+        if (!text) {
+            text = $(this).attr('data-copy') || $(this).siblings('.ab-shortcode-code').text();
+        }
+        if (!text) return;
+        try {
+            navigator.clipboard.writeText(text).then(function(){
+                showToast('Shortcode disalin.', 'success');
+            }).catch(function(){
+                // Fallback
+                var ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); showToast('Shortcode disalin.', 'success'); } catch(e){ showToast('Gagal menyalin.', 'error'); }
+                document.body.removeChild(ta);
+            });
+        } catch(e) {
+            showToast('Gagal menyalin.', 'error');
+        }
+    });
+
+    // Ensure shortcode updates when flow select changes (including custom dropdown)
+    $(document).on('change', '#ab-flow-select', function(event, data){
+        var id = this.value || '1';
+        var code = '[archeus_booking id="' + id + '"]';
+        var el = document.getElementById('ab-sc-with-id'); if (el) el.textContent = code;
+        var btn = document.getElementById('ab-copy-with-id'); if (btn) btn.setAttribute('data-copy', code);
+        // Reload bookings list to reflect selected flow
+        try {
+            var isInitial = data && data.isInitialLoad;
+            var status = $('#booking-status-filter').val();
+            var flowId = id;
+            var $overlay = null;
+
+            if (!isInitial) {
+                if (!document.getElementById('ab-loading-style')) {
+                    var css = '\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n';
+                    var st = document.createElement('style'); st.id='ab-loading-style'; st.appendChild(document.createTextNode(css)); document.head.appendChild(st);
+                }
+                $overlay = $('<div class="ab-loading-overlay"><div class="ab-loading-spinner"></div><div class="ab-loading-text">Memuat...</div></div>').appendTo('body');
+            }
+
+            $.ajax({
+                url: archeus_booking_ajax.ajax_url,
+                type: 'POST',
+                dataType: 'text',
+                data: { action: 'get_bookings', status: status, flow_id: flowId, nonce: archeus_booking_ajax.nonce },
+                success: function(resp){
+                    try { if (typeof resp === 'string') { var fb = resp.indexOf('{'); if (fb > 0) resp = resp.slice(fb); resp = JSON.parse(resp);} } catch(e){ if ($overlay) $overlay.remove(); return; }
+                    if (resp && resp.success) {
+                        var bookings = resp.data && (resp.data.bookings || resp.data);
+                        updateBookingsTable(bookings);
+                        if (resp.data && resp.data.stats) { updateDashboardStats(resp.data.stats); }
+                    }
+                    if ($overlay) $overlay.remove();
+                },
+                error: function(){ if ($overlay) $overlay.remove(); }
+            });
+        } catch(e) {}
+    });
+
+    // Autosize select: Pilih Flow in callout
+    (function(){
+        function measureWidth(text, ref){
+            var span = document.createElement('span');
+            span.style.visibility = 'hidden';
+            span.style.position = 'fixed';
+            span.style.whiteSpace = 'pre';
+            try {
+                var cs = window.getComputedStyle(ref);
+                span.style.fontFamily = cs.fontFamily;
+                span.style.fontSize = cs.fontSize;
+                span.style.fontWeight = cs.fontWeight;
+                span.style.letterSpacing = cs.letterSpacing;
+            } catch(e){}
+            span.textContent = text;
+            document.body.appendChild(span);
+            var w = span.getBoundingClientRect().width;
+            document.body.removeChild(span);
+            return w;
+        }
+        function getLongestOptionText(sel){
+            var longest = '';
+            for (var i=0;i<sel.options.length;i++){
+                if ((sel.options[i].text||'').length > longest.length) longest = sel.options[i].text;
+            }
+            return longest || (sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '');
+        }
+        function fitSelect(sel){
+            if (!sel) return;
+            var text = getLongestOptionText(sel);
+            var w = measureWidth(text, sel) + 72; // padding + caret + buffer
+            sel.style.width = Math.max(w, 220) + 'px';
+        }
+        var s = document.getElementById('ab-flow-select');
+        if (s) {
+            fitSelect(s);
+            s.addEventListener('change', function(){ fitSelect(s); });
+            window.addEventListener('resize', function(){ fitSelect(s); });
+        }
+    })();
+
+    // Enhance value visibility: set title and placeholder class on all .ab-select
+    function updateAbSelectState(sel){
+        try {
+            var opt = sel && sel.options ? sel.options[sel.selectedIndex] : null;
+            var txt = opt ? (opt.text || '') : '';
+            if (sel) sel.setAttribute('title', txt);
+            if (!sel || sel.value === '' || sel.value === null) {
+                $(sel).addClass('is-placeholder');
+            } else {
+                $(sel).removeClass('is-placeholder');
+            }
+        } catch(e) {}
+    }
+    $('select.ab-select').each(function(){ updateAbSelectState(this); });
+    $(document).on('change', 'select.ab-select', function(){ updateAbSelectState(this); });
+
+    // After bookings table refresh, update new selects
+    var _origUpdate = window.updateBookingsTable;
+    if (typeof _origUpdate === 'function') {
+        window.updateBookingsTable = function(){
+            _origUpdate.apply(this, arguments);
+            try { $('#bookings-table-body select.ab-select').each(function(){ updateAbSelectState(this); }); } catch(e){}
+            try { enhanceAbDropdowns($('#bookings-table-body')); } catch(e){}
+        };
+    } else {
+        // Fallback: watch mutations in table body
+        var tbody = document.getElementById('bookings-table-body');
+        if (tbody && window.MutationObserver) {
+            var mo = new MutationObserver(function(){ $('#bookings-table-body select.ab-select').each(function(){ updateAbSelectState(this); }); enhanceAbDropdowns($('#bookings-table-body')); });
+            mo.observe(tbody, { childList: true, subtree: true });
+        }
+    }
+
+    // Progressive enhancement: custom dropdown for .ab-dropdown (copied from booking-flow)
+    function enhanceAbDropdowns(root){
+        var $root = root && root.jquery ? root : $(document);
+        $root.find('select.ab-dropdown').each(function(){
+            var $sel = $(this);
+            if ($sel.data('ab-dd')) return; // already enhanced
+            $sel.data('ab-dd', true);
+
+            var selectedText = $sel.find('option:selected').text() || '';
+            var $wrap = $('<div class="ab-dd"></div>');
+            var $btn = $('<button type="button" class="ab-dd-toggle" aria-haspopup="listbox" aria-expanded="false"></button>');
+            var $label = $('<span class="ab-dd-label"></span>').text(selectedText);
+            var $caret = $('<span class="ab-dd-caret" aria-hidden="true"></span>');
+            $btn.append($label).append($caret);
+            var $menu = $('<div class="ab-dd-menu" role="listbox"></div>');
+
+            $sel.find('option').each(function(){
+                var $opt = $(this);
+                var $item = $('<div class="ab-dd-item" role="option" tabindex="-1"></div>').text($opt.text());
+                $item.attr('data-value', $opt.attr('value'));
+                if ($opt.is(':selected')) $item.addClass('is-selected');
+                $menu.append($item);
+            });
+            $sel.addClass('ab-hidden-select').hide().after($wrap);
+            $wrap.append($btn).append($menu);
+            $sel.appendTo($wrap); // keep in wrap to trigger change
+
+            function closeMenu() {
+                $wrap.removeClass('open');
+                $btn.attr('aria-expanded', 'false');
+            }
+            function openMenu() {
+                $wrap.addClass('open');
+                $btn.attr('aria-expanded', 'true');
+            }
+
+            $btn.on('click', function(e) {
+                e.preventDefault();
+                if ($wrap.hasClass('open')) closeMenu();
+                else openMenu();
+            });
+
+            $(document).on('click', function(e) {
+                if (!$.contains($wrap[0], e.target)) closeMenu();
+            });
+
+            $menu.on('click', '.ab-dd-item', function() {
+                var val = $(this).attr('data-value');
+                $sel.val(val).trigger('change');
+                $menu.find('.ab-dd-item').removeClass('is-selected');
+                $(this).addClass('is-selected');
+                $label.text($(this).text());
+                closeMenu();
+            });
+
+            $sel.on('change', function() {
+                var txt = $sel.find('option:selected').text() || '';
+                var val = $sel.val();
+                $label.text(txt);
+                $menu.find('.ab-dd-item').each(function() {
+                    var $i = $(this);
+                    $i.toggleClass('is-selected', $i.attr('data-value') == val);
+                });
+            });
+        });
+    }
+    enhanceAbDropdowns($(document));
+
+    // Observe DOM changes to enhance future selects
+    if (window.MutationObserver) {
+        var moAll = new MutationObserver(function(muts){
+            // Try enhancing any new selects
+            try { enhanceAbDropdowns($(document)); } catch(e){}
+        });
+        moAll.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // Enhanced Form Builder Interactions
+        // Form field builder enhancements
+        // Remove any existing event handlers to prevent duplication
+        $(document).off('click', '#add-field-btn');
+        $(document).on('click', '#add-field-btn', function() {
+            var $btn = $(this);
+            var $container = $('#form-fields-container');
+            var fieldIndex = $container.find('.form-field-row').length;
+
+            // Add loading state
+            $btn.prop('disabled', true);
+
+            setTimeout(function() {
+                var newFieldHtml = createFieldRowHtml(fieldIndex);
+                $container.append(newFieldHtml);
+
+                // Animate new field entry
+                var $newRow = $container.find('.form-field-row').last();
+                $newRow.hide().fadeIn(300);
+
+                // Focus on first input
+                $newRow.find('input[type="text"]').first().focus();
+
+                // Update select styling
+                updateAbSelectState($newRow.find('select.ab-select')[0]);
+
+                $btn.prop('disabled', false);
+
+                // Show success feedback
+                showToast('Field baru berhasil ditambahkan', 'success');
+            }, 100);
+        });
+
+        // Remove field without confirmation
+        $(document).on('click', '.remove-field', function(e) {
+            e.preventDefault();
+            var $row = $(this).closest('.form-field-row');
+
+            $row.fadeOut(300, function() {
+                $(this).remove();
+                showToast('Field berhasil dihapus', 'success');
+            });
+        });
+
+        // Dynamic field type behavior
+        $(document).on('change', '.field-type-select', function() {
+            var $select = $(this);
+            var $row = $select.closest('tr');
+            var fieldType = $select.val();
+            var $optionsCell = $row.find('.options-cell');
+
+            // Show/hide options textarea based on field type
+            if (fieldType === 'select') {
+                $optionsCell.find('.field-options, .select-only').slideDown(200);
+            } else {
+                $optionsCell.find('.field-options, .select-only').slideUp(200);
+            }
+
+            // Add visual feedback
+            $select.addClass('field-type-changed');
+            setTimeout(function() {
+                $select.removeClass('field-type-changed');
+            }, 500);
+        });
+
+        // Field key validation
+        $(document).on('input', '.form-fields-builder input[name^="field_keys_input"]', function() {
+            var $input = $(this);
+            var value = $input.val();
+
+            // Auto-format field key
+            var formatted = value.toLowerCase()
+                .replace(/[^a-z0-9_]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+
+            if (formatted !== value) {
+                $input.val(formatted);
+            }
+
+            // Visual validation
+            if (formatted === '') {
+                $input.addClass('error');
+            } else {
+                $input.removeClass('error');
+            }
+        });
+
+        // Auto-resize options textarea
+        $(document).on('input', '.field-options', function() {
+            var $textarea = $(this);
+            $textarea.height('auto');
+            $textarea.height(Math.min($textarea[0].scrollHeight, 120));
+        });
+
+        // Form submission with validation
+        $(document).on('submit', '.settings-form', function(e) {
+            var $form = $(this);
+            var $submitBtn = $form.find('#submit-form-builder');
+            var isValid = true;
+
+            // Validate field keys
+            $form.find('input[name^="field_keys_input"]').each(function() {
+                var $input = $(this);
+                if ($input.val().trim() === '') {
+                    $input.addClass('error');
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                showToast('Mohon lengkapi semua field key', 'error');
+                return;
+            }
+
+            // Show loading state
+            $submitBtn.prop('disabled', true);
+            $submitBtn.text('Menyimpan...');
+
+            // Add form submission overlay
+            if (!document.getElementById('ab-loading-style')) {
+                var css = '\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n';
+                var styleTag = document.createElement('style');
+                styleTag.id = 'ab-loading-style';
+                styleTag.type = 'text/css';
+                styleTag.appendChild(document.createTextNode(css));
+                document.head.appendChild(styleTag);
+            }
+
+            var $overlay = $('<div class="ab-loading-overlay"><div class="ab-loading-spinner"></div><div class="ab-loading-text">Menyimpan formulir...</div></div>').appendTo('body');
+
+            // Reset button state after a timeout (as fallback)
+            setTimeout(function() {
+                $submitBtn.prop('disabled', false);
+                $submitBtn.text($submitBtn.data('original-text') || 'Simpan Formulir');
+                if ($overlay) {
+                    $overlay.remove();
+                }
+            }, 5000);
+        });
+
+        // Store original button text
+        $('#submit-form-builder').each(function() {
+            $(this).data('original-text', $(this).text());
+        });
+
+        // Keyboard shortcuts
+        $(document).on('keydown', function(e) {
+            // Ctrl/Cmd + S to save form
+            if ((e.ctrlKey || e.metaKey) && e.keyCode === 83) {
+                e.preventDefault();
+                if ($('#submit-form-builder').length && $('.settings-form').length) {
+                    $('.settings-form').submit();
+                }
+            }
+        });
+
+        // Initialize field type behavior on page load
+        setTimeout(function() {
+            $('.field-type-select').each(function() {
+                var $select = $(this);
+                var $row = $select.closest('tr');
+                var fieldType = $select.val();
+                var $optionsCell = $row.find('.options-cell');
+
+                // Show/hide options textarea based on field type
+                if (fieldType === 'select') {
+                    $optionsCell.find('.field-options, .select-only').show();
+                } else {
+                    $optionsCell.find('.field-options, .select-only').hide();
+                }
+            });
+        }, 100);
+
+        // Helper function to create field row HTML
+        function createFieldRowHtml(index) {
+            return '<tr class="form-field-row" data-field-index="' + index + '">' +
+                '<td>' +
+                    '<input type="hidden" name="field_keys[]" value="custom_' + index + '">' +
+                    '<input type="text" name="field_keys_input[custom_' + index + ']" value="custom_' + index + '" class="regular-text" placeholder="contoh: nama_hewan">' +
+                '</td>' +
+                '<td>' +
+                    '<input type="text" name="field_labels[custom_' + index + ']" value="" placeholder="Label field">' +
+                '</td>' +
+                '<td>' +
+                    '<select class="ab-select field-type-select" name="field_types[custom_' + index + ']">' +
+                        '<option value="text">Text</option>' +
+                        '<option value="email">Email</option>' +
+                        '<option value="number">Number</option>' +
+                        '<option value="date">Date</option>' +
+                        '<option value="time">Time</option>' +
+                        '<option value="select">Select</option>' +
+                        '<option value="textarea">Textarea</option>' +
+                        '<option value="file">File Upload</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td style="text-align: center;">' +
+                    '<input type="checkbox" name="field_required[custom_' + index + ']" value="1">' +
+                '</td>' +
+                '<td>' +
+                    '<input type="text" name="field_placeholders[custom_' + index + ']" value="" placeholder="Placeholder text">' +
+                '</td>' +
+                '<td class="options-cell">' +
+                    '<textarea name="field_options[custom_' + index + ']" rows="2" class="large-text field-options" placeholder="Satu nilai per baris" style="display:none;"></textarea>' +
+                    '<p class="description select-only" style="display:none;">Isi hanya untuk tipe Select.</p>' +
+                '</td>' +
+                '<td style="text-align: center;">' +
+                    '<button type="button" class="button remove-field" title="Hapus Field"><span class="dashicons dashicons-trash" aria-hidden="true"></span><span class="text">Hapus</span></button>' +
+                '</td>' +
+            '</tr>';
+        }
+
+        // Initialize tooltips
+        $('.form-fields-builder .tooltip').each(function() {
+            var $tooltip = $(this);
+            var tooltipText = $tooltip.data('tooltip');
+            if (tooltipText) {
+                $tooltip.attr('title', tooltipText);
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+});
