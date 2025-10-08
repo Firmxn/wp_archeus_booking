@@ -497,10 +497,10 @@ class Booking_Admin {
         $email_settings = get_option('booking_email_settings', array(
             'enable_customer_confirmation' => 1,
             'enable_admin_notification' => 1,
-            'customer_confirmation_subject' => __('Booking Confirmation', 'archeus-booking'),
-            'customer_confirmation_body' => __('Thank you for your booking. We will contact you shortly to confirm.', 'archeus-booking'),
-            'admin_notification_subject' => __('New Booking Received', 'archeus-booking'),
-            'admin_notification_body' => __('A new booking has been received and requires attention.', 'archeus-booking')
+            'customer_confirmation_subject' => __('Konfirmasi Reservasi', 'archeus-booking'),
+            'customer_confirmation_body' => __('Terima kasih atas reservasi Anda. Kami akan segera menghubungi Anda untuk konfirmasi.', 'archeus-booking'),
+            'admin_notification_subject' => __('Reservasi Baru Diterima', 'archeus-booking'),
+            'admin_notification_body' => __('Reservasi baru telah diterima, tolong segera dicek.', 'archeus-booking')
         ));
         
         // Save settings if form was submitted
@@ -810,7 +810,10 @@ class Booking_Admin {
                         </td>
                         <td><?php echo date('M j, Y g:i A', strtotime($booking->created_at)); ?></td>
                         <td>
-                            <button class="view-details-btn button" data-id="<?php echo $booking->id; ?>"><?php _e('Lihat Detail', 'archeus-booking'); ?></button>
+                            <button class="view-details-btn button" data-id="<?php echo $booking->id; ?>" title="<?php esc_attr_e('Lihat Detail', 'archeus-booking'); ?>">
+                                <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+                                <span class="screen-reader-text"><?php _e('Lihat Detail', 'archeus-booking'); ?></span>
+                            </button>
                             <button class="delete-booking button" data-id="<?php echo $booking->id; ?>" title="<?php esc_attr_e('Hapus Booking', 'archeus-booking'); ?>">
                                 <span class="dashicons dashicons-trash" aria-hidden="true"></span>
                                 <span class="screen-reader-text"><?php _e('Hapus', 'archeus-booking'); ?></span>
@@ -819,7 +822,7 @@ class Booking_Admin {
                     </tr>
                     <!-- Details row (initially hidden) -->
                     <tr class="booking-details-row" data-id="<?php echo $booking->id; ?>" style="display: none;">
-                        <td colspan="7">
+                        <td colspan="8">
                             <div class="booking-details">
                                 <h4><?php _e('Additional Information', 'archeus-booking'); ?></h4>
                                 <p><?php _e('Tidak ada detail tambahan.', 'archeus-booking'); ?></p>
@@ -1306,7 +1309,7 @@ class Booking_Admin {
         $message .= '<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">' . __('Site', 'archeus-booking') . '</td>';
         $message .= '<td style="padding: 8px; border: 1px solid #ddd;">' . get_bloginfo('name') . '</td></tr>';
         $message .= '</table>';
-        $message .= '<p>' . __('Best regards,', 'archeus-booking') . '</p>';
+        $message .= '<p>' . __('Salam hormat,', 'archeus-booking') . '</p>';
         $message .= '<p><strong>' . get_bloginfo('name') . '</strong></p>';
         $message .= '</div></body></html>';
 
@@ -1553,10 +1556,10 @@ class Booking_Admin {
 
         // Add specific title based on status
         $status_titles = array(
-            'approved' => __('Booking Diterima!', 'archeus-booking'),
-            'rejected' => __('Booking Ditolak', 'archeus-booking'),
-            'completed' => __('Booking Selesai', 'archeus-booking'),
-            'pending' => __('Booking Sedang Diproses', 'archeus-booking')
+            'approved' => __('Reservasi Diterima!', 'archeus-booking'),
+            'rejected' => __('Reservasi Ditolak', 'archeus-booking'),
+            'completed' => __('Reservasi Selesai', 'archeus-booking'),
+            'pending' => __('Reservasi Sedang Diproses', 'archeus-booking')
         );
 
         $title = isset($status_titles[$new_status]) ? $status_titles[$new_status] : __('Status Booking Diperbarui', 'archeus-booking');
@@ -1568,19 +1571,19 @@ class Booking_Admin {
         // Add specific message based on status
         switch ($new_status) {
             case 'approved':
-                $message = __('Selamat! Booking Anda telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda sesuai dengan jadwal yang telah dipilih.', 'archeus-booking');
+                $message = __('Selamat! Reservasi Anda telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda sesuai dengan jadwal yang telah dipilih.', 'archeus-booking');
                 break;
             case 'rejected':
-                $message = __('Maaf, booking Anda telah <strong>DITOLAK</strong>. Jika Anda memiliki pertanyaan atau membutuhkan bantuan, silakan hubungi kami.', 'archeus-booking');
+                $message = __('Maaf, reservasi Anda telah <strong>DITOLAK</strong>. Jika Anda memiliki pertanyaan atau membutuhkan bantuan, silakan hubungi kami.', 'archeus-booking');
                 break;
             case 'completed':
-                $message = __('Booking Anda telah ditandai sebagai selesai. Terima kasih telah menggunakan layanan kami!', 'archeus-booking');
+                $message = __('Reservasi Anda telah ditandai sebagai selesai. Terima kasih telah menggunakan layanan kami!', 'archeus-booking');
                 break;
             case 'pending':
-                $message = __('Booking Anda sedang dalam status menunggu. Kami akan segera mengkonfirmasi booking Anda.', 'archeus-booking');
+                $message = __('Reservasi Anda sedang dalam status menunggu. Kami akan segera mengkonfirmasi reservasi Anda.', 'archeus-booking');
                 break;
             default:
-                $message = sprintf(__('Status booking Anda telah diperbarui menjadi: <strong>%s</strong>', 'archeus-booking'), $status_label);
+                $message = sprintf(__('Status reservasi Anda telah diperbarui menjadi: <strong>%s</strong>', 'archeus-booking'), $status_label);
         }
         
         $html .= '<p>' . $message . '</p>';
@@ -1608,8 +1611,8 @@ class Booking_Admin {
         
         $html .= '</table>';
         
-        $html .= '<p>' . __('If you have any questions about this change, please contact us.', 'archeus-booking') . '</p>';
-        $html .= '<p>' . __('Best regards,', 'archeus-booking') . '</p>';
+        $html .= '<p>' . __('Jika Anda memiliki pertanyaan tentang hal ini, silakan hubungi kami.', 'archeus-booking') . '</p>';
+        $html .= '<p>' . __('Salam hormat,', 'archeus-booking') . '</p>';
         $html .= '<p><strong>' . get_bloginfo('name') . '</strong></p>';
         $html .= '</div>';
         $html .= '</body></html>';
@@ -1680,10 +1683,10 @@ class Booking_Admin {
      */
     public function handle_get_booking_details() {
         if (!isset($_POST['nonce']) || (!wp_verify_nonce($_POST['nonce'], 'booking_admin_nonce') && !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce'))) {
-            wp_die(__('Security check failed', 'archeus-booking'));
+            wp_send_json_error(array('message' => __('Security check failed', 'archeus-booking')));
         }
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have permission to perform this action', 'archeus-booking'));
+            wp_send_json_error(array('message' => __('You do not have permission to perform this action', 'archeus-booking')));
         }
         $booking_id = isset($_POST['booking_id']) ? intval($_POST['booking_id']) : 0;
         if (!$booking_id) { wp_send_json_error(array('message' => __('Invalid booking ID', 'archeus-booking'))); }

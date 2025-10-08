@@ -56,7 +56,7 @@ class Booking_Shortcodes {
                                 }
                                 echo '</select>';
                                 break;
-                            case 'textarea': echo '<textarea id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" rows="4" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '"></textarea>'; break;
+                            case 'textarea': echo '<textarea id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" rows="2" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '"></textarea>'; break;
                             case 'file':
                                 echo '<input type="file" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . 
                                      ($field_data['required'] ? 'required' : '') . '>';
@@ -331,7 +331,7 @@ class Booking_Shortcodes {
                                                         }
                                                         echo '</select>';
                                                         break;
-                                                    case 'textarea': echo '<textarea id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" rows="4" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder'] ?? '') . '"></textarea>'; break;
+                                                    case 'textarea': echo '<textarea id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" rows="2" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder'] ?? '') . '"></textarea>'; break;
                                                 case 'file':
                                                         $input_id = esc_attr($field_key) . '_' . esc_attr($form_id);
                                                         echo '<div class="file-upload">';

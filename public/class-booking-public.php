@@ -142,8 +142,8 @@ class Booking_Public {
         // Get email settings
         $email_settings = get_option('booking_email_settings', array(
             'enable_admin_notification' => 1,
-            'admin_notification_subject' => __('New Booking Received', 'archeus-booking'),
-            'admin_notification_body' => __('A new booking has been received and requires attention.', 'archeus-booking')
+            'admin_notification_subject' => __('Reservasi Baru Diterima', 'archeus-booking'),
+            'admin_notification_body' => __('Reservasi baru telah diterima, tolong segera dicek.', 'archeus-booking')
         ));
         
         // Check if admin notification is enabled
@@ -185,11 +185,11 @@ class Booking_Public {
         
         // For HTML email, we'll use the more detailed table format
         if ($recipient_type === 'customer') {
-            $title = __('Your Booking Confirmation', 'archeus-booking');
+            $title = __('Konfirmasi Reservasi Anda', 'archeus-booking');
             $greeting = sprintf(__('Dear %s,', 'archeus-booking'), $display_name);
         } else {
-            $title = __('New Booking Received', 'archeus-booking');
-            $greeting = __('Hello,', 'archeus-booking');
+            $title = __('Reservasi Baru Diterima', 'archeus-booking');
+            $greeting = __('Halo,', 'archeus-booking');
         }
         
         $html = '<html><body>';
@@ -232,7 +232,7 @@ class Booking_Public {
         
         $html .= '</table>';
         
-        $html .= '<p>' . __('Best regards,', 'archeus-booking') . '</p>';
+        $html .= '<p>' . __('Salam hormat,', 'archeus-booking') . '</p>';
         $html .= '<p><strong>' . get_bloginfo('name') . '</strong></p>';
         $html .= '</div>';
         $html .= '</body></html>';

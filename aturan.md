@@ -2,6 +2,8 @@ Jangan mengubah struktur (html) dan gaya (css) dari kalender, card layananm sert
 
 sekarang fokus ke halaman booking flow di panel admin
 
+
+
 Sebelum memulai, tolong baca peraturan berikut:
 Lakukan scanning untuk memahami alur dan struktur plugin ini dahulu
 

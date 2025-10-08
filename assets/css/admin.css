@@ -2,11 +2,15 @@
 :root {
   --primary-color: #54b335;
   --primary-hover: #629e40;
+  --button-primary: #edfbe2;
+  --button-primary-hover: #54b335;
   --secondary-color: #6c757d;
   --success-color: #10b981;
   --danger-color: #ef4444;
+  --danger-hover: #dc2626;
   --warning-color: #f59e0b;
-  --info-color: #3b82f6;
+  --info-color: #bfdbfe;
+  --info-color-hover: #3b82f6;
   --light-color: #f3f4f6;
   --dark-color: #1f2937;
   --border-radius: 10px;
@@ -184,7 +188,7 @@
 }
 
 .stat-box.default {
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid var(--secondary-color);
 }
 
 .stat-box.pending {
@@ -192,7 +196,7 @@
 }
 
 .stat-box.success {
-  border-left: 4px solid var(--success-color);
+  border-left: 4px solid var(--primary-color);
 }
 
 .stat-box.danger {
@@ -732,7 +736,8 @@
   font-weight: 600;
 }
 .booking-admin-page .view-details-btn.button:hover {
-  background: #f3f4f6;
+  background: black;
+  color: white;
   font-size: 14px;
   font-weight: 600;
 }
@@ -804,25 +809,28 @@
   border: 1px solid #e5e7eb;
 }
 .booking-admin-page .bv-actions .bv-preview.button:hover {
-  background: #f3f4f6;
+  background: black;
+  color: white;
 }
 .booking-admin-page .bv-actions .bv-open.button {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #fff;
+  background: var(--button-primary);
+  border-color: var(--button-primary);
+  color: var(--button-primary-hover);
 }
 .booking-admin-page .bv-actions .bv-open.button:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
+  background: var(--button-primary-hover);
+  border-color: var(--button-primary-hover);
+  color: white;
 }
 .booking-admin-page .bv-actions .bv-download.button {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: #fff;
+  background: var(--info-color);
+  border-color: var(--info-color);
+  color: var(--info-color-hover);
 }
 .booking-admin-page .bv-actions .bv-download.button:hover {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--info-color-hover);
+  border-color: var(--info-color-hover);
+  color: white;
 }
 
 /* Modernize admin UI to align with booking flow */
