@@ -18,6 +18,16 @@ class Booking_Admin {
         add_action('wp_ajax_get_booking_details', array($this, 'handle_get_booking_details'));
         add_action('admin_post_save_booking_settings', array($this, 'save_booking_settings'));
         add_action('wp_ajax_delete_booking', array($this, 'handle_booking_deletion'));
+        add_action('wp_ajax_delete_form', array($this, 'handle_form_deletion'));
+        add_action('wp_ajax_create_form', array($this, 'handle_form_creation'));
+        add_action('wp_ajax_update_form', array($this, 'handle_form_update'));
+        add_action('wp_ajax_delete_service', array($this, 'handle_service_deletion'));
+        add_action('wp_ajax_delete_time_slot', array($this, 'handle_time_slot_deletion'));
+        add_action('wp_ajax_delete_flow', array($this, 'handle_flow_deletion'));
+        add_action('wp_ajax_create_service', array($this, 'handle_service_creation'));
+        add_action('wp_ajax_update_service', array($this, 'handle_service_update'));
+        add_action('wp_ajax_create_time_slot', array($this, 'handle_time_slot_creation'));
+        add_action('wp_ajax_update_time_slot', array($this, 'handle_time_slot_update'));
         add_action('wp_ajax_get_admin_calendar_data', array($this, 'handle_get_admin_calendar_data'));
 
 
@@ -212,8 +222,8 @@ class Booking_Admin {
         $booking_db = new Booking_Database();
         $forms = $booking_db->get_forms();
         
-        // Handle form creation/update
-        if (isset($_POST['save_form']) && wp_verify_nonce($_POST['booking_forms_nonce'], 'save_booking_forms')) {
+        // Handle form creation/update (fallback for non-AJAX requests)
+        if (isset($_POST['save_form']) && wp_verify_nonce($_POST['booking_forms_nonce'], 'save_booking_forms') && !isset($_POST['action'])) {
             $name = sanitize_text_field($_POST['form_name']);
             $slug = '';
             $description = '';
@@ -362,8 +372,8 @@ class Booking_Admin {
                     <h2><?php echo $edit_form ? __('Ubah Formulir', 'archeus-booking') : __('Buat Formulir Baru', 'archeus-booking'); ?></h2>
                 </div>
                 <div class="admin-card-body">
-                    <form method="post" action="" class="settings-form">
-                        <?php wp_nonce_field('save_booking_forms', 'booking_forms_nonce'); ?>
+                    <form method="post" action="" class="settings-form" data-ajax-form="true">
+                        <?php wp_nonce_field('archeus_booking_admin', 'archeus_booking_admin_nonce'); ?>
                         <input type="hidden" name="form_id" value="<?php echo $edit_form ? esc_attr($edit_form->id) : ''; ?>">
                         
                         <div class="form-row">
@@ -415,7 +425,7 @@ class Booking_Admin {
                                             <td><input type="text" name="field_placeholders[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_data['placeholder']); ?>"></td>
                                             <td class="options-cell">
                                                 <?php $opts = isset($field_data['options']) && is_array($field_data['options']) ? implode("\n", $field_data['options']) : ''; ?>
-                                                <textarea name="field_options[<?php echo esc_attr($field_key); ?>]" rows="4" class="large-text field-options" placeholder="Satu nilai per baris" style="<?php echo $field_data['type'] === 'select' ? '' : 'display:none;'; ?>"><?php echo esc_textarea($opts); ?></textarea>
+                                                <textarea name="field_options[<?php echo esc_attr($field_key); ?>]" rows="2" class="large-text field-options" placeholder="Satu nilai per baris" style="<?php echo $field_data['type'] === 'select' ? '' : 'display:none;'; ?>"><?php echo esc_textarea($opts); ?></textarea>
                                                 <!-- <p class="description select-only" style="<?php echo $field_data['type'] === 'select' ? '' : 'display:none;'; ?>"><?php _e('Isi hanya untuk tipe Select.', 'archeus-booking'); ?></p> -->
                                             </td>
                                             <td class="col-actions"><button type="button" class="button remove-field" title="<?php esc_attr_e('Hapus Field', 'archeus-booking'); ?>"><span class="dashicons dashicons-trash" aria-hidden="true"></span><span class="screen-reader-text"><?php _e('Hapus', 'archeus-booking'); ?></span></button></td>
@@ -471,7 +481,7 @@ class Booking_Admin {
                                                     <span class="dashicons dashicons-edit" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Ubah', 'archeus-booking'); ?></span>
                                                 </a>
-                                                <a href="<?php echo admin_url('admin.php?page=archeus-booking-forms&action=delete&form_id=' . $form->id); ?>" class="button button-danger delete-form" onclick="return confirm('<?php _e('Yakin ingin menghapus formulir ini?', 'archeus-booking'); ?>')" title="<?php esc_attr_e('Hapus Formulir', 'archeus-booking'); ?>">
+                                                <a href="#" class="button button-danger delete-form" data-form-id="<?php echo $form->id; ?>" title="<?php esc_attr_e('Hapus Formulir', 'archeus-booking'); ?>">
                                                     <span class="dashicons dashicons-trash" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Hapus', 'archeus-booking'); ?></span>
                                                 </a>
@@ -1213,7 +1223,7 @@ class Booking_Admin {
         <script>
         jQuery(document).ready(function($) {
             $('#clear-logs-btn').click(function() {
-                if (confirm('<?php _e('Are you sure you want to clear all email logs?', 'archeus-booking'); ?>')) {
+                showDeleteConfirm('<?php _e('Are you sure you want to clear all email logs?', 'archeus-booking'); ?>', '', function() {
                     $.ajax({
                         url: ajaxurl,
                         type: 'POST',
@@ -1225,7 +1235,7 @@ class Booking_Admin {
                             location.reload();
                         }
                     });
-                }
+                });
             });
         });
         </script>
@@ -1736,7 +1746,662 @@ class Booking_Admin {
             ));
         }
     }
-    
+
+    /**
+     * Handle form deletion via AJAX
+     */
+    public function handle_form_deletion() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $form_id = intval($_POST['form_id']);
+
+        $booking_db = new Booking_Database();
+        $result = $booking_db->delete_form($form_id);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Formulir berhasil dihapus.', 'archeus-booking')
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Gagal menghapus formulir.', 'archeus-booking')
+            ));
+        }
+    }
+
+    /**
+     * Handle service deletion via AJAX
+     */
+    public function handle_service_deletion() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $service_id = intval($_POST['service_id']);
+
+        $booking_db = new Booking_Database();
+        $result = $booking_db->delete_service($service_id);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Service deleted successfully.', 'archeus-booking')
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Error deleting service.', 'archeus-booking')
+            ));
+        }
+    }
+
+    /**
+     * Handle time slot deletion via AJAX
+     */
+    public function handle_time_slot_deletion() {
+        error_log('handle_time_slot_deletion called with POST data: ' . print_r($_POST, true));
+
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            error_log('Nonce verification failed for time slot deletion');
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            error_log('Permission denied for time slot deletion');
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $slot_id = intval($_POST['slot_id']);
+        error_log('Processing deletion for time slot ID: ' . $slot_id);
+
+        // Use direct database operations instead of class method to avoid potential loading issues
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'archeus_booking_time_slots';
+
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        if (!$table_exists) {
+            error_log('Time slots table does not exist: ' . $table_name);
+            wp_send_json_error(array('message' => 'Tabel time slots tidak ditemukan. Silakan aktivasi ulang plugin.'));
+        }
+
+        // Check if the slot exists
+        $existing_slot = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_name WHERE id = %d",
+            $slot_id
+        ));
+
+        if (!$existing_slot) {
+            error_log('Time slot not found for deletion: ' . $slot_id);
+            wp_send_json_error(array('message' => 'Slot waktu tidak ditemukan.'));
+        }
+
+        // Delete the time slot
+        error_log('Attempting to delete time slot ID: ' . $slot_id);
+
+        $result = $wpdb->delete(
+            $table_name,
+            array('id' => $slot_id),
+            array('%d')
+        );
+
+        // Check for database errors
+        if ($result === false) {
+            error_log('Database delete failed: ' . $wpdb->last_error);
+            wp_send_json_error(array('message' => 'Gagal menghapus data: ' . $wpdb->last_error));
+        }
+
+        error_log('Time slot deleted successfully: ' . $slot_id);
+
+        wp_send_json_success(array(
+            'message' => 'Slot waktu berhasil dihapus.',
+            'slot_id' => $slot_id
+        ));
+    }
+
+    /**
+     * Handle flow deletion via AJAX
+     */
+    public function handle_flow_deletion() {
+        error_log('handle_flow_deletion called with POST data: ' . print_r($_POST, true));
+
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            error_log('Nonce verification failed for flow deletion');
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            error_log('Permission denied for flow deletion');
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $flow_id = intval($_POST['flow_id']);
+        error_log('Processing deletion for flow ID: ' . $flow_id);
+
+        // Use direct database operations to avoid potential loading issues
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'archeus_booking_flows';
+
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        if (!$table_exists) {
+            error_log('Flows table does not exist: ' . $table_name);
+            wp_send_json_error(array('message' => 'Tabel flows tidak ditemukan. Silakan aktivasi ulang plugin.'));
+        }
+
+        // Check if the flow exists
+        $existing_flow = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_name WHERE id = %d",
+            $flow_id
+        ));
+
+        if (!$existing_flow) {
+            error_log('Flow not found for deletion: ' . $flow_id);
+            wp_send_json_error(array('message' => 'Booking flow tidak ditemukan.'));
+        }
+
+        // Delete the flow
+        error_log('Attempting to delete flow ID: ' . $flow_id);
+
+        $result = $wpdb->delete(
+            $table_name,
+            array('id' => $flow_id),
+            array('%d')
+        );
+
+        // Check for database errors
+        if ($result === false) {
+            error_log('Database delete failed: ' . $wpdb->last_error);
+            wp_send_json_error(array('message' => 'Gagal menghapus data: ' . $wpdb->last_error));
+        }
+
+        error_log('Flow deleted successfully: ' . $flow_id);
+
+        wp_send_json_success(array(
+            'message' => 'Booking flow berhasil dihapus.',
+            'flow_id' => $flow_id
+        ));
+    }
+
+    /**
+     * Handle form creation via AJAX
+     */
+    public function handle_form_creation() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $name = sanitize_text_field($_POST['form_name']);
+        $description = sanitize_textarea_field($_POST['form_description']);
+
+        // Process fields
+        $fields = array();
+        if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
+            foreach ($_POST['field_keys'] as $index => $key) {
+                if (empty($key)) continue;
+
+                $label = isset($_POST['field_labels'][$key]) ? sanitize_text_field($_POST['field_labels'][$key]) : $key;
+                $type = isset($_POST['field_types'][$key]) ? sanitize_text_field($_POST['field_types'][$key]) : 'text';
+                $required = isset($_POST['field_required'][$key]) ? 1 : 0;
+                $placeholder = isset($_POST['field_placeholders'][$key]) ? sanitize_text_field($_POST['field_placeholders'][$key]) : '';
+
+                $options = array();
+                if ($type === 'select' && isset($_POST['field_options'][$key])) {
+                    $raw = wp_unslash($_POST['field_options'][$key]);
+                    $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
+                    foreach ($lines as $line) {
+                        $opt = trim($line);
+                        if ($opt !== '') { $options[] = $opt; }
+                    }
+                }
+
+                $fields[$key] = array(
+                    'label' => $label,
+                    'type' => $type,
+                    'required' => $required,
+                    'placeholder' => $placeholder,
+                    'options' => $options
+                );
+            }
+        }
+
+        $booking_db = new Booking_Database();
+        $auto_slug = 'form-' . uniqid();
+        $result = $booking_db->create_form($name, $auto_slug, $description, $fields);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Formulir berhasil dibuat.', 'archeus-booking'),
+                'form_id' => $result
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Gagal membuat formulir.', 'archeus-booking')
+            ));
+        }
+    }
+
+    /**
+     * Handle form update via AJAX
+     */
+    public function handle_form_update() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $form_id = intval($_POST['form_id']);
+        $name = sanitize_text_field($_POST['form_name']);
+        $slug = isset($_POST['form_slug']) ? sanitize_title($_POST['form_slug']) : '';
+        $description = sanitize_textarea_field($_POST['form_description']);
+
+        // Process fields
+        $fields = array();
+        if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
+            foreach ($_POST['field_keys'] as $index => $key) {
+                if (empty($key)) continue;
+
+                $label = isset($_POST['field_labels'][$key]) ? sanitize_text_field($_POST['field_labels'][$key]) : $key;
+                $type = isset($_POST['field_types'][$key]) ? sanitize_text_field($_POST['field_types'][$key]) : 'text';
+                $required = isset($_POST['field_required'][$key]) ? 1 : 0;
+                $placeholder = isset($_POST['field_placeholders'][$key]) ? sanitize_text_field($_POST['field_placeholders'][$key]) : '';
+
+                $options = array();
+                if ($type === 'select' && isset($_POST['field_options'][$key])) {
+                    $raw = wp_unslash($_POST['field_options'][$key]);
+                    $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
+                    foreach ($lines as $line) {
+                        $opt = trim($line);
+                        if ($opt !== '') { $options[] = $opt; }
+                    }
+                }
+
+                $fields[$key] = array(
+                    'label' => $label,
+                    'type' => $type,
+                    'required' => $required,
+                    'placeholder' => $placeholder,
+                    'options' => $options
+                );
+            }
+        }
+
+        $booking_db = new Booking_Database();
+        $slug_to_use = !empty($slug) ? $slug : 'form-' . uniqid();
+        $result = $booking_db->update_form($form_id, $name, $slug_to_use, $description, $fields);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Formulir berhasil diperbarui.', 'archeus-booking')
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Gagal memperbarui formulir.', 'archeus-booking')
+            ));
+        }
+    }
+
+    /**
+     * Handle time slot creation via AJAX
+     */
+    public function handle_time_slot_creation() {
+        global $wpdb;
+
+        error_log('Time slot creation handler called');
+
+        // Check basic requirements
+        if (!isset($_POST['nonce'])) {
+            error_log('Nonce not provided');
+            wp_send_json_error(array('message' => 'Nonce not provided'));
+        }
+
+        if (!wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            error_log('Nonce verification failed');
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+
+        if (!current_user_can('manage_options')) {
+            error_log('User does not have permission');
+            wp_send_json_error(array('message' => 'Permission denied'));
+        }
+
+        // Get and sanitize input data
+        $time_label = sanitize_text_field($_POST['time_label']);
+        $start_time = sanitize_text_field($_POST['start_time']);
+        $end_time = sanitize_text_field($_POST['end_time']);
+        $max_capacity = intval($_POST['max_capacity']);
+        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
+
+        // Log received data
+        error_log('Received data: ' . print_r($_POST, true));
+
+        // Validate required fields
+        if (empty($time_label) || empty($start_time) || empty($end_time)) {
+            error_log('Missing required fields');
+            wp_send_json_error(array('message' => 'Semua field wajib diisi'));
+        }
+
+        // Validate time format and convert to HH:MM:SS
+        $time_pattern_hhmm = '/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/';
+        $time_pattern_hhmmss = '/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/';
+
+        if (preg_match($time_pattern_hhmm, $start_time)) {
+            $start_time .= ':00';
+        }
+
+        if (preg_match($time_pattern_hhmm, $end_time)) {
+            $end_time .= ':00';
+        }
+
+        if (!preg_match($time_pattern_hhmmss, $start_time) || !preg_match($time_pattern_hhmmss, $end_time)) {
+            error_log('Invalid time format: ' . $start_time . ' - ' . $end_time);
+            wp_send_json_error(array('message' => 'Format waktu tidak valid. Gunakan format JJ:MM.'));
+        }
+
+        // Validate time range
+        $start_timestamp = strtotime('1970-01-01 ' . $start_time);
+        $end_timestamp = strtotime('1970-01-01 ' . $end_time);
+
+        if ($end_timestamp <= $start_timestamp) {
+            error_log('Invalid time range: ' . $start_time . ' - ' . $end_time);
+            wp_send_json_error(array('message' => 'Waktu selesai harus setelah waktu mulai.'));
+        }
+
+        // Define table name
+        $table_name = $wpdb->prefix . 'archeus_booking_time_slots';
+
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        if (!$table_exists) {
+            error_log('Time slots table does not exist: ' . $table_name);
+            wp_send_json_error(array('message' => 'Tabel time slots tidak ditemukan. Silakan aktivasi ulang plugin.'));
+        }
+
+        // Check for duplicate time slots
+        $existing_slot = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_name WHERE start_time = %s AND end_time = %s",
+            $start_time,
+            $end_time
+        ));
+
+        if ($existing_slot) {
+            error_log('Duplicate time slot found: ' . $start_time . ' - ' . $end_time);
+            wp_send_json_error(array('message' => 'Slot waktu dengan rentang waktu yang sama sudah ada.'));
+        }
+
+        // Insert new time slot
+        error_log('Attempting to insert time slot: ' . $time_label . ' (' . $start_time . ' - ' . $end_time . ')');
+
+        $result = $wpdb->insert(
+            $table_name,
+            array(
+                'time_label' => $time_label,
+                'start_time' => $start_time,
+                'end_time' => $end_time,
+                'max_capacity' => $max_capacity,
+                'is_active' => $is_active
+            ),
+            array('%s', '%s', '%s', '%d', '%d')
+        );
+
+        // Check for database errors
+        if ($result === false) {
+            error_log('Database insert failed: ' . $wpdb->last_error);
+            wp_send_json_error(array('message' => 'Gagal menyimpan data ke database: ' . $wpdb->last_error));
+        }
+
+        $slot_id = $wpdb->insert_id;
+        error_log('Time slot created successfully with ID: ' . $slot_id);
+
+        wp_send_json_success(array(
+            'message' => 'Slot waktu berhasil dibuat.',
+            'slot_id' => $slot_id
+        ));
+    }
+
+    /**
+     * Handle time slot update via AJAX
+     */
+    public function handle_time_slot_update() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $slot_id = intval($_POST['slot_id']);
+        $time_label = sanitize_text_field($_POST['time_label']);
+        $start_time = sanitize_text_field($_POST['start_time']);
+        $end_time = sanitize_text_field($_POST['end_time']);
+        $max_capacity = intval($_POST['max_capacity']);
+        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
+        $sort_order = 0; // Not used anymore, but kept for parameter compatibility
+
+        // Validate time format - accept both HH:MM and HH:MM:SS formats
+        $time_pattern_hhmm = '/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/';
+        $time_pattern_hhmmss = '/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/';
+
+        // If time is in HH:MM format, convert to HH:MM:SS format
+        if (preg_match($time_pattern_hhmm, $start_time)) {
+            $start_time .= ':00';
+        }
+
+        if (preg_match($time_pattern_hhmm, $end_time)) {
+            $end_time .= ':00';
+        }
+
+        // Validate the final format
+        if (!preg_match($time_pattern_hhmmss, $start_time) || !preg_match($time_pattern_hhmmss, $end_time)) {
+            wp_send_json_error(array(
+                'message' => __('Format waktu tidak valid. Gunakan format JJ:MM.', 'archeus-booking')
+            ));
+        }
+
+        // Validate that end time is after start time
+        $start_timestamp = strtotime('1970-01-01 ' . $start_time);
+        $end_timestamp = strtotime('1970-01-01 ' . $end_time);
+
+        if ($end_timestamp <= $start_timestamp) {
+            wp_send_json_error(array(
+                'message' => __('Waktu selesai harus setelah waktu mulai.', 'archeus-booking')
+            ));
+        }
+
+        // Use direct database operations instead of class method to avoid potential loading issues
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'archeus_booking_time_slots';
+
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        if (!$table_exists) {
+            error_log('Time slots table does not exist: ' . $table_name);
+            wp_send_json_error(array('message' => 'Tabel time slots tidak ditemukan. Silakan aktivasi ulang plugin.'));
+        }
+
+        // Check if the slot exists
+        $existing_slot = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_name WHERE id = %d",
+            $slot_id
+        ));
+
+        if (!$existing_slot) {
+            error_log('Time slot not found for update: ' . $slot_id);
+            wp_send_json_error(array('message' => 'Slot waktu tidak ditemukan.'));
+        }
+
+        // Check for duplicate time slots (excluding current slot)
+        $duplicate_slot = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_name WHERE start_time = %s AND end_time = %s AND id != %d",
+            $start_time,
+            $end_time,
+            $slot_id
+        ));
+
+        if ($duplicate_slot) {
+            error_log('Duplicate time slot found for update: ' . $start_time . ' - ' . $end_time);
+            wp_send_json_error(array('message' => 'Slot waktu dengan rentang waktu yang sama sudah ada.'));
+        }
+
+        // Update the time slot
+        error_log('Attempting to update time slot ID ' . $slot_id . ': ' . $time_label . ' (' . $start_time . ' - ' . $end_time . ')');
+
+        $result = $wpdb->update(
+            $table_name,
+            array(
+                'time_label' => $time_label,
+                'start_time' => $start_time,
+                'end_time' => $end_time,
+                'max_capacity' => $max_capacity,
+                'is_active' => $is_active,
+                'updated_at' => current_time('mysql')
+            ),
+            array('id' => $slot_id),
+            array('%s', '%s', '%s', '%d', '%d', '%s'),
+            array('%d')
+        );
+
+        // Check for database errors
+        if ($result === false) {
+            error_log('Database update failed: ' . $wpdb->last_error);
+            wp_send_json_error(array('message' => 'Gagal memperbarui data: ' . $wpdb->last_error));
+        }
+
+        error_log('Time slot updated successfully: ' . $slot_id);
+
+        wp_send_json_success(array(
+            'message' => 'Slot waktu berhasil diperbarui.',
+            'slot_id' => $slot_id
+        ));
+    }
+
+    /**
+     * Handle service creation via AJAX
+     */
+    public function handle_service_creation() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $name = sanitize_text_field($_POST['service_name']);
+        $description = sanitize_textarea_field($_POST['service_description']);
+        $price = floatval($_POST['service_price']);
+        $duration = intval($_POST['service_duration']);
+        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
+
+        $booking_db = new Booking_Database();
+        $result = $booking_db->create_service($name, $description, $price, $duration, $is_active);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Service created successfully.', 'archeus-booking'),
+                'service_id' => $result
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Error creating service.', 'archeus-booking')
+            ));
+        }
+    }
+
+    /**
+     * Handle service update via AJAX
+     */
+    public function handle_service_update() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $service_id = intval($_POST['service_id']);
+        $name = sanitize_text_field($_POST['service_name']);
+        $description = sanitize_textarea_field($_POST['service_description']);
+        $price = floatval($_POST['service_price']);
+        $duration = intval($_POST['service_duration']);
+        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
+
+        $booking_db = new Booking_Database();
+        $result = $booking_db->update_service($service_id, $name, $description, $price, $duration, $is_active);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Service updated successfully.', 'archeus-booking')
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Error updating service.', 'archeus-booking')
+            ));
+        }
+    }
+
     /**
      * Add calendar menu
      */
@@ -2338,7 +3003,7 @@ class Booking_Admin {
             $description = sanitize_textarea_field($_POST['service_description']);
             $price = floatval($_POST['service_price']);
             $duration = intval($_POST['service_duration']);
-            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
             
             if ($service_id > 0) {
                 // Update existing service
@@ -2516,7 +3181,7 @@ class Booking_Admin {
                                                     <span class="dashicons dashicons-edit" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Edit', 'archeus-booking'); ?></span>
                                                 </a>
-                                                <a href="<?php echo admin_url('admin.php?page=archeus-booking-services&action=delete&service_id=' . $service->id); ?>" class="button button-danger delete-service" onclick="return confirm('<?php _e('Yakin ingin menghapus layanan ini?', 'archeus-booking'); ?>')" title="<?php esc_attr_e('Hapus Layanan', 'archeus-booking'); ?>">
+                                                <a href="#" class="button button-danger delete-service" data-service-id="<?php echo $service->id; ?>" title="<?php esc_attr_e('Hapus Layanan', 'archeus-booking'); ?>">
                                                     <span class="dashicons dashicons-trash" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Hapus', 'archeus-booking'); ?></span>
                                                 </a>
@@ -2622,14 +3287,14 @@ class Booking_Admin {
     public function time_slots_page() {
         $time_slots_manager = new Time_Slots_Manager();
         
-        // Handle form submission for adding/updating time slots
-        if (isset($_POST['save_time_slot']) && wp_verify_nonce($_POST['time_slot_nonce'], 'save_time_slot_action')) {
+        // Handle form submission for adding/updating time slots (fallback for non-AJAX requests)
+        if (isset($_POST['save_time_slot']) && wp_verify_nonce($_POST['time_slot_nonce'], 'save_time_slot_action') && !isset($_POST['action'])) {
             $slot_id = isset($_POST['slot_id']) ? intval($_POST['slot_id']) : 0;
             $time_label = sanitize_text_field($_POST['time_label']);
             $start_time = sanitize_text_field($_POST['start_time']);
             $end_time = sanitize_text_field($_POST['end_time']);
             $max_capacity = intval($_POST['max_capacity']);
-            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
             $sort_order = 0; // Not used anymore, but kept for parameter compatibility
             
             // Validate time format - accept both HH:MM and HH:MM:SS formats
@@ -2699,7 +3364,7 @@ class Booking_Admin {
         $time_slots = $time_slots_manager->get_time_slots(false); // Get all, including inactive
         
         ?>
-        <div class="wrap booking-admin-page">
+        <div class="wrap booking-admin-page time-slots-page">
             <h1><?php _e('Kelola Slot Waktu', 'archeus-booking'); ?></h1>
             <?php
             // Admin notice/callout for Time Slots page
@@ -2746,8 +3411,8 @@ class Booking_Admin {
                 <div class="admin-card">
                     <h2><?php echo $edit_slot ? __('Ubah Slot Waktu', 'archeus-booking') : __('Tambah Slot Waktu', 'archeus-booking'); ?></h2>
                     
-                    <form method="post" action="" class="settings-form">
-                        <?php wp_nonce_field('save_time_slot_action', 'time_slot_nonce'); ?>
+                    <form method="post" action="" class="settings-form" data-ajax-form="true">
+                        <?php wp_nonce_field('archeus_booking_admin', 'archeus_booking_admin_nonce'); ?>
                         <input type="hidden" name="slot_id" value="<?php echo $edit_slot ? esc_attr($edit_slot->id) : ''; ?>">
                         
                         <table class="form-table">
@@ -2840,7 +3505,7 @@ class Booking_Admin {
                                                     <span class="dashicons dashicons-edit" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Ubah', 'archeus-booking'); ?></span>
                                                 </a>
-                                                <a href="<?php echo admin_url('admin.php?page=archeus-booking-time-slots&action=delete&slot_id=' . $slot->id); ?>" class="button button-danger delete-time-slot" onclick="return confirm('<?php _e('Yakin ingin menghapus slot waktu ini?', 'archeus-booking'); ?>')" title="<?php esc_attr_e('Hapus Slot Waktu', 'archeus-booking'); ?>">
+                                                <a href="<?php echo admin_url('admin.php?page=archeus-booking-time-slots&action=delete&slot_id=' . $slot->id); ?>" class="button button-danger delete-time-slot" data-slot-id="<?php echo esc_attr($slot->id); ?>" title="<?php esc_attr_e('Hapus Slot Waktu', 'archeus-booking'); ?>">
                                                     <span class="dashicons dashicons-trash" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Hapus', 'archeus-booking'); ?></span>
                                                 </a>
@@ -3172,11 +3837,11 @@ class Booking_Admin {
                             <thead>
                                 <tr>
                                     <th><?php _e('ID', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Nama Flow', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Deskripsi', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Bagian', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Shortcode', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Aksi', 'archeus-booking'); ?></th>
+                                    <th colspan="2"><?php _e('Nama Flow', 'archeus-booking'); ?></th>
+                                    <th colspan="4"><?php _e('Deskripsi', 'archeus-booking'); ?></th>
+                                    <th colspan="2"><?php _e('Bagian', 'archeus-booking'); ?></th>
+                                    <th colspan="3"><?php _e('Shortcode', 'archeus-booking'); ?></th>
+                                    <th colspan="2"><?php _e('Aksi', 'archeus-booking'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -3187,17 +3852,17 @@ class Booking_Admin {
                                 ?>
                                     <tr>
                                         <td><?php echo esc_html($flow->id); ?></td>
-                                        <td><strong><?php echo esc_html($flow->name); ?></strong></td>
-                                        <td><?php echo esc_html($flow->description); ?></td>
-                                        <td><span class="section-count"><?php echo $section_count; ?></span> <?php echo _n('bagian', 'bagian', $section_count, 'archeus-booking'); ?></td>
-                                        <td><code>[archeus_booking id="<?php echo esc_attr($flow->id); ?>"]</code></td>
-                                        <td class="col-actions">
+                                        <td colspan="2"><strong><?php echo esc_html($flow->name); ?></strong></td>
+                                        <td colspan="4"><?php echo esc_html($flow->description); ?></td>
+                                        <td colspan="2"><?php echo $section_count; ?><?php echo _n('bagian', '', $section_count, 'archeus-booking'); ?></td>
+                                        <td colspan="3"><code>[archeus_booking id="<?php echo esc_attr($flow->id); ?>"]</code></td>
+                                        <td class="col-actions"  colspan="2">
                                             <div class="action-buttons">
                                                 <a href="<?php echo admin_url('admin.php?page=archeus-booking-flow&action=edit&flow_id=' . $flow->id); ?>" class="button button-warning edit-button" title="<?php esc_attr_e('Ubah Booking Flow', 'archeus-booking'); ?>">
                                                     <span class="dashicons dashicons-edit" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Edit', 'archeus-booking'); ?></span>
                                                 </a>
-                                                <a href="<?php echo admin_url('admin.php?page=archeus-booking-flow&action=delete&flow_id=' . $flow->id); ?>" class="button button-danger delete-flow" onclick="return confirm('<?php _e('Yakin ingin menghapus booking flow ini?', 'archeus-booking'); ?>')" title="<?php esc_attr_e('Hapus Booking Flow', 'archeus-booking'); ?>">
+                                                <a href="<?php echo admin_url('admin.php?page=archeus-booking-flow&action=delete&flow_id=' . $flow->id); ?>" class="button button-danger delete-flow" data-flow-id="<?php echo esc_attr($flow->id); ?>" title="<?php esc_attr_e('Hapus Booking Flow', 'archeus-booking'); ?>">
                                                     <span class="dashicons dashicons-trash" aria-hidden="true"></span>
                                                     <span class="screen-reader-text"><?php _e('Hapus', 'archeus-booking'); ?></span>
                                                 </a>
@@ -3370,11 +4035,13 @@ class Booking_Admin {
         <script>
         jQuery(document).ready(function($) {
             var pendingDeleteUrl = '';
+            var pendingDeleteCallback = null;
 
             // Custom confirmation dialog function
-            window.showDeleteConfirm = function(message, deleteUrl) {
+            window.showDeleteConfirm = function(message, deleteUrl, callback) {
                 $('#booking-confirm-dialog .booking-confirm-message').text(message);
                 pendingDeleteUrl = deleteUrl;
+                pendingDeleteCallback = callback;
                 $('#booking-confirm-dialog').addClass('active');
                 return false;
             };
@@ -3383,11 +4050,16 @@ class Booking_Admin {
             $('#confirm-cancel').click(function() {
                 $('#booking-confirm-dialog').removeClass('active');
                 pendingDeleteUrl = '';
+                pendingDeleteCallback = null;
             });
 
             // Delete button
             $('#confirm-delete').click(function() {
-                if (pendingDeleteUrl) {
+                if (pendingDeleteCallback) {
+                    pendingDeleteCallback();
+                    $('#booking-confirm-dialog').removeClass('active');
+                    pendingDeleteCallback = null;
+                } else if (pendingDeleteUrl) {
                     window.location.href = pendingDeleteUrl;
                 }
             });
@@ -3397,6 +4069,7 @@ class Booking_Admin {
                 if (e.target === this) {
                     $(this).removeClass('active');
                     pendingDeleteUrl = '';
+                    pendingDeleteCallback = null;
                 }
             });
 
@@ -3405,6 +4078,7 @@ class Booking_Admin {
                 if (e.key === 'Escape' && $('#booking-confirm-dialog').hasClass('active')) {
                     $('#booking-confirm-dialog').removeClass('active');
                     pendingDeleteUrl = '';
+                    pendingDeleteCallback = null;
                 }
             });
 
@@ -3432,26 +4106,7 @@ class Booking_Admin {
                 });
             });
 
-            $('.delete-time-slot').each(function() {
-                var deleteUrl = $(this).attr('href');
-                $(this).removeAttr('onclick');
-                $(this).attr('href', '#');
-                $(this).click(function(e) {
-                    e.preventDefault();
-                    showDeleteConfirm('<?php _e('Yakin ingin menghapus slot waktu ini?', 'archeus-booking'); ?>', deleteUrl);
-                });
-            });
-
-            $('.delete-flow').each(function() {
-                var deleteUrl = $(this).attr('href');
-                $(this).removeAttr('onclick');
-                $(this).attr('href', '#');
-                $(this).click(function(e) {
-                    e.preventDefault();
-                    showDeleteConfirm('<?php _e('Yakin ingin menghapus booking flow ini?', 'archeus-booking'); ?>', deleteUrl);
-                });
-            });
-        });
+          });
         </script>
         <?php
     }

@@ -763,7 +763,7 @@
 .loading {
   text-align: center;
   padding: 2rem;
-  color: var(--secondary-color);
+  color: black;
 }
 
 .loading-overlay {

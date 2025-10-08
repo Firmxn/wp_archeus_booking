@@ -271,6 +271,16 @@ jQuery(document).ready(function ($) {
   window.showDeleteConfirm = function (message, redirectUrl) {
     console.log("showDeleteConfirm called with:", { message, redirectUrl });
 
+    // Check if this is service or form deletion (already handled by our event delegation)
+    if (message.includes("layanan") || message.includes("formulir")) {
+      // Check if there's a delete button that's already being handled
+      var $handledButton = $('[data-delete-handled="true"]');
+      if ($handledButton.length > 0) {
+        console.log("Delete already handled by event delegation, skipping custom dialog");
+        return;
+      }
+    }
+
     // Remove any existing dialogs
     $(".ab-dialog-overlay").remove();
 
@@ -298,9 +308,17 @@ jQuery(document).ready(function ($) {
       console.log("Delete confirm dialog cancelled");
       $dialog.remove();
       // Clean up any pending delete markers
-      $('.delete-booking[data-delete-pending="true"]').removeAttr(
-        "data-delete-pending"
-      );
+      $('.delete-booking[data-delete-pending="true"]').removeAttr("data-delete-pending");
+      $('.delete-service[data-delete-pending="true"]').removeAttr("data-delete-pending");
+      $('.delete-flow[data-delete-pending="true"]').removeAttr("data-delete-pending");
+      $('.delete-time-slot[data-delete-pending="true"]').removeAttr("data-delete-pending");
+      $('.delete-form[data-delete-pending="true"]').removeAttr("data-delete-pending");
+      // Clean up handled markers
+      $('.delete-booking[data-delete-handled="true"]').removeAttr("data-delete-handled");
+      $('.delete-service[data-delete-handled="true"]').removeAttr("data-delete-handled");
+      $('.delete-flow[data-delete-handled="true"]').removeAttr("data-delete-handled");
+      $('.delete-time-slot[data-delete-handled="true"]').removeAttr("data-delete-handled");
+      $('.delete-form[data-delete-handled="true"]').removeAttr("data-delete-handled");
     });
 
     $dialog.find(".ab-dialog-confirm").on("click", function () {
@@ -340,22 +358,83 @@ jQuery(document).ready(function ($) {
                 if (response.success) {
                   location.reload();
                 } else {
-                  alert(
-                    "Gagal menghapus booking: " +
-                      (response.data || "Unknown error")
-                  );
+                  showToast("Gagal menghapus booking: " + (response.data || "Unknown error"), 'error');
                 }
               },
               error: function () {
                 if ($overlay) $overlay.remove();
-                alert("Terjadi kesalahan saat menghapus booking.");
+                showToast("Terjadi kesalahan saat menghapus booking.", 'error');
               },
             });
           }
         }, 100);
-      } else if (redirectUrl) {
-        // For other deletes, redirect to URL
-        window.location.href = redirectUrl;
+      } else {
+        // Handle service and form deletion
+        setTimeout(function () {
+          // Find service delete button
+          var $serviceBtn = $('.delete-service[data-delete-pending="true"]');
+          if ($serviceBtn.length) {
+            var serviceId = $serviceBtn.data('service-id');
+            $serviceBtn.removeAttr('data-delete-pending');
+
+            // Call service delete handler
+            if (typeof handleServiceDelete === 'function') {
+              handleServiceDelete($serviceBtn, serviceId);
+            }
+            return;
+          }
+
+          // Find flow delete button
+          var $flowBtn = $('.delete-flow[data-delete-pending="true"]');
+          if ($flowBtn.length) {
+            var flowId = $flowBtn.data('flow-id');
+            $flowBtn.removeAttr('data-delete-pending');
+
+            // Call flow delete handler
+            if (typeof handleFlowDelete === 'function') {
+              handleFlowDelete($flowBtn, flowId);
+            }
+            return;
+          }
+
+          // Find time slot delete button
+          var $timeSlotBtn = $('.delete-time-slot[data-delete-pending="true"]');
+          console.log('Looking for time slot button:', {
+            button: $timeSlotBtn,
+            length: $timeSlotBtn.length,
+            allPendingButtons: $('.delete-time-slot[data-delete-pending="true"]')
+          });
+
+          if ($timeSlotBtn.length) {
+            var slotId = $timeSlotBtn.data('slot-id');
+            console.log('Found time slot button, slotId:', slotId);
+            $timeSlotBtn.removeAttr('data-delete-pending');
+
+            // Call time slot delete handler
+            if (typeof handleTimeSlotDelete === 'function') {
+              console.log('handleTimeSlotDelete function available, calling it');
+              handleTimeSlotDelete($timeSlotBtn, slotId);
+            } else {
+              console.log('handleTimeSlotDelete function not available');
+            }
+            return;
+          } else {
+            console.log('No time slot button found with data-delete-pending="true"');
+          }
+
+          // Find form delete button
+          var $formBtn = $('.delete-form[data-delete-pending="true"]');
+          if ($formBtn.length) {
+            var formId = $formBtn.data('form-id');
+            $formBtn.removeAttr('data-delete-pending');
+
+            // Call form delete handler
+            if (typeof handleFormDelete === 'function') {
+              handleFormDelete($formBtn, formId);
+            }
+            return;
+          }
+        }, 100);
       }
     });
 
@@ -365,9 +444,17 @@ jQuery(document).ready(function ($) {
         console.log("Delete confirm dialog overlay clicked - cancelled");
         $dialog.remove();
         // Clean up any pending delete markers
-        $('.delete-booking[data-delete-pending="true"]').removeAttr(
-          "data-delete-pending"
-        );
+        $('.delete-booking[data-delete-pending="true"]').removeAttr("data-delete-pending");
+        $('.delete-service[data-delete-pending="true"]').removeAttr("data-delete-pending");
+        $('.delete-flow[data-delete-pending="true"]').removeAttr("data-delete-pending");
+        $('.delete-time-slot[data-delete-pending="true"]').removeAttr("data-delete-pending");
+        $('.delete-form[data-delete-pending="true"]').removeAttr("data-delete-pending");
+        // Clean up handled markers
+        $('.delete-booking[data-delete-handled="true"]').removeAttr("data-delete-handled");
+        $('.delete-service[data-delete-handled="true"]').removeAttr("data-delete-handled");
+        $('.delete-flow[data-delete-handled="true"]').removeAttr("data-delete-handled");
+        $('.delete-time-slot[data-delete-handled="true"]').removeAttr("data-delete-handled");
+        $('.delete-form[data-delete-handled="true"]').removeAttr("data-delete-handled");
       }
     });
 
@@ -553,41 +640,6 @@ jQuery(document).ready(function ($) {
     // Call the custom delete confirmation dialog
     if (typeof showDeleteConfirm === "function") {
       showDeleteConfirm("Yakin ingin menghapus booking ini?", "");
-    } else {
-      // Fallback to browser confirm
-      if (confirm("Yakin ingin menghapus booking ini?")) {
-        // Handle the delete directly
-        var $overlay = $(
-          '<div class="ab-loading-overlay" style="position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;"><div class="ab-loading-spinner" style="width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;"></div><div class="ab-loading-text" style="margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;">Menghapus...</div></div>'
-        ).appendTo("body");
-
-        $.ajax({
-          url: archeus_booking_ajax.ajax_url,
-          type: "POST",
-          data: {
-            action: "delete_booking",
-            booking_id: bookingId,
-            nonce: archeus_booking_ajax.nonce,
-          },
-          success: function (response) {
-            if ($overlay) $overlay.remove();
-            if (response.success) {
-              location.reload();
-            } else {
-              alert(
-                "Gagal menghapus booking: " + (response.data || "Unknown error")
-              );
-            }
-          },
-          error: function () {
-            if ($overlay) $overlay.remove();
-            alert("Terjadi kesalahan saat menghapus booking.");
-          },
-        });
-      } else {
-        // Clean up the marker if cancelled
-        $btn.removeAttr("data-delete-pending");
-      }
     }
   });
 
@@ -941,13 +993,23 @@ jQuery(document).ready(function ($) {
 
       $sel.find("option").each(function () {
         var $opt = $(this);
+        var optValue = $opt.attr("value");
+        var optText = $opt.text();
+
+        // Debug: log semua options yang ditemukan
+        console.log('Dropdown option found:', optValue, '=', optText);
+
         var $item = $(
           '<div class="ab-dd-item" role="option" tabindex="-1"></div>'
-        ).text($opt.text());
-        $item.attr("data-value", $opt.attr("value"));
+        ).text(optText);
+        $item.attr("data-value", optValue);
         if ($opt.is(":selected")) $item.addClass("is-selected");
         $menu.append($item);
       });
+
+      // Debug: log total options yang ditemukan
+      console.log('Total options in dropdown:', $sel.find("option").length);
+      console.log('Custom dropdown items created:', $menu.find('.ab-dd-item').length);
       $sel.addClass("ab-hidden-select").hide().after($wrap);
       $wrap.append($btn).append($menu);
       $sel.appendTo($wrap); // keep in wrap to trigger change
@@ -1589,6 +1651,443 @@ jQuery(document).ready(function ($) {
     document.body.removeChild(textArea);
   }
 
+  // Update select state for custom dropdowns
+  function updateAbSelectState(sel) {
+    try {
+      var opt = sel && sel.options ? sel.options[sel.selectedIndex] : null;
+      var txt = opt ? (opt.text || '') : '';
+      if (sel) sel.setAttribute('title', txt);
+      if (!sel || sel.value === '' || sel.value === null) {
+        $(sel).addClass('is-placeholder');
+      } else {
+        $(sel).removeClass('is-placeholder');
+      }
+    } catch(e) {
+      console.error('Error updating select state:', e);
+    }
+  }
+
+  // Form field builder enhancements
+  // Remove any existing event handlers to prevent duplication
+  $(document).off('click', '#add-field-btn');
+  $(document).on('click', '#add-field-btn', function() {
+    var $btn = $(this);
+    var $container = $('#form-fields-container');
+    var fieldIndex = $container.find('.form-field-row').length;
+
+    // Add loading state
+    $btn.prop('disabled', true);
+
+    setTimeout(function() {
+      var newFieldHtml = createFieldRowHtml(fieldIndex);
+      $container.append(newFieldHtml);
+
+      // Animate new field entry
+      var $newRow = $container.find('.form-field-row').last();
+      $newRow.hide().fadeIn(300);
+
+      // Focus on first input
+      $newRow.find('input[type="text"]').first().focus();
+
+      // Update select styling and enhance dropdown
+      var $newSelect = $newRow.find('select.ab-select');
+
+      // Update select state
+      if ($newSelect.length > 0) {
+        updateAbSelectState($newSelect[0]);
+
+        // Initialize custom dropdown for the new select
+        if (typeof enhanceAbDropdowns === 'function') {
+          // Small delay to ensure DOM is ready
+          setTimeout(function() {
+            enhanceAbDropdowns($newSelect);
+          }, 50);
+        }
+      }
+
+      $btn.prop('disabled', false);
+
+      // Show success feedback
+      showToast('Field baru berhasil ditambahkan', 'success');
+    }, 100);
+  });
+
+  // Helper function to create field row HTML
+  function createFieldRowHtml(index) {
+    return '<tr class="form-field-row" data-field-index="' + index + '">' +
+      '<td>' +
+        '<input type="hidden" name="field_keys[]" value="custom_' + index + '">' +
+        '<input type="text" name="field_keys_input[custom_' + index + ']" value="custom_' + index + '" class="regular-text" placeholder="contoh: nama_hewan">' +
+      '</td>' +
+      '<td>' +
+        '<input type="text" name="field_labels[custom_' + index + ']" value="" placeholder="Label field">' +
+      '</td>' +
+      '<td>' +
+        '<select class="ab-select ab-dropdown field-type-select" name="field_types[custom_' + index + ']">' +
+          '<option value="text">Text</option>' +
+          '<option value="email">Email</option>' +
+          '<option value="number">Number</option>' +
+          '<option value="date">Date</option>' +
+          '<option value="time">Time</option>' +
+          '<option value="select">Select</option>' +
+          '<option value="textarea">Textarea</option>' +
+          '<option value="file">File Upload</option>' +
+        '</select>' +
+      '</td>' +
+      '<td class="col-required"><input type="checkbox" name="field_required[custom_' + index + ']" value="1"></td>' +
+      '<td><input type="text" name="field_placeholders[custom_' + index + ']" value="" placeholder="Placeholder text"></td>' +
+      '<td class="options-cell">' +
+        '<textarea name="field_options[custom_' + index + ']" rows="2" class="large-text field-options" placeholder="Satu nilai per baris" style="display:none;"></textarea>' +
+      '</td>' +
+      '<td class="col-actions"><button type="button" class="button remove-field" title="Hapus Field"><span class="dashicons dashicons-trash" aria-hidden="true"></span><span class="screen-reader-text">Hapus</span></button></td>' +
+    '</tr>';
+  }
+
+  // Dynamic field type behavior
+  $(document).on('change', '.field-type-select', function() {
+    var $select = $(this);
+    var $row = $select.closest('tr');
+    var fieldType = $select.val();
+    var $optionsCell = $row.find('.options-cell');
+
+    // Show/hide options textarea based on field type
+    if (fieldType === 'select') {
+      $optionsCell.find('.field-options').slideDown(200);
+    } else {
+      $optionsCell.find('.field-options').slideUp(200);
+    }
+  });
+
+  // Remove field without confirmation
+  $(document).on('click', '.remove-field', function(e) {
+    e.preventDefault();
+    var $row = $(this).closest('.form-field-row');
+
+    $row.fadeOut(300, function() {
+      $(this).remove();
+      showToast('Field berhasil dihapus', 'success');
+    });
+  });
+
+  // Handler function for service deletion
+  function handleServiceDelete($button, serviceId) {
+    var $row = $button.closest('tr');
+
+    // Show loading state
+    $button.prop('disabled', true);
+    $button.find('.dashicons').addClass('spin');
+
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'delete_service',
+        service_id: serviceId,
+        nonce: archeus_booking_ajax.nonce
+      },
+      success: function(response) {
+        if (response.success) {
+          // Clean up handled markers before removing the row
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+
+          // Remove the row with animation
+          $row.fadeOut(300, function() {
+            $(this).remove();
+            showToast(response.data.message, 'success');
+          });
+        } else {
+          showToast(response.data.message, 'error');
+          $button.prop('disabled', false);
+          $button.find('.dashicons').removeClass('spin');
+          // Clean up markers on error
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+        }
+      },
+      error: function() {
+        showToast('Gagal menghapus layanan.', 'error');
+        $button.prop('disabled', false);
+        $button.find('.dashicons').removeClass('spin');
+        // Clean up markers on error
+        $button.removeAttr('data-delete-handled');
+        $button.removeAttr('data-delete-pending');
+      }
+    });
+  }
+
+  // Handler function for time slot deletion
+  function handleTimeSlotDelete($button, slotId) {
+    console.log('handleTimeSlotDelete called with:', {
+      button: $button,
+      slotId: slotId,
+      row: $button.closest('tr')
+    });
+
+    var $row = $button.closest('tr');
+
+    // Show loading state
+    $button.prop('disabled', true);
+    $button.find('.dashicons').addClass('spin');
+
+    console.log('Sending AJAX request for time slot deletion');
+
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'delete_time_slot',
+        slot_id: slotId,
+        nonce: archeus_booking_ajax.nonce
+      },
+      success: function(response) {
+        console.log('AJAX response received:', response);
+        if (response.success) {
+          console.log('Time slot deletion successful');
+          // Clean up handled markers before removing the row
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+
+          // Remove the row with animation
+          $row.fadeOut(300, function() {
+            $(this).remove();
+            showToast(response.data.message, 'success');
+          });
+        } else {
+          console.log('Time slot deletion failed:', response.data);
+          showToast(response.data.message, 'error');
+          $button.prop('disabled', false);
+          $button.find('.dashicons').removeClass('spin');
+          // Clean up markers on error
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.log('AJAX error occurred:', {
+          xhr: xhr,
+          status: status,
+          error: error
+        });
+        showToast('Gagal menghapus slot waktu.', 'error');
+        $button.prop('disabled', false);
+        $button.find('.dashicons').removeClass('spin');
+        // Clean up markers on error
+        $button.removeAttr('data-delete-handled');
+        $button.removeAttr('data-delete-pending');
+      }
+    });
+  }
+
+  // Handler function for flow deletion
+  function handleFlowDelete($button, flowId) {
+    var $row = $button.closest('tr');
+
+    // Show loading state
+    $button.prop('disabled', true);
+    $button.find('.dashicons').addClass('spin');
+
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'delete_flow',
+        flow_id: flowId,
+        nonce: archeus_booking_ajax.nonce
+      },
+      success: function(response) {
+        if (response.success) {
+          // Clean up handled markers before removing the row
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+
+          // Remove the row with animation
+          $row.fadeOut(300, function() {
+            $(this).remove();
+            showToast(response.data.message, 'success');
+          });
+        } else {
+          showToast(response.data.message, 'error');
+          $button.prop('disabled', false);
+          $button.find('.dashicons').removeClass('spin');
+          // Clean up markers on error
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+        }
+      },
+      error: function() {
+        showToast('Gagal menghapus booking flow.', 'error');
+        $button.prop('disabled', false);
+        $button.find('.dashicons').removeClass('spin');
+        // Clean up markers on error
+        $button.removeAttr('data-delete-handled');
+        $button.removeAttr('data-delete-pending');
+      }
+    });
+  }
+
+  // Handler function for form deletion
+  function handleFormDelete($button, formId) {
+    var $row = $button.closest('tr');
+
+    // Show loading state
+    $button.prop('disabled', true);
+    $button.find('.dashicons').addClass('spin');
+
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'delete_form',
+        form_id: formId,
+        nonce: archeus_booking_ajax.nonce
+      },
+      success: function(response) {
+        if (response.success) {
+          // Clean up handled markers before removing the row
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+
+          // Remove the row with animation
+          $row.fadeOut(300, function() {
+            $(this).remove();
+            showToast(response.data.message, 'success');
+          });
+        } else {
+          showToast(response.data.message, 'error');
+          $button.prop('disabled', false);
+          $button.find('.dashicons').removeClass('spin');
+          // Clean up markers on error
+          $button.removeAttr('data-delete-handled');
+          $button.removeAttr('data-delete-pending');
+        }
+      },
+      error: function() {
+        showToast('Gagal menghapus formulir.', 'error');
+        $button.prop('disabled', false);
+        $button.find('.dashicons').removeClass('spin');
+        // Clean up markers on error
+        $button.removeAttr('data-delete-handled');
+        $button.removeAttr('data-delete-pending');
+      }
+    });
+  }
+
+  // Handle service deletion with event delegation
+  $(document).on('click', '.delete-service', function(e) {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+
+    var $button = $(this);
+    var serviceId = $button.data('service-id');
+
+    if (!serviceId) {
+      // Fallback to onclick handler if data attribute not available
+      return;
+    }
+
+    // Mark as handled to prevent other handlers
+    $button.attr('data-delete-handled', 'true');
+
+    // Mark this button as pending deletion so the dialog can find it
+    $button.attr('data-delete-pending', 'true');
+
+    // Call the custom delete confirmation dialog
+    if (typeof showDeleteConfirm === "function") {
+      showDeleteConfirm('Yakin ingin menghapus layanan ini?', '');
+    }
+  });
+
+  // Handle form deletion with event delegation
+  $(document).on('click', '.delete-form', function(e) {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+
+    var $button = $(this);
+    var formId = $button.data('form-id');
+
+    if (!formId) {
+      return;
+    }
+
+    // Mark as handled to prevent other handlers
+    $button.attr('data-delete-handled', 'true');
+
+    // Mark this button as pending deletion so the dialog can find it
+    $button.attr('data-delete-pending', 'true');
+
+    // Call the custom delete confirmation dialog
+    if (typeof showDeleteConfirm === "function") {
+      showDeleteConfirm('Yakin ingin menghapus formulir ini?', '');
+    }
+  });
+
+  // Handle time slot deletion with event delegation
+  $(document).on('click', '.delete-time-slot', function(e) {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+
+    var $button = $(this);
+    var slotId = $button.data('slot-id');
+
+    console.log('Time slot delete clicked:', {
+      button: $button,
+      slotId: slotId,
+      attributes: $button.attr('data-slot-id'),
+      data: $button.data()
+    });
+
+    if (!slotId) {
+      console.log('No slotId found, returning');
+      // Fallback to onclick handler if data attribute not available
+      return;
+    }
+
+    // Mark as handled to prevent other handlers
+    $button.attr('data-delete-handled', 'true');
+
+    // Mark this button as pending deletion so the dialog can find it
+    $button.attr('data-delete-pending', 'true');
+
+    console.log('Marked button as pending:', {
+      'data-delete-handled': $button.attr('data-delete-handled'),
+      'data-delete-pending': $button.attr('data-delete-pending')
+    });
+
+    // Call the custom delete confirmation dialog
+    if (typeof showDeleteConfirm === "function") {
+      console.log('Calling showDeleteConfirm for time slot');
+      showDeleteConfirm('Yakin ingin menghapus slot waktu ini?', '');
+    } else {
+      console.log('showDeleteConfirm function not available');
+    }
+  });
+
+  // Handle flow deletion with event delegation
+  $(document).on('click', '.delete-flow', function(e) {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+
+    var $button = $(this);
+    var flowId = $button.data('flow-id');
+
+    if (!flowId) {
+      // Fallback to onclick handler if data attribute not available
+      return;
+    }
+
+    // Mark as handled to prevent other handlers
+    $button.attr('data-delete-handled', 'true');
+
+    // Mark this button as pending deletion so the dialog can find it
+    $button.attr('data-delete-pending', 'true');
+
+    // Call the custom delete confirmation dialog
+    if (typeof showDeleteConfirm === "function") {
+      showDeleteConfirm('Yakin ingin menghapus booking flow ini?', '');
+    }
+  });
+
   // Debug: Check if functions are loaded
   console.log("Archeus Admin JS loaded - Functions available:", {
     showStatusChangeDialog: typeof window.showStatusChangeDialog,
@@ -1602,4 +2101,322 @@ jQuery(document).ready(function ($) {
   console.log(
     "Initial data loaded, skipping automatic refresh to prevent conflicts with detail views"
   );
+
+  // Handle service form submission via AJAX
+  $(document).on('submit', '.service-form .settings-form', function(e) {
+    e.preventDefault();
+
+    var $form = $(this);
+    var $submitBtn = $form.find('input[name="save_service"]');
+    var serviceId = $form.find('input[name="service_id"]').val();
+    var isUpdate = serviceId && serviceId > 0;
+
+    // Validate required fields
+    var serviceName = $form.find('input[name="service_name"]').val().trim();
+    if (!serviceName) {
+      showToast('Nama layanan wajib diisi', 'error');
+      return;
+    }
+
+    // Show loading state
+    $submitBtn.prop('disabled', true);
+    $submitBtn.addClass('loading');
+
+    // Get checkbox status
+    var $checkbox = $form.find('input[name="is_active"]');
+    var isActiveValue = $checkbox.is(':checked') ? 1 : 0;
+
+    // Prepare form data
+    var formData = {
+      action: isUpdate ? 'update_service' : 'create_service',
+      nonce: archeus_booking_ajax.nonce,
+      service_id: serviceId,
+      service_name: serviceName,
+      service_description: $form.find('textarea[name="service_description"]').val(),
+      service_price: parseFloat($form.find('input[name="service_price"]').val()) || 0,
+      service_duration: parseInt($form.find('input[name="service_duration"]').val()) || 30,
+      is_active: isActiveValue
+    };
+
+    // Send AJAX request
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: formData,
+      traditional: true, // Ensure array-like data is sent correctly
+      success: function(response) {
+        if (response.success) {
+          // Show success toast
+          showToast(response.data.message, 'success');
+
+          // If creating new service, redirect to edit page or refresh
+          if (!isUpdate && response.data.service_id) {
+            // Option 1: Redirect to edit page
+            setTimeout(function() {
+              window.location.href = window.location.href + '&action=edit&service_id=' + response.data.service_id;
+            }, 1500);
+          } else {
+            // Option 2: Just refresh the page for updates
+            setTimeout(function() {
+              window.location.reload();
+            }, 1500);
+          }
+        } else {
+          showToast(response.data.message, 'error');
+          $submitBtn.prop('disabled', false);
+          $submitBtn.removeClass('loading');
+        }
+      },
+      error: function(xhr, status, error) {
+        showToast('Terjadi kesalahan saat menyimpan layanan', 'error');
+        $submitBtn.prop('disabled', false);
+        $submitBtn.removeClass('loading');
+      }
+    });
+  });
+
+  // Handle booking form submission via AJAX
+  $(document).on('submit', '.settings-form[data-ajax-form="true"]', function(e) {
+    e.preventDefault();
+
+    var $form = $(this);
+    var $submitBtn = $form.find('input[name="save_form"]');
+    var $submitBtnTimeSlot = $form.find('input[name="save_time_slot"]');
+
+    // Determine which form type this is
+    if ($submitBtnTimeSlot.length) {
+      // This is a time slot form, let it be handled by the time slot handler
+      return;
+    }
+
+    if (!$submitBtn.length) {
+      // No save button found, this might not be the right form
+      return;
+    }
+
+    var formId = $form.find('input[name="form_id"]').val();
+    var isUpdate = formId && formId > 0;
+
+    // Validate required fields
+    var $formNameField = $form.find('input[name="form_name"]');
+    var formName = $formNameField.length ? $formNameField.val().trim() : '';
+    if (!formName) {
+      showToast('Nama formulir wajib diisi', 'error');
+      return;
+    }
+
+    // Show loading state
+    $submitBtn.prop('disabled', true);
+    $submitBtn.addClass('loading');
+
+    // Collect form data
+    var formData = new FormData($form[0]);
+
+    // Handle array fields manually for proper FormData serialization
+    $form.find('input[name^="field_keys["]').each(function() {
+      var name = $(this).attr('name');
+      var value = $(this).val();
+      formData.append(name, value);
+    });
+
+    $form.find('input[name^="field_keys_input["]').each(function() {
+      var name = $(this).attr('name');
+      var value = $(this).val();
+      formData.append(name, value);
+    });
+
+    $form.find('input[name^="field_labels["]').each(function() {
+      var name = $(this).attr('name');
+      var value = $(this).val();
+      formData.append(name, value);
+    });
+
+    $form.find('select[name^="field_types["]').each(function() {
+      var name = $(this).attr('name');
+      var value = $(this).val();
+      formData.append(name, value);
+    });
+
+    $form.find('input[name^="field_required["]').each(function() {
+      var name = $(this).attr('name');
+      var value = $(this).is(':checked') ? '1' : '0';
+      formData.append(name, value);
+    });
+
+    $form.find('input[name^="field_placeholders["]').each(function() {
+      var name = $(this).attr('name');
+      var value = $(this).val();
+      formData.append(name, value);
+    });
+
+    $form.find('textarea[name^="field_options["]').each(function() {
+      var name = $(this).attr('name');
+      var value = $(this).val();
+      formData.append(name, value);
+    });
+
+    formData.append('action', isUpdate ? 'update_form' : 'create_form');
+    formData.append('nonce', archeus_booking_ajax.nonce);
+
+    // Debug: Log form submission
+    console.log('Form submitted via AJAX', {
+      action: isUpdate ? 'update_form' : 'create_form',
+      formId: formId,
+      isUpdate: isUpdate
+    });
+
+    // Send AJAX request
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function(response) {
+        console.log('AJAX response:', response);
+        if (response.success) {
+          // Show success toast
+          showToast(response.data.message, 'success');
+
+          // If creating new form, redirect to edit page or refresh
+          if (!isUpdate && response.data.form_id) {
+            setTimeout(function() {
+              window.location.href = window.location.href + '&action=edit&form_id=' + response.data.form_id;
+            }, 1500);
+          } else {
+            // Refresh the page for updates
+            setTimeout(function() {
+              window.location.reload();
+            }, 1500);
+          }
+        } else {
+          showToast(response.data.message, 'error');
+          $submitBtn.prop('disabled', false);
+          $submitBtn.removeClass('loading');
+        }
+      },
+      error: function(xhr, status, error) {
+        showToast('Terjadi kesalahan saat menyimpan formulir', 'error');
+        $submitBtn.prop('disabled', false);
+        $submitBtn.removeClass('loading');
+      }
+    });
+  });
+
+  // Handle time slot form submission via AJAX
+  $(document).on('submit', '.time-slots-page .settings-form[data-ajax-form="true"]', function(e) {
+    e.preventDefault();
+
+    var $form = $(this);
+    var $submitBtn = $form.find('input[name="save_time_slot"]');
+
+    if (!$submitBtn.length) {
+      // No time slot submit button found, this might not be the right form
+      return;
+    }
+
+    var slotId = $form.find('input[name="slot_id"]').val();
+    var isUpdate = slotId && slotId > 0;
+
+    // Validate required fields
+    var $timeLabelField = $form.find('input[name="time_label"]');
+    var $startTimeField = $form.find('input[name="start_time"]');
+    var $endTimeField = $form.find('input[name="end_time"]');
+
+    var timeLabel = $timeLabelField.length ? $timeLabelField.val().trim() : '';
+    var startTime = $startTimeField.length ? $startTimeField.val().trim() : '';
+    var endTime = $endTimeField.length ? $endTimeField.val().trim() : '';
+
+    if (!timeLabel || !startTime || !endTime) {
+      showToast('Semua field wajib diisi', 'error');
+      return;
+    }
+
+    // Show loading state
+    $submitBtn.prop('disabled', true);
+    $submitBtn.addClass('loading');
+
+    // Check if archeus_booking_ajax is available
+    if (typeof archeus_booking_ajax === 'undefined') {
+      showToast('Error: AJAX configuration not loaded. Please refresh the page.', 'error');
+      console.error('archeus_booking_ajax object not found');
+      return;
+    }
+
+    // Get checkbox status
+    var $checkbox = $form.find('input[name="is_active"]');
+    var isActiveValue = $checkbox.length && $checkbox.is(':checked') ? 1 : 0;
+
+    // Get max capacity with safe parsing
+    var $maxCapacityField = $form.find('input[name="max_capacity"]');
+    var maxCapacity = $maxCapacityField.length ? parseInt($maxCapacityField.val()) || 1 : 1;
+
+    // Prepare form data
+    var formData = {
+      action: isUpdate ? 'update_time_slot' : 'create_time_slot',
+      nonce: archeus_booking_ajax.nonce,
+      slot_id: slotId,
+      time_label: timeLabel,
+      start_time: startTime,
+      end_time: endTime,
+      max_capacity: maxCapacity,
+      is_active: isActiveValue
+    };
+
+    // Debug: Log form submission
+    console.log('Time slot submitted via AJAX', {
+      action: formData.action,
+      slotId: slotId,
+      isUpdate: isUpdate,
+      formData: formData,
+      ajaxurl: ajaxurl,
+      nonce_available: typeof archeus_booking_ajax !== 'undefined'
+    });
+
+    // Send AJAX request
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: formData,
+      dataType: 'json', // Expect JSON response
+      success: function(response) {
+        console.log('Time slot AJAX response:', response);
+        if (response.success) {
+          // Show success toast
+          showToast(response.data.message, 'success');
+
+          // If creating new slot, redirect to edit page or refresh
+          if (!isUpdate && response.data.slot_id) {
+            setTimeout(function() {
+              window.location.href = window.location.href + '&action=edit&slot_id=' + response.data.slot_id;
+            }, 1500);
+          } else {
+            // Refresh the page for updates
+            setTimeout(function() {
+              window.location.reload();
+            }, 1500);
+          }
+        } else {
+          // Show detailed error message
+          var errorMessage = response.data.message;
+
+          // Add debug info if available
+          if (response.data.debug_info) {
+            console.log('Debug info:', response.data.debug_info);
+            errorMessage += ' (Check console for details)';
+          }
+
+          showToast(errorMessage, 'error');
+          $submitBtn.prop('disabled', false);
+          $submitBtn.removeClass('loading');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.log('Time slot AJAX error:', error);
+        showToast('Terjadi kesalahan saat menyimpan slot waktu', 'error');
+        $submitBtn.prop('disabled', false);
+        $submitBtn.removeClass('loading');
+      }
+    });
+  });
 });

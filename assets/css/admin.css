@@ -2,6 +2,8 @@
 :root {
   --primary-color: #54b335;
   --primary-hover: #629e40;
+  --success-primary: #ecfdf5;
+  --success-hover: #54b335;
   --button-primary: #edfbe2;
   --button-primary-hover: #54b335;
   --secondary-color: #6c757d;
@@ -9,11 +11,13 @@
   --danger-color: #ef4444;
   --danger-hover: #dc2626;
   --warning-color: #f59e0b;
+  --warning-hover: #fef3c7;
   --info-color: #bfdbfe;
   --info-color-hover: #3b82f6;
   --light-color: #f3f4f6;
   --dark-color: #1f2937;
   --border-radius: 10px;
+  --border-color: #e2e8f0;
   --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --transition: all 0.25s ease;
@@ -39,7 +43,7 @@
 .form-fields-builder .widefat input,
 .form-fields-builder .widefat select {
   width: 100%;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   height: 40px !important;
   min-height: 40px !important;
@@ -51,6 +55,7 @@
   line-height: 1.4;
   box-sizing: border-box;
 }
+
 
 /* Special case for textarea */
 .booking-admin-page textarea,
@@ -79,7 +84,7 @@
   min-height: 20px !important;
   max-height: 20px !important;
   max-width: 20px !important;
-  border: 2px solid #e2e8f0 !important;
+  border: 2px solid var(--border-color) !important;
   border-radius: 4px !important;
   background-color: #fff !important;
   cursor: pointer !important;
@@ -167,7 +172,7 @@
 .form-fields-builder .widefat input:focus,
 .form-fields-builder .widefat select:focus,
 .form-fields-builder .widefat textarea:focus {
-  border-color: #8b92a9;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3);
   outline: none;
 }
@@ -192,11 +197,11 @@
 }
 
 .stat-box.pending {
-  border-left: 4px solid var(--secondary-color);
+  border-left: 4px solid var(--warning-color);
 }
 
 .stat-box.success {
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color) !important;
 }
 
 .stat-box.danger {
@@ -244,7 +249,7 @@
 
 .shortcode-example code {
   background: #1e293b; /* dark code bg */
-  color: #e2e8f0; /* code text */
+  color: var(--border-color); /* code text */
   padding: 8px 12px;
   border-radius: 10px;
   display: block;
@@ -550,15 +555,17 @@
   box-shadow: var(--box-shadow);
   background: #ffffff;
 }
+
 .ab-callout .ab-callout-icon {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  background: #ecfdf5;
+  background: var(--success-primary);
   color: var(--primary-color);
 }
+
 .ab-callout .ab-callout-icon .dashicons {
   font-size: 24px;
   width: 24px;
@@ -582,7 +589,7 @@
 }
 .ab-shortcode-code {
   background: #1e293b;
-  color: #e2e8f0;
+  color: var(--border-color);
   padding: 8px 12px;
   border-radius: var(--border-radius);
   display: inline-block;
@@ -600,7 +607,7 @@
   -moz-appearance: none !important;
   appearance: none !important;
   padding: 8px 12px !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius) !important;
   background-color: #ffffff !important;
   color: #111827 !important;
@@ -610,10 +617,11 @@
   box-shadow: none !important;
   transition: var(--transition) !important;
 }
+
 .ab-select:focus,
 .booking-admin-page .ab-select:focus,
 .booking-admin-page select.ab-select:focus {
-  border-color: #8b92a9 !important;
+  border-color: var(--primary-color) !important;
   box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3) !important;
   outline: none !important;
 }
@@ -848,12 +856,12 @@
   flex: 1;
   box-shadow: var(--box-shadow);
 }
-.stat-box.success {
+/* .stat-box.success {
   border-left: 6px solid var(--success-color);
 }
 .stat-box.danger {
   border-left: 6px solid var(--danger-color);
-}
+} */
 .stat-value {
   color: var(--dark-color);
 }
@@ -1217,17 +1225,21 @@
 }
 
 /* Primary buttons */
+/* tombol utama */
 .booking-admin-page .button-primary,
 .booking-admin-page .button.button-primary {
-  background: var(--primary-color);
+  background: var(--success-primary);
   border-color: var(--primary-color);
+  color: var(--primary-color);
   font-size: 14px;
   font-weight: 600;
 }
+
 .booking-admin-page .button-primary:hover,
 .booking-admin-page .button.button-primary:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1262,7 +1274,7 @@
   padding-bottom: 0 !important;
   padding-left: 12px !important;
   padding-right: 12px !important;
-  /* border: 1px solid #e2e8f0 !important; */
+  /* border: 1px solid var(--border-color) !important; */
 }
 
 /* Custom dropdown (progressive enhancement) */
@@ -1282,13 +1294,13 @@
   padding: 8px 12px;
   background: #fff;
   color: #111827;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   cursor: pointer;
 }
 .ab-dd .ab-dd-toggle:focus {
   outline: none;
-  border-color: #8b92a9;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3);
 }
 .ab-dd .ab-dd-caret {
@@ -1327,10 +1339,75 @@
 .ab-dd .ab-dd-item:hover,
 .ab-dd .ab-dd-item:focus {
   background: rgba(84, 179, 53, 0.12);
+  border-radius: 0 !important;
 }
+
+/* Override for form-fields-builder dropdown items */
+.form-fields-builder .ab-dd .ab-dd-item:hover,
+.form-fields-builder .ab-dd .ab-dd-item:focus,
+.form-fields-builder .ab-dd .ab-dd-item:active {
+  background: rgba(84, 179, 53, 0.12) !important;
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* First child item (top) - rounded top corners */
+.form-fields-builder .ab-dd .ab-dd-item:first-child:hover,
+.form-fields-builder .ab-dd .ab-dd-item:first-child:focus,
+.form-fields-builder .ab-dd .ab-dd-item:first-child:active {
+  border-top-left-radius: var(--border-radius) !important;
+  border-top-right-radius: var(--border-radius) !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Last child item (bottom) - rounded bottom corners */
+.form-fields-builder .ab-dd .ab-dd-item:last-child:hover,
+.form-fields-builder .ab-dd .ab-dd-item:last-child:focus,
+.form-fields-builder .ab-dd .ab-dd-item:last-child:active {
+  border-bottom-left-radius: var(--border-radius) !important;
+  border-bottom-right-radius: var(--border-radius) !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+/* Single item case - all corners rounded */
+.form-fields-builder .ab-dd .ab-dd-item:first-child:last-child:hover,
+.form-fields-builder .ab-dd .ab-dd-item:first-child:last-child:focus,
+.form-fields-builder .ab-dd .ab-dd-item:first-child:last-child:active {
+  border-radius: var(--border-radius) !important;
+}
+
+/* Override selected state for all dropdowns */
 .ab-dd .ab-dd-item.is-selected {
-  background: #54b335;
-  color: #fff;
+  background: #54b335 !important;
+  color: #fff !important;
+  border-radius: 0 !important;
+}
+
+/* First child selected state - rounded top corners */
+.ab-dd .ab-dd-item:first-child.is-selected {
+  border-top-left-radius: var(--border-radius) !important;
+  border-top-right-radius: var(--border-radius) !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Last child selected state - rounded bottom corners */
+.ab-dd .ab-dd-item:last-child.is-selected {
+  border-bottom-left-radius: var(--border-radius) !important;
+  border-bottom-right-radius: var(--border-radius) !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+/* Single item selected state - all corners rounded */
+.ab-dd .ab-dd-item:first-child:last-child.is-selected {
+  border-radius: var(--border-radius) !important;
 }
 .ab-hidden-select {
   display: none !important;
@@ -1571,6 +1648,39 @@ select.ab-hidden-select {
   z-index: 100000;
   position: absolute !important;
   min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Ensure all dropdown items are visible and properly sized */
+.form-fields-builder .ab-dd .ab-dd-item {
+  display: block !important;
+  width: auto !important;
+  max-width: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Special handling for file upload option */
+.form-fields-builder .ab-dd .ab-dd-item[data-value="file"] {
+  display: block !important;
+  width: auto !important;
+  max-width: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure dropdown menu container has proper sizing */
+.form-fields-builder .ab-dd .ab-dd-menu {
+  box-sizing: border-box !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: var(--border-radius) !important;
+  overflow: hidden !important;
 }
 
 /* Remove field button - use global button sizing */
@@ -1605,6 +1715,11 @@ select.ab-hidden-select {
   margin-right: 6px;
 }
 
+.form-row{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 /* Form actions area */
 .form-actions {
   margin-top: 24px;
@@ -1612,15 +1727,19 @@ select.ab-hidden-select {
   border-top: 1px solid #e5e7eb;
   text-align: right;
 }
+
+/* tombol submit */
 .form-actions #submit-form-builder {
-  background: var(--primary-color);
+  background: var(--success-primary);
   border-color: var(--primary-color);
+  color: var(--success-hover);
   font-weight: 600;
   transition: all 0.2s ease;
 }
 .form-actions #submit-form-builder:hover {
-  background: var(--primary-hover);
+  background: var(--primary-color);
   border-color: var(--primary-hover);
+  color: white;
   transform: translateY(-1px);
 }
 
@@ -1743,11 +1862,52 @@ select.ab-hidden-select {
   margin-top: 2px;
 }
 
+/* Spinner animation for delete buttons */
+.dashicons.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Options textarea styling */
-.form-fields-builder .field-options {
+/* textarea select booking forms */
+.form-fields-builder .field-options,
+.form-fields-builder .large-text.field-options, 
+.large-text {
   min-height: 60px;
-  resize: vertical;
+  resize: none !important;
   font-family: inherit;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #111827;
+  background-color: #ffffff;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07) !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.form-fields-builder .field-options:hover,
+.form-fields-builder .large-text.field-options:hover {
+  border-color: #72777c !important;
+}
+
+.form-fields-builder .field-options:focus,
+.form-fields-builder .large-text.field-options:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 1px var(--primary-color) !important;
+  outline: 2px solid transparent !important;
+  outline-offset: -2px !important;
 }
 
 /* Required field checkbox styling - inherits global styles */
@@ -1851,7 +2011,7 @@ select.ab-hidden-select {
 .booking-admin-page .widefat select:user-valid,
 .form-fields-builder .widefat input:user-valid,
 .form-fields-builder .widefat select:user-valid {
-  border-color: #e2e8f0;
+  border-color: var(--border-color);
 }
 
 /* Only show validation for required fields after interaction */
@@ -1889,8 +2049,9 @@ select.ab-hidden-select {
   opacity: 1;
 }
 
+
 /* Accessibility improvements */
-.booking-admin-page input:focus,
+/* .booking-admin-page input:focus,
 .booking-admin-page select:focus,
 .booking-admin-page textarea:focus,
 .form-fields-builder .widefat input:focus,
@@ -1898,7 +2059,7 @@ select.ab-hidden-select {
 .form-fields-builder .widefat textarea:focus {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
-}
+} */
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
@@ -2169,7 +2330,7 @@ select.ab-hidden-select {
   margin-bottom: 24px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 /* Section Item Card Design */
@@ -2179,7 +2340,7 @@ select.ab-hidden-select {
   padding: 20px;
   margin: 16px 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   position: relative;
   overflow: hidden;
 }
@@ -2196,7 +2357,7 @@ select.ab-hidden-select {
   font-size: 16px;
   font-weight: 600;
   color: #1f2937;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .booking-admin-page .section-item h4 .section-number {
@@ -2290,14 +2451,14 @@ select.ab-hidden-select {
   background: #ffffff;
   border-radius: 0 8px 8px 0;
   padding: 12px 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-left: none;
 }
 
 /* Enhanced Select Dropdowns */
 .booking-admin-page .section-item .section-type-select {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   padding: 10px 12px;
   font-weight: 500;
@@ -2370,7 +2531,7 @@ select.ab-hidden-select {
   margin-bottom: 24px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .booking-admin-page .admin-card h2 {
@@ -2379,7 +2540,7 @@ select.ab-hidden-select {
   font-weight: 600;
   margin: 0 0 20px 0;
   padding-bottom: 12px;
-  /* border-bottom: 2px solid #e2e8f0; */
+  /* border-bottom: 2px solid var(--border-color); */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -2401,7 +2562,7 @@ select.ab-hidden-select {
   color: #374151;
   font-weight: 600;
   padding: 16px 12px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .booking-admin-page .admin-card .wp-list-table td {
@@ -2433,7 +2594,7 @@ select.ab-hidden-select {
 
 /* Shortcode Display */
 .booking-admin-page .admin-card .wp-list-table code {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #f1f5f9 0%, var(--border-color) 100%);
   color: #374151;
   padding: 6px 10px;
   border-radius: 6px;
@@ -2496,7 +2657,7 @@ select.ab-hidden-select {
     display: block;
     width: 100%;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
   }
 
   .booking-admin-page .section-item .form-table th {

@@ -792,7 +792,7 @@ class Booking_Database {
     /**
      * Create new service
      */
-    public function create_service($name, $description, $price, $duration, $is_active = 1) {
+    public function create_service($name, $description, $price, $duration, $is_active) {
         global $wpdb;
         $services_table = $wpdb->prefix . $this->table_prefix . 'booking_services';
         
@@ -820,10 +820,10 @@ class Booking_Database {
     /**
      * Update service
      */
-    public function update_service($service_id, $name, $description, $price, $duration, $is_active = 1) {
+    public function update_service($service_id, $name, $description, $price, $duration, $is_active) {
         global $wpdb;
         $services_table = $wpdb->prefix . $this->table_prefix . 'booking_services';
-        
+
         $result = $wpdb->update(
             $services_table,
             array(
@@ -838,7 +838,7 @@ class Booking_Database {
             array('%s', '%s', '%f', '%d', '%d', '%s'),
             array('%d')
         );
-        
+
         // $wpdb->update returns false on error or the number of rows affected (0 or 1+)
         // We consider it successful if the operation didn't fail (even if no changes were needed)
         return $result !== false;
