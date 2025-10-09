@@ -3752,7 +3752,7 @@ class Booking_Admin {
                                         '<tr>' +
                                             '<th scope="row"><label><?php _e('Tipe Bagian', 'archeus-booking'); ?></label></th>' +
                                             '<td>' +
-                                                '<select name="section_types[]" class="section-type-select ab-select" style="width: 100%;">' +
+                                                '<select name="section_types[]" class="section-type-select ab-select ab-dropdown" style="width: 100%;">' +
                                                     '<option value=""><?php _e('-- Pilih Bagian--', 'archeus-booking'); ?></option>' +
                                                     '<option value="calendar"><?php _e('Calendar (Date Selection)', 'archeus-booking'); ?></option>' +
                                                     '<option value="services"><?php _e('Services Selection', 'archeus-booking'); ?></option>' +
@@ -3772,7 +3772,7 @@ class Booking_Admin {
                                         '<tr class="form-id-row" style="display: none;">' +
                                             '<th scope="row"><label><?php _e('Form', 'archeus-booking'); ?></label></th>' +
                                             '<td>' +
-                                                '<select name="section_form_ids[]" class="regular-text ab-select">' +
+                                                '<select name="section_form_ids[]" class="regular-text ab-select ab-dropdown">' +
                                                     <?php foreach ($forms as $form): ?>
                                                     '<option value="<?php echo esc_attr($form->id); ?>"><?php echo esc_html($form->name); ?></option>' +
                                                     <?php endforeach; ?>
@@ -3789,6 +3789,9 @@ class Booking_Admin {
 
                                 $('#sections-container').append(sectionHtml);
 
+                                // Initialize custom dropdowns for the newly added section
+                                enhanceAbDropdowns($('#sections-container').find('.section-item').last());
+
                                 // Event delegation handles all elements (existing and new), no need to attach events individually
                                 // Update section numbers to ensure proper numbering
                                 updateSectionNumbers();
@@ -3796,6 +3799,9 @@ class Booking_Admin {
                                 sectionIndex++;
                             });
                             
+                            // Initialize custom dropdowns for existing sections
+                            enhanceAbDropdowns();
+
                             // Attach events for existing sections
                             attachRemoveEvents();
                             attachSectionTypeEvents();
