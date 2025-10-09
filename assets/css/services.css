@@ -1,9 +1,9 @@
 /* Service Selection - Card Layout */
 
 :root {
-  --primary-color: #54b335;
-  --primary-hover: #629e40;
-  --secondary-color: #edfbe2;
+  --archeus-primary-color: #54b335;
+  --archeus-primary-hover: #629e40;
+  --archeus-secondary-color: #edfbe2;
 }
 
 .services-grid {
@@ -23,15 +23,16 @@
 }
 
 .service-card:hover {
+  border-color: var(--archeus-primary-color); /* Primary color */
   transform: translateY(-5px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .service-card.selected {
-  border-color: var(--primary-color); /* Primary color */
-  box-shadow: 0 0 0 3px var(--secondary-color);
+  border-color: #54b335; /* Primary color */
+  box-shadow: 0 0 0 3px #edfbe2;
   transform: translateY(-5px);
-  background-color: var(--secondary-color);
+  background-color: #edfbe2;
 }
 
 .service-card h4 {
@@ -43,7 +44,7 @@
 .service-card .service-price {
   font-size: 1.2em;
   font-weight: bold;
-  color: var(--primary-color);
+  color: #54b335;
   margin: 10px 0;
 }
 
@@ -72,4 +73,19 @@
   .services-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Elementor-specific fixes to ensure color consistency */
+.elementor-editor-active .service-card.selected,
+.elementor-editor-preview .service-card.selected,
+.elementor .service-card.selected {
+  border-color: #54b335 !important;
+  box-shadow: 0 0 0 3px #edfbe2 !important;
+  background-color: #edfbe2 !important;
+}
+
+.elementor-editor-active .service-card .service-price,
+.elementor-editor-preview .service-card .service-price,
+.elementor .service-card .service-price {
+  color: #54b335 !important;
 }

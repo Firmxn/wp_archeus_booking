@@ -15,17 +15,55 @@ class Booking_Calendar_Public {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_public_calendar_scripts'));
         add_action('wp_ajax_get_calendar_data', array($this, 'handle_get_calendar_data'));
         add_action('wp_ajax_nopriv_get_calendar_data', array($this, 'handle_get_calendar_data'));
+        // Add Elementor support
+        add_action('elementor/editor/before_enqueue_scripts', array($this, 'enqueue_elementor_calendar_scripts'));
+        add_action('elementor/frontend/before_enqueue_scripts', array($this, 'enqueue_elementor_calendar_scripts'));
     }
 
     /**
      * Enqueue public calendar scripts
      */
     public function enqueue_public_calendar_scripts() {
-        // Enqueue on pages that use the calendar shortcode
+        // Check if we need to enqueue scripts in various contexts
+        $should_enqueue = false;
+
+        // Check in normal post context
         if (has_shortcode(get_the_content(), 'archeus_booking_calendar')) {
+            $should_enqueue = true;
+        }
+
+        // Check in Elementor editor context
+        if (defined('ELEMENTOR_VERSION') && (
+            (isset($_GET['action']) && $_GET['action'] === 'elementor') ||
+            (isset($_GET['elementor-preview']) && $_GET['elementor-preview'] > 0) ||
+            (isset($_GET['elementor-mode']) && $_GET['elementor-mode'] === 'preview')
+        )) {
+            $should_enqueue = true;
+        }
+
+        // Check in WordPress editor context
+        if (is_admin() && function_exists('get_current_screen')) {
+            $screen = get_current_screen();
+            if ($screen) {
+                // Check if we're in post/page editor or block editor
+                if (in_array($screen->base, array('post', 'page')) ||
+                    $screen->base === 'widgets' ||
+                    (method_exists($screen, 'is_block_editor') && $screen->is_block_editor())) {
+                    $should_enqueue = true;
+                }
+            }
+        }
+
+        // Always enqueue for preview contexts
+        if (isset($_GET['preview']) || isset($_GET['preview_id'])) {
+            $should_enqueue = true;
+        }
+
+        // Enqueue scripts if needed
+        if ($should_enqueue) {
             wp_enqueue_style('booking-calendar-css', ARCHEUS_BOOKING_URL . 'assets/css/calendar.css', array(), ARCHEUS_BOOKING_VERSION);
             wp_enqueue_script('booking-calendar-js', ARCHEUS_BOOKING_URL . 'assets/js/calendar.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
-            
+
             $booking_calendar = new Booking_Calendar();
             wp_localize_script('booking-calendar-js', 'calendar_ajax', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
@@ -218,5 +256,21 @@ class Booking_Calendar_Public {
         }
 
         wp_send_json_success($formatted_data);
+    }
+
+    /**
+     * Enqueue scripts for Elementor editor and frontend (calendar specific)
+     */
+    public function enqueue_elementor_calendar_scripts() {
+        // Enqueue calendar-specific scripts
+        wp_enqueue_style('booking-calendar-css', ARCHEUS_BOOKING_URL . 'assets/css/calendar.css', array(), ARCHEUS_BOOKING_VERSION);
+        wp_enqueue_script('booking-calendar-js', ARCHEUS_BOOKING_URL . 'assets/js/calendar.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
+
+        $booking_calendar = new Booking_Calendar();
+        wp_localize_script('booking-calendar-js', 'calendar_ajax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('calendar_nonce'),
+            'max_months' => $booking_calendar->get_max_months_display()
+        ));
     }
 }

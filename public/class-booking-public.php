@@ -17,6 +17,10 @@ class Booking_Public {
         // Add action for booking flow submission
         add_action('wp_ajax_submit_booking_flow', array($this, 'handle_submit_booking_flow'));
         add_action('wp_ajax_nopriv_submit_booking_flow', array($this, 'handle_submit_booking_flow'));
+
+        // Add Elementor support
+        add_action('elementor/editor/before_enqueue_scripts', array($this, 'enqueue_elementor_scripts'));
+        add_action('elementor/frontend/before_enqueue_scripts', array($this, 'enqueue_elementor_scripts'));
     }
 
     // Note: auto-translation of labels to field keys removed by request.
@@ -26,13 +30,47 @@ class Booking_Public {
      */
     public function enqueue_public_scripts() {
         global $post;
-        // Ensure $post is an object before accessing its properties
-        if (!is_a($post, 'WP_Post')) {
-            return;
+
+        // Check if we need to enqueue scripts in various contexts
+        $should_enqueue = false;
+
+        // Check in normal post context
+        if (is_a($post, 'WP_Post') && (
+            has_shortcode($post->post_content, 'archeus_booking') ||
+            has_shortcode($post->post_content, 'archeus_booking_calendar')
+        )) {
+            $should_enqueue = true;
         }
 
-        // Enqueue scripts only when booking flow or calendar shortcode is present
-        if (has_shortcode($post->post_content, 'archeus_booking') || has_shortcode($post->post_content, 'archeus_booking_calendar')) {
+        // Check in Elementor editor context
+        if (defined('ELEMENTOR_VERSION') && (
+            (isset($_GET['action']) && $_GET['action'] === 'elementor') ||
+            (isset($_GET['elementor-preview']) && $_GET['elementor-preview'] > 0) ||
+            (isset($_GET['elementor-mode']) && $_GET['elementor-mode'] === 'preview')
+        )) {
+            $should_enqueue = true;
+        }
+
+        // Check in WordPress editor context
+        if (is_admin() && function_exists('get_current_screen')) {
+            $screen = get_current_screen();
+            if ($screen) {
+                // Check if we're in post/page editor or block editor
+                if (in_array($screen->base, array('post', 'page')) ||
+                    $screen->base === 'widgets' ||
+                    (method_exists($screen, 'is_block_editor') && $screen->is_block_editor())) {
+                    $should_enqueue = true;
+                }
+            }
+        }
+
+        // Always enqueue for preview contexts
+        if (isset($_GET['preview']) || isset($_GET['preview_id'])) {
+            $should_enqueue = true;
+        }
+
+        // Enqueue scripts if needed
+        if ($should_enqueue) {
             // Enqueue scripts needed for calendar and booking flow
             wp_enqueue_script('booking-calendar-js', ARCHEUS_BOOKING_URL . 'assets/js/calendar.js', array('jquery'), ARCHEUS_BOOKING_VERSION . '.1', true);
             wp_enqueue_script('booking-flow-js', ARCHEUS_BOOKING_URL . 'assets/js/booking-flow.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
@@ -630,6 +668,45 @@ class Booking_Public {
         }
         
         return false;
+    }
+
+    /**
+     * Enqueue scripts for Elementor editor and frontend
+     */
+    public function enqueue_elementor_scripts() {
+        // Enqueue the same scripts as in enqueue_public_scripts
+        wp_enqueue_script('booking-calendar-js', ARCHEUS_BOOKING_URL . 'assets/js/calendar.js', array('jquery'), ARCHEUS_BOOKING_VERSION . '.1', true);
+        wp_enqueue_script('booking-flow-js', ARCHEUS_BOOKING_URL . 'assets/js/booking-flow.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
+
+        // Enqueue public styles
+        wp_enqueue_style('booking-calendar-css', ARCHEUS_BOOKING_URL . 'assets/css/calendar.css', array(), ARCHEUS_BOOKING_VERSION);
+        wp_enqueue_style('booking-flow-css', ARCHEUS_BOOKING_URL . 'assets/css/booking-flow.css', array(), ARCHEUS_BOOKING_VERSION);
+        wp_enqueue_style('services-css', ARCHEUS_BOOKING_URL . 'assets/css/services.css', array(), ARCHEUS_BOOKING_VERSION);
+        wp_enqueue_style('time-slots-css', ARCHEUS_BOOKING_URL . 'assets/css/time-slots.css', array(), ARCHEUS_BOOKING_VERSION);
+
+        // Build AJAX URL with correct scheme to avoid mixed-content issues
+        $ajax_url = admin_url('admin-ajax.php');
+        if (function_exists('is_ssl') && is_ssl()) {
+            $ajax_url = admin_url('admin-ajax.php', 'https');
+        }
+        if (function_exists('wp_make_link_relative')) {
+            $rel = wp_make_link_relative($ajax_url);
+            if (!empty($rel) && strpos($rel, '/wp-admin/admin-ajax.php') === 0) {
+                $ajax_url = $rel;
+            }
+        }
+
+        // Localize scripts with AJAX URL and nonces
+        wp_localize_script('booking-calendar-js', 'calendar_ajax', array(
+            'ajax_url' => $ajax_url,
+            'nonce' => wp_create_nonce('calendar_nonce'),
+            'max_months' => get_option('booking_calendar_max_months', 6)
+        ));
+
+        wp_localize_script('booking-flow-js', 'booking_flow_ajax', array(
+            'ajax_url' => $ajax_url,
+            'nonce' => wp_create_nonce('booking_flow_nonce')
+        ));
     }
 }
 
