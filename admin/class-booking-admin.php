@@ -39,9 +39,7 @@ class Booking_Admin {
         add_action('admin_menu', array($this, 'add_debug_menu'));
         add_action('wp_ajax_clear_email_logs', array($this, 'clear_email_logs'));
 
-        // Add SMTP setup guide
-        add_action('admin_menu', array($this, 'add_smtp_guide_menu'));
-
+  
         // Add language initialization
         add_action('init', array($this, 'load_plugin_textdomain'));
 
@@ -634,7 +632,6 @@ class Booking_Admin {
                             <ul>
                                 <li><?php _e('Check your server\'s email configuration', 'archeus-booking'); ?></li>
                                 <li><?php _e('Verify that your hosting allows outgoing emails', 'archeus-booking'); ?></li>
-                                <li><?php _e('Consider using an SMTP plugin for reliable email delivery', 'archeus-booking'); ?></li>
                                 <li><?php _e('Check error logs for more details', 'archeus-booking'); ?></li>
                             </ul>
                         </div>
@@ -654,17 +651,7 @@ class Booking_Admin {
                     </table>
                     <?php submit_button(__('Send Test Email', 'archeus-booking'), 'secondary', 'test_email_notification'); ?>
                 </form>
-
-                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7;">
-                    <h4><?php _e('Troubleshooting Tips', 'archeus-booking'); ?></h4>
-                    <ul>
-                        <li><?php _e('Many hosting providers require proper SMTP configuration', 'archeus-booking'); ?></li>
-                        <li><?php _e('Consider installing an SMTP plugin like WP Mail SMTP', 'archeus-booking'); ?></li>
-                        <li><?php _e('Check spam/junk folder if emails are not arriving', 'archeus-booking'); ?></li>
-                        <li><?php _e('Verify domain DNS settings (SPF, DKIM, DMARC)', 'archeus-booking'); ?></li>
-                    </ul>
-                </div>
-            </div>
+        </div>
         </div>
         <?php
     }
@@ -994,127 +981,7 @@ class Booking_Admin {
         exit;
     }
 
-    /**
-     * Add SMTP guide menu
-     */
-    public function add_smtp_guide_menu() {
-        add_submenu_page(
-            'archeus-booking-management',
-            __('SMTP Setup Guide', 'archeus-booking'),
-            __('SMTP Guide', 'archeus-booking'),
-            'manage_options',
-            'archeus-booking-smtp-guide',
-            array($this, 'smtp_guide_page')
-        );
-    }
-
-    /**
-     * SMTP guide page
-     */
-    public function smtp_guide_page() {
-        ?>
-        <div class="wrap">
-            <h1><?php _e('SMTP Setup Guide for Email Notifications', 'archeus-booking'); ?></h1>
-
-            <div class="notice notice-warning">
-                <h3><?php _e('Why Email Notifications Are Not Working', 'archeus-booking'); ?></h3>
-                <p><?php _e('Your WordPress site is currently using the default PHP mail() function, which often fails due to server configuration issues. Most hosting providers require proper SMTP authentication to send emails reliably.', 'archeus-booking'); ?></p>
-            </div>
-
-            <div class="card" style="max-width: 800px; margin: 20px 0; padding: 20px;">
-                <h2><?php _e('Quick Fix: Install an SMTP Plugin', 'archeus-booking'); ?></h2>
-                <p><?php _e('The easiest solution is to install an SMTP plugin that will handle all email sending through a proper mail service.', 'archeus-booking'); ?></p>
-
-                <h3><?php _e('Recommended SMTP Plugins (Free):', 'archeus-booking'); ?></h3>
-                <ol>
-                    <li>
-                        <strong>WP Mail SMTP</strong>
-                        <ul>
-                            <li>Most popular (3+ million active installs)</li>
-                            <li>Easy setup wizard</li>
-                            <li>Supports Gmail, Outlook, SendGrid, Mailgun, etc.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Post SMTP</strong>
-                        <ul>
-                            <li>Advanced features</li>
-                            <li>Email logging</li>
-                            <li>Automatic error recovery</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Easy WP SMTP</strong>
-                        <ul>
-                            <li>Simple and lightweight</li>
-                            <li>Good for beginners</li>
-                        </ul>
-                    </li>
-                </ol>
-
-                <h3><?php _e('Setup Steps:', 'archeus-booking'); ?></h3>
-                <ol>
-                    <li>Go to <strong>Plugins → Add New</strong></li>
-                    <li>Search for "<strong>WP Mail SMTP</strong>"</li>
-                    <li>Click <strong>Install Now</strong>, then <strong>Activate</strong></li>
-                    <li>Follow the setup wizard</li>
-                    <li>Choose your mailer (Gmail recommended for testing)</li>
-                    <li>Test your email configuration</li>
-                    <li>Try approving a booking again</li>
-                </ol>
-
-                <h3><?php _e('Free SMTP Services:', 'archeus-booking'); ?></h3>
-                <table class="widefat">
-                    <thead>
-                        <tr>
-                            <th><?php _e('Service', 'archeus-booking'); ?></th>
-                            <th><?php _e('Free Limit', 'archeus-booking'); ?></th>
-                            <th><?php _e('Setup Difficulty', 'archeus-booking'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Gmail</strong></td>
-                            <td>100 emails/day</td>
-                            <td>Easy</td>
-                        </tr>
-                        <tr>
-                            <td><strong>SendGrid</strong></td>
-                            <td>100 emails/day</td>
-                            <td>Medium</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Brevo (Sendinblue)</strong></td>
-                            <td>300 emails/day</td>
-                            <td>Easy</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Mailgun</strong></td>
-                            <td>5,000 emails/month (3 months)</td>
-                            <td>Medium</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="card" style="max-width: 800px; margin: 20px 0; padding: 20px;">
-                <h2><?php _e('After Installing SMTP Plugin', 'archeus-booking'); ?></h2>
-                <ol>
-                    <li><?php _e('Test your email configuration in the SMTP plugin settings', 'archeus-booking'); ?></li>
-                    <li><?php _e('Go to <strong>Archeus Booking → Email Settings</strong>', 'archeus-booking'); ?></li>
-                    <li><?php _e('Scroll down and click "Send Test Email"', 'archeus-booking'); ?></li>
-                    <li><?php _e('If test email works, try approving a booking', 'archeus-booking'); ?></li>
-                    <li><?php _e('Check <strong>Archeus Booking → Email Debug</strong> for logs', 'archeus-booking'); ?></li>
-                </ol>
-
-                <div class="notice notice-success">
-                    <p><strong><?php _e('Pro Tip:', 'archeus-booking'); ?></strong> <?php _e('Use Gmail for testing first since it\'s the easiest to set up. You can always switch to a more robust service later.', 'archeus-booking'); ?></p>
-                </div>
-            </div>
-        </div>
-        <?php
-    }
-
+  
     /**
      * Add debug menu
      */
