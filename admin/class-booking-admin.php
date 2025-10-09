@@ -505,10 +505,176 @@ class Booking_Admin {
         $email_settings = get_option('booking_email_settings', array(
             'enable_customer_confirmation' => 1,
             'enable_admin_notification' => 1,
-            'customer_confirmation_subject' => __('Konfirmasi Reservasi', 'archeus-booking'),
-            'customer_confirmation_body' => __('Terima kasih atas reservasi Anda. Kami akan segera menghubungi Anda untuk konfirmasi.', 'archeus-booking'),
-            'admin_notification_subject' => __('Reservasi Baru Diterima', 'archeus-booking'),
-            'admin_notification_body' => __('Reservasi baru telah diterima, tolong segera dicek.', 'archeus-booking')
+            // Status change email settings
+            'enable_status_change_emails' => 1,
+            'pending_email_subject' => __('Menunggu Konfirmasi Reservasi #{booking_id}', 'archeus-booking'),
+            'pending_email_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Reservasi Sedang Diproses</h2>
+        <p>{greeting}</p>
+        <p>Terima kasih telah melakukan reservasi dengan kami. Reservasi Anda sedang dalam proses peninjauan.</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+
+        <p>Kami akan segera menghubungi Anda untuk mengkonfirmasi reservasi ini.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'approved_email_subject' => __('Reservasi #{booking_id} Telah Diterima', 'archeus-booking'),
+            'approved_email_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Reservasi Diterima!</h2>
+        <p>{greeting}</p>
+        <p>Selamat! Reservasi Anda telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda sesuai dengan jadwal yang telah dipilih.</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+
+        <p>Jika ada perubahan jadwal, kami akan menghubungi Anda segera.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'rejected_email_subject' => __('Reservasi #{booking_id} Ditolak', 'archeus-booking'),
+            'rejected_email_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #e74c3c;">Reservasi Ditolak</h2>
+        <p>{greeting}</p>
+        <p>Maaf, reservasi Anda telah <strong>DITOLAK</strong>. Jika Anda memiliki pertanyaan atau membutuhkan bantuan, silakan hubungi kami.</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #e74c3c;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+
+        <p>Anda dapat melakukan reservasi kembali dengan jadwal yang berbeda jika tersedia.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'completed_email_subject' => __('Reservasi #{booking_id} Selesai', 'archeus-booking'),
+            'completed_email_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #27ae60;">Reservasi Selesai</h2>
+        <p>{greeting}</p>
+        <p>Reservasi Anda telah ditandai sebagai selesai. Terima kasih telah menggunakan layanan kami!</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #27ae60;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+
+        <p>Kami berharap Anda puas dengan layanan kami. Jangan ragu untuk melakukan reservasi kembali di kemudian hari.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'customer_confirmation_subject' => __('Konfirmasi Reservasi #{booking_id} - {service_type}', 'archeus-booking'),
+            'customer_confirmation_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Konfirmasi Reservasi Anda</h2>
+        <p>{greeting}</p>
+        <p>Terima kasih telah melakukan reservasi dengan kami. Berikut adalah detail reservasi Anda:</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+
+        <p>Kami akan menghubungi Anda segera untuk mengkonfirmasi reservasi ini.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'admin_notification_subject' => __('Reservasi Baru #{booking_id} - {service_type}', 'archeus-booking'),
+            'admin_notification_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Reservasi Baru Diterima</h2>
+        <p>{greeting}</p>
+        <p>Reservasi baru telah masuk dan membutuhkan perhatian Anda. Berikut adalah detail reservasi:</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email Pelanggan:</strong> {customer_email}</p>
+        </div>
+
+        <p>Segera hubungi pelanggan untuk mengkonfirmasi reservasi ini.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Salam admin,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking')
         ));
         
         // Save settings if form was submitted
@@ -516,14 +682,24 @@ class Booking_Admin {
             $email_settings = array(
                 'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
                 'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
+                'enable_status_change_emails' => isset($_POST['email_settings']['enable_status_change_emails']) ? 1 : 0,
                 'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
                 'customer_confirmation_body' => wp_kses_post($_POST['email_settings']['customer_confirmation_body']),
                 'admin_notification_subject' => sanitize_text_field($_POST['email_settings']['admin_notification_subject']),
-                'admin_notification_body' => wp_kses_post($_POST['email_settings']['admin_notification_body'])
+                'admin_notification_body' => wp_kses_post($_POST['email_settings']['admin_notification_body']),
+                // Status email settings
+                'pending_email_subject' => sanitize_text_field($_POST['email_settings']['pending_email_subject']),
+                'pending_email_body' => wp_kses_post($_POST['email_settings']['pending_email_body']),
+                'approved_email_subject' => sanitize_text_field($_POST['email_settings']['approved_email_subject']),
+                'approved_email_body' => wp_kses_post($_POST['email_settings']['approved_email_body']),
+                'rejected_email_subject' => sanitize_text_field($_POST['email_settings']['rejected_email_subject']),
+                'rejected_email_body' => wp_kses_post($_POST['email_settings']['rejected_email_body']),
+                'completed_email_subject' => sanitize_text_field($_POST['email_settings']['completed_email_subject']),
+                'completed_email_body' => wp_kses_post($_POST['email_settings']['completed_email_body'])
             );
-            
+
             update_option('booking_email_settings', $email_settings);
-            
+
             echo '<div class="notice notice-success is-dismissible"><p>' . __('Pengaturan email berhasil diperbarui.', 'archeus-booking') . '</p></div>';
         }
         ?>
@@ -534,6 +710,7 @@ class Booking_Admin {
                 <?php wp_nonce_field('save_email_settings', 'email_settings_nonce'); ?>
                 
                 <h2><?php _e('Customer Confirmation Email', 'archeus-booking'); ?></h2>
+                <p class="description"><?php _e('Anda dapat menggunakan HTML template lengkap untuk email. Jika template tidak mengandung HTML, sistem akan secara otomatis membungkusnya dengan template standar.', 'archeus-booking'); ?></p>
                 <table class="form-table">
                     <tr>
                         <th scope="row"><?php _e('Enable Confirmation Email', 'archeus-booking'); ?></th>
@@ -555,8 +732,8 @@ class Booking_Admin {
                     <tr>
                         <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                         <td>
-                            <textarea name="email_settings[customer_confirmation_body]" rows="5"><?php echo esc_textarea($email_settings['customer_confirmation_body']); ?></textarea>
-                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {booking_date}, {booking_time}, {service_type}', 'archeus-booking'); ?></p>
+                            <textarea name="email_settings[customer_confirmation_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea($email_settings['customer_confirmation_body']); ?></textarea>
+                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -583,12 +760,95 @@ class Booking_Admin {
                     <tr>
                         <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                         <td>
-                            <textarea name="email_settings[admin_notification_body]" rows="5"><?php echo esc_textarea($email_settings['admin_notification_body']); ?></textarea>
-                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}', 'archeus-booking'); ?></p>
+                            <textarea name="email_settings[admin_notification_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea($email_settings['admin_notification_body']); ?></textarea>
+                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {admin_email}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
                         </td>
                     </tr>
                 </table>
-                
+
+                <h2><?php _e('Status Change Emails', 'archeus-booking'); ?></h2>
+                <p class="description"><?php _e('Kustomisasi email yang dikirim ke pelanggan ketika status reservasi berubah. Setiap status dapat memiliki subjek dan konten email yang berbeda.', 'archeus-booking'); ?></p>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php _e('Enable Status Change Emails', 'archeus-booking'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="email_settings[enable_status_change_emails]" value="1" <?php checked(isset($email_settings['enable_status_change_emails']) ? $email_settings['enable_status_change_emails'] : 1, 1); ?>>
+                                <?php _e('Kirim email notifikasi ketika status reservasi berubah', 'archeus-booking'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3><?php _e('Pending Status Email', 'archeus-booking'); ?></h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php _e('Email Subject', 'archeus-booking'); ?></th>
+                        <td>
+                            <input type="text" name="email_settings[pending_email_subject]" value="<?php echo esc_attr(isset($email_settings['pending_email_subject']) ? $email_settings['pending_email_subject'] : __('Menunggu Konfirmasi Reservasi #{booking_id}', 'archeus-booking')); ?>" style="width: 100%;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
+                        <td>
+                            <textarea name="email_settings[pending_email_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea(isset($email_settings['pending_email_body']) ? $email_settings['pending_email_body'] : $this->get_default_status_email_template('pending')); ?></textarea>
+                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3><?php _e('Approved Status Email', 'archeus-booking'); ?></h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php _e('Email Subject', 'archeus-booking'); ?></th>
+                        <td>
+                            <input type="text" name="email_settings[approved_email_subject]" value="<?php echo esc_attr(isset($email_settings['approved_email_subject']) ? $email_settings['approved_email_subject'] : __('Reservasi #{booking_id} Telah Diterima', 'archeus-booking')); ?>" style="width: 100%;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
+                        <td>
+                            <textarea name="email_settings[approved_email_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea(isset($email_settings['approved_email_body']) ? $email_settings['approved_email_body'] : $this->get_default_status_email_template('approved')); ?></textarea>
+                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3><?php _e('Rejected Status Email', 'archeus-booking'); ?></h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php _e('Email Subject', 'archeus-booking'); ?></th>
+                        <td>
+                            <input type="text" name="email_settings[rejected_email_subject]" value="<?php echo esc_attr(isset($email_settings['rejected_email_subject']) ? $email_settings['rejected_email_subject'] : __('Reservasi #{booking_id} Ditolak', 'archeus-booking')); ?>" style="width: 100%;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
+                        <td>
+                            <textarea name="email_settings[rejected_email_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea(isset($email_settings['rejected_email_body']) ? $email_settings['rejected_email_body'] : $this->get_default_status_email_template('rejected')); ?></textarea>
+                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3><?php _e('Completed Status Email', 'archeus-booking'); ?></h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php _e('Email Subject', 'archeus-booking'); ?></th>
+                        <td>
+                            <input type="text" name="email_settings[completed_email_subject]" value="<?php echo esc_attr(isset($email_settings['completed_email_subject']) ? $email_settings['completed_email_subject'] : __('Reservasi #{booking_id} Selesai', 'archeus-booking')); ?>" style="width: 100%;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
+                        <td>
+                            <textarea name="email_settings[completed_email_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea(isset($email_settings['completed_email_body']) ? $email_settings['completed_email_body'] : $this->get_default_status_email_template('completed')); ?></textarea>
+                            <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
                 <?php submit_button(__('Simpan Pengaturan Email', 'archeus-booking'), 'primary', 'save_email_settings'); ?>
             </form>
 
@@ -1316,8 +1576,8 @@ class Booking_Admin {
                 }
             }
 
-            // Send notification email to customer only for specific status changes
-            if (in_array($status, array('approved', 'rejected')) && $status !== $old_status) {
+            // Send notification email to customer for all status changes (if enabled in settings)
+            if ($status !== $old_status) {
                 error_log('Archeus Booking: Status changed from ' . $old_status . ' to ' . $status . ', sending email notification...');
                 $this->send_status_change_notification($booking, $status);
             } else {
@@ -1338,6 +1598,15 @@ class Booking_Admin {
      * Send notification email when booking status is changed
      */
     private function send_status_change_notification($booking, $new_status) {
+        // Get email settings
+        $email_settings = get_option('booking_email_settings', array());
+
+        // Check if status change emails are enabled
+        if (!isset($email_settings['enable_status_change_emails']) || !$email_settings['enable_status_change_emails']) {
+            error_log('Archeus Booking: Status change emails are disabled in settings');
+            return;
+        }
+
         // Create email logs table if not exists
         $this->create_email_logs_table();
 
@@ -1354,17 +1623,15 @@ class Booking_Admin {
             $to = $booking->customer_email;
         }
 
-        // Create subject based on status
-        $status_subjects = array(
-            'approved' => __('Reservasi Anda Telah Diterima', 'archeus-booking'),
-            'rejected' => __('Reservasi Anda Ditolak', 'archeus-booking'),
-            'completed' => __('Reservasi Anda Selesai', 'archeus-booking'),
-            'pending' => __('Menunggu Konfirmasi Reservasi Anda', 'archeus-booking')
-        );
+        // Get email template from settings
+        $subject_key = $new_status . '_email_subject';
+        $body_key = $new_status . '_email_body';
 
-        $subject = isset($status_subjects[$new_status]) ? $status_subjects[$new_status] : sprintf(__('Pembaruan Status Booking - %s', 'archeus-booking'), $new_status);
+        $subject = isset($email_settings[$subject_key]) ? $email_settings[$subject_key] : sprintf(__('Pembaruan Status Booking - %s', 'archeus-booking'), $new_status);
+        $template = isset($email_settings[$body_key]) ? $email_settings[$body_key] : $this->get_default_status_email_template($new_status);
 
-        $message = $this->build_status_change_email_content($booking, $new_status);
+        // Build email content using the existing build_custom_email_content function
+        $message = $this->build_status_email_content($booking, $template, $new_status);
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
         // Send email and log result
@@ -1415,88 +1682,187 @@ class Booking_Admin {
         return false;
     }
     
+    
     /**
-     * Build status change email content
+     * Build status email content using custom template from admin settings
      */
-    private function build_status_change_email_content($booking, $new_status) {
-        $status_labels = array(
-            'pending' => __('Pending', 'archeus-booking'),
-            'approved' => __('Approved', 'archeus-booking'),
-            'completed' => __('Completed', 'archeus-booking'),
-            'rejected' => __('Rejected', 'archeus-booking')
+    private function build_status_email_content($booking, $template, $status) {
+        // Prepare booking data for tag replacement
+        $booking_data = array(
+            'booking_id' => $booking->id,
+            'customer_name' => !empty($booking->customer_name) ? $booking->customer_name : __('Pelanggan', 'archeus-booking'),
+            'customer_email' => !empty($booking->customer_email) ? $booking->customer_email : '',
+            'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
+            'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
+            'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
+            'time_slot' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
+            'status' => $status,
+            'company_name' => get_bloginfo('name'),
+            'company_url' => get_bloginfo('url'),
+            'admin_email' => get_option('admin_email'),
+            'current_date' => date('Y-m-d'),
+            'current_time' => date('H:i:s'),
+            'email_title' => $this->get_status_email_title($status)
         );
-        
-        $status_label = isset($status_labels[$new_status]) ? $status_labels[$new_status] : $new_status;
-        
-        $html = '<html><body>';
-        $html .= '<div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; padding: 20px;">';
 
-        // Add specific title based on status
-        $status_titles = array(
-            'approved' => __('Reservasi Diterima!', 'archeus-booking'),
+        // Generate greeting based on customer name
+        if (!empty($booking->customer_name)) {
+            $booking_data['greeting'] = sprintf(__('Dear %s,', 'archeus-booking'), $booking->customer_name);
+        } else {
+            $booking_data['greeting'] = __('Dear Pelanggan,', 'archeus-booking');
+        }
+
+        // Replace all available tags in the template
+        $message = $template;
+
+        // Replace standard tags
+        foreach ($booking_data as $key => $value) {
+            $message = str_replace('{' . $key . '}', $value, $message);
+        }
+
+        // Auto-wrap HTML if not present
+        if (strpos($message, '<html') === false) {
+            $message = $this->wrap_email_template($message, 'customer');
+        }
+
+        return $message;
+    }
+
+    /**
+     * Get default status email template as fallback
+     */
+    private function get_default_status_email_template($status) {
+        $templates = array(
+            'pending' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Reservasi Sedang Diproses</h2>
+        <p>{greeting}</p>
+        <p>Terima kasih telah melakukan reservasi dengan kami. Reservasi Anda sedang dalam proses peninjauan.</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+        </div>
+        <p>Kami akan segera menghubungi Anda untuk mengkonfirmasi reservasi ini.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'approved' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #27ae60;">Reservasi Diterima!</h2>
+        <p>{greeting}</p>
+        <p>Selamat! Reservasi Anda telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda.</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #27ae60;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+        </div>
+        <p>Jika ada perubahan jadwal, kami akan menghubungi Anda segera.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'rejected' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #e74c3c;">Reservasi Ditolak</h2>
+        <p>{greeting}</p>
+        <p>Maaf, reservasi Anda telah <strong>DITOLAK</strong>. Jika Anda memiliki pertanyaan, silakan hubungi kami.</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #e74c3c;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+        </div>
+        <p>Anda dapat melakukan reservasi kembali dengan jadwal yang berbeda jika tersedia.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking'),
+            'completed' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #27ae60;">Reservasi Selesai</h2>
+        <p>{greeting}</p>
+        <p>Reservasi Anda telah ditandai sebagai selesai. Terima kasih telah menggunakan layanan kami!</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #27ae60;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+        </div>
+        <p>Kami berharap Anda puas dengan layanan kami. Jangan ragu untuk melakukan reservasi kembali.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking')
+        );
+
+        return isset($templates[$status]) ? $templates[$status] : $templates['pending'];
+    }
+
+    /**
+     * Get status email title
+     */
+    private function get_status_email_title($status) {
+        $titles = array(
+            'pending' => __('Reservasi Sedang Diproses', 'archeus-booking'),
+            'approved' => __('Reservasi Diterima', 'archeus-booking'),
             'rejected' => __('Reservasi Ditolak', 'archeus-booking'),
-            'completed' => __('Reservasi Selesai', 'archeus-booking'),
-            'pending' => __('Reservasi Sedang Diproses', 'archeus-booking')
+            'completed' => __('Reservasi Selesai', 'archeus-booking')
         );
 
-        $title = isset($status_titles[$new_status]) ? $status_titles[$new_status] : __('Status Booking Diperbarui', 'archeus-booking');
-        $html .= '<h2 style="color: #333;">' . $title . '</h2>';
-        // Check if customer name is available, if not use a default
-        $customer_name = !empty($booking->customer_name) ? $booking->customer_name : __('Pelanggan', 'archeus-booking');
-        $html .= '<p>' . sprintf(__('Dear %s,', 'archeus-booking'), $customer_name) . '</p>';
-        
-        // Add specific message based on status
-        switch ($new_status) {
-            case 'approved':
-                $message = __('Selamat! Reservasi Anda telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda sesuai dengan jadwal yang telah dipilih.', 'archeus-booking');
-                break;
-            case 'rejected':
-                $message = __('Maaf, reservasi Anda telah <strong>DITOLAK</strong>. Jika Anda memiliki pertanyaan atau membutuhkan bantuan, silakan hubungi kami.', 'archeus-booking');
-                break;
-            case 'completed':
-                $message = __('Reservasi Anda telah ditandai sebagai selesai. Terima kasih telah menggunakan layanan kami!', 'archeus-booking');
-                break;
-            case 'pending':
-                $message = __('Reservasi Anda sedang dalam status menunggu. Kami akan segera mengkonfirmasi reservasi Anda.', 'archeus-booking');
-                break;
-            default:
-                $message = sprintf(__('Status reservasi Anda telah diperbarui menjadi: <strong>%s</strong>', 'archeus-booking'), $status_label);
-        }
-        
-        $html .= '<p>' . $message . '</p>';
-        
-        $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">' . __('Field', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">' . __('Value', 'archeus-booking') . '</td></tr>';
-        
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Booking ID', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . $booking->id . '</td></tr>';
-        
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Date', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . date('M j, Y', strtotime($booking->booking_date)) . '</td></tr>';
-        
-        if (!empty($booking->booking_time)) {
-            $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Time', 'archeus-booking') . '</td>';
-            $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . $this->format_time($booking->booking_time) . '</td></tr>';
-        }
-        
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Service Type', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . $booking->service_type . '</td></tr>';
-        
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Current Status', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . $status_label . '</td></tr>';
-        
-        $html .= '</table>';
-        
-        $html .= '<p>' . __('Jika Anda memiliki pertanyaan tentang hal ini, silakan hubungi kami.', 'archeus-booking') . '</p>';
-        $html .= '<p>' . __('Salam hormat,', 'archeus-booking') . '</p>';
-        $html .= '<p><strong>' . get_bloginfo('name') . '</strong></p>';
+        return isset($titles[$status]) ? $titles[$status] : __('Pembaruan Status Reservasi', 'archeus-booking');
+    }
+
+    /**
+     * Wrap email template with HTML structure
+     */
+    private function wrap_email_template($content, $recipient_type) {
+        $html = '<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">';
+        $html .= '<div style="max-width: 600px; margin: 0 auto; padding: 20px;">';
+        $html .= $content;
+        $html .= '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">';
+        $html .= '<p style="margin: 0; color: #666;">' . __('Hormat kami,', 'archeus-booking') . '<br><strong>' . get_bloginfo('name') . '</strong></p>';
+        $html .= '<p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">';
+        $html .= __('Email ini dikirim pada', 'archeus-booking') . ' ' . date('Y-m-d') . ' ' . __('pukul', 'archeus-booking') . ' ' . date('H:i:s');
+        $html .= '</p>';
+        $html .= '</div>';
         $html .= '</div>';
         $html .= '</body></html>';
-        
+
         return $html;
     }
-    
+
     /**
      * Format time for display
      */

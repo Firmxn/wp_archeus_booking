@@ -153,11 +153,37 @@ class Booking_Public {
      * Send confirmation email to customer
      */
     private function send_confirmation_email($booking_data) {
-        // Get email settings
+        // Get email settings - use centralized defaults from admin
         $email_settings = get_option('booking_email_settings', array(
             'enable_customer_confirmation' => 1,
-            'customer_confirmation_subject' => __('Booking Confirmation', 'archeus-booking'),
-            'customer_confirmation_body' => __('Thank you for your booking. We will contact you shortly to confirm.', 'archeus-booking')
+            'customer_confirmation_subject' => __('Konfirmasi Reservasi #{booking_id} - {service_type}', 'archeus-booking'),
+            'customer_confirmation_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Konfirmasi Reservasi Anda</h2>
+        <p>{greeting}</p>
+        <p>Terima kasih telah melakukan reservasi dengan kami. Berikut adalah detail reservasi Anda:</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+
+        <p>Kami akan menghubungi Anda segera untuk mengkonfirmasi reservasi ini.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking')
         ));
         
         // Check if customer confirmation is enabled
@@ -180,8 +206,34 @@ class Booking_Public {
         // Get email settings
         $email_settings = get_option('booking_email_settings', array(
             'enable_admin_notification' => 1,
-            'admin_notification_subject' => __('Reservasi Baru Diterima', 'archeus-booking'),
-            'admin_notification_body' => __('Reservasi baru telah diterima, tolong segera dicek.', 'archeus-booking')
+            'admin_notification_subject' => __('Reservasi Baru #{booking_id} - {service_type}', 'archeus-booking'),
+            'admin_notification_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Reservasi Baru Diterima</h2>
+        <p>{greeting}</p>
+        <p>Reservasi baru telah masuk dan membutuhkan perhatian Anda. Berikut adalah detail reservasi:</p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Email Pelanggan:</strong> {customer_email}</p>
+        </div>
+
+        <p>Segera hubungi pelanggan untuk mengkonfirmasi reservasi ini.</p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="margin: 0; color: #666;">Salam admin,<br>{company_name}</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                Email ini dikirim pada {current_date} pukul {current_time}
+            </p>
+        </div>
+    </div>
+</body>
+</html>', 'archeus-booking')
         ));
         
         // Check if admin notification is enabled
@@ -198,83 +250,130 @@ class Booking_Public {
     }
     
     /**
-     * Build custom email content
+     * Build custom email content with full HTML template support
      */
     private function build_custom_email_content($booking_data, $template, $recipient_type) {
-        // Replace tags in the template
+        // Replace all available tags in the template
         $message = $template;
-        
-        // Replace customer-specific tags (resolve display name from known custom keys)
+
+        // Get customer information
         $display_name = isset($booking_data['customer_name']) ? $booking_data['customer_name'] : '';
         if ($display_name === '') {
             foreach (array('nama_lengkap','nama','full_name','name') as $ck) {
                 if (!empty($booking_data[$ck])) { $display_name = $booking_data[$ck]; break; }
             }
         }
+
+        $customer_email = $this->resolve_customer_email($booking_data);
+
+        // Basic booking information
+        $booking_date = isset($booking_data['booking_date']) ? $booking_data['booking_date'] : '';
+        $booking_time = isset($booking_data['booking_time']) ? $booking_data['booking_time'] : '';
+        $service_type = isset($booking_data['service_type']) ? $booking_data['service_type'] : '';
+        $time_slot = isset($booking_data['time_slot']) ? $booking_data['time_slot'] : '';
+
+        // Replace basic tags
         $message = str_replace('{customer_name}', $display_name, $message);
-        $message = str_replace('{customer_email}', $this->resolve_customer_email($booking_data), $message);
-        $message = str_replace('{booking_date}', $booking_data['booking_date'], $message);
-        $message = str_replace('{booking_time}', $booking_data['booking_time'], $message);
-        $message = str_replace('{service_type}', $booking_data['service_type'], $message);
-        // Special requests may exist as a custom field
-        $special = '';
-        if (isset($booking_data['special_requests'])) { $special = $booking_data['special_requests']; }
-        $message = str_replace('{special_requests}', $special, $message);
-        
-        // For HTML email, we'll use the more detailed table format
+        $message = str_replace('{customer_email}', $customer_email, $message);
+        $message = str_replace('{booking_date}', $booking_date, $message);
+        $message = str_replace('{booking_time}', $booking_time, $message);
+        $message = str_replace('{service_type}', $service_type, $message);
+        $message = str_replace('{time_slot}', $time_slot, $message);
+
+        // Company information
+        $message = str_replace('{company_name}', get_bloginfo('name'), $message);
+        $message = str_replace('{company_url}', get_bloginfo('url'), $message);
+        $message = str_replace('{admin_email}', get_option('admin_email'), $message);
+
+        // Recipient-specific tags
         if ($recipient_type === 'customer') {
-            $title = __('Konfirmasi Reservasi Anda', 'archeus-booking');
-            $greeting = sprintf(__('Dear %s,', 'archeus-booking'), $display_name);
+            $message = str_replace('{email_title}', __('Konfirmasi Reservasi Anda', 'archeus-booking'), $message);
+            $message = str_replace('{greeting}', sprintf(__('Halo %s,', 'archeus-booking'), $display_name), $message);
         } else {
-            $title = __('Reservasi Baru Diterima', 'archeus-booking');
-            $greeting = __('Halo,', 'archeus-booking');
+            $message = str_replace('{email_title}', __('Reservasi Baru Diterima', 'archeus-booking'), $message);
+            $message = str_replace('{greeting}', __('Halo Admin,', 'archeus-booking'), $message);
         }
-        
-        $html = '<html><body>';
-        $html .= '<div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; padding: 20px;">';
-        $html .= '<h2 style="color: #333;">' . $title . '</h2>';
-        $html .= '<p>' . $greeting . '</p>';
-        $html .= '<p>' . $message . '</p>';
-        
-        $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">' . __('Field', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">' . __('Value', 'archeus-booking') . '</td></tr>';
-        
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Name', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($display_name) . '</td></tr>';
-        
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Email', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($this->resolve_customer_email($booking_data)) . '</td></tr>';
-        
-        $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Date', 'archeus-booking') . '</td>';
-        $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($booking_data['booking_date']) . '</td></tr>';
-        
-        if (!empty($booking_data['booking_time'])) {
-            $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Time', 'archeus-booking') . '</td>';
-            $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($booking_data['booking_time']) . '</td></tr>';
-        }
-        
-        if (!empty($booking_data['service_type'])) {
-            $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Service Type', 'archeus-booking') . '</td>';
-            $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($booking_data['service_type']) . '</td></tr>';
-        }
-        
-        // Render special requests if present in additional fields
+
+        // Current date/time
+        $message = str_replace('{current_date}', date_i18n(get_option('date_format')), $message);
+        $message = str_replace('{current_time}', date_i18n(get_option('time_format')), $message);
+        $message = str_replace('{current_datetime}', date_i18n(get_option('date_format') . ' ' . get_option('time_format')), $message);
+
+        // Replace additional fields dynamically
         if (!empty($booking_data['additional_fields'])) {
             $extra = is_array($booking_data['additional_fields']) ? $booking_data['additional_fields'] : @maybe_unserialize($booking_data['additional_fields']);
-            if (is_array($extra) && !empty($extra['special_requests'])) {
-                $html .= '<tr><td style="padding: 8px; border: 1px solid #ddd;">' . __('Special Requests', 'archeus-booking') . '</td>';
-                $html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($extra['special_requests']) . '</td></tr>';
+            if (is_array($extra)) {
+                foreach ($extra as $key => $value) {
+                    if (is_array($value)) {
+                        $value = implode(', ', $value);
+                    }
+                    $message = str_replace('{' . $key . '}', $value, $message);
+                }
             }
         }
-        
-        $html .= '</table>';
-        
-        $html .= '<p>' . __('Salam hormat,', 'archeus-booking') . '</p>';
-        $html .= '<p><strong>' . get_bloginfo('name') . '</strong></p>';
-        $html .= '</div>';
-        $html .= '</body></html>';
-        
+
+        // Replace any remaining fields from booking data
+        foreach ($booking_data as $key => $value) {
+            if (!in_array($key, array('customer_name', 'customer_email', 'booking_date', 'booking_time', 'service_type', 'time_slot', 'additional_fields'))) {
+                if (is_array($value)) {
+                    $value = implode(', ', $value);
+                }
+                $message = str_replace('{' . $key . '}', $value, $message);
+            }
+        }
+
+        // If template doesn't contain HTML structure, wrap it with default template
+        if (strpos($message, '<html') === false && strpos($message, '<!DOCTYPE') === false) {
+            $message = $this->wrap_email_template($message, $recipient_type);
+        }
+
+        return $message;
+    }
+
+    /**
+     * Wrap plain text content with HTML email template
+     */
+    private function wrap_email_template($content, $recipient_type) {
+        $title = ($recipient_type === 'customer') ? __('Konfirmasi Reservasi', 'archeus-booking') : __('Reservasi Baru', 'archeus-booking');
+
+        $html = '<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>' . $title . '</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td style="padding: 30px;">
+                            <h1 style="color: #333; margin: 0 0 20px 0; font-size: 24px;">' . $title . '</h1>
+                            <div style="color: #666; line-height: 1.6; font-size: 16px;">
+                                ' . wpautop($content) . '
+                            </div>
+                            <table style="margin: 30px 0; width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
+                                        <p style="margin: 0; color: #666; font-size: 14px;">
+                                            <strong>' . get_bloginfo('name') . '</strong><br>
+                                            ' . get_bloginfo('description') . '<br>
+                                            <a href="' . get_bloginfo('url') . '" style="color: #54b335;">' . get_bloginfo('url') . '</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+
         return $html;
     }
 
