@@ -192,7 +192,7 @@ class Booking_Public {
         }
         
         $to = $this->resolve_customer_email($booking_data);
-        $subject = $email_settings['customer_confirmation_subject'];
+        $subject = $this->build_email_subject($booking_data, $email_settings['customer_confirmation_subject']);
         $message = $this->build_custom_email_content($booking_data, $email_settings['customer_confirmation_body'], 'customer');
         $headers = array('Content-Type: text/html; charset=UTF-8');
         
@@ -242,7 +242,7 @@ class Booking_Public {
         }
         
         $admin_email = get_option('admin_email');
-        $subject = $email_settings['admin_notification_subject'];
+        $subject = $this->build_email_subject($booking_data, $email_settings['admin_notification_subject']);
         $message = $this->build_custom_email_content($booking_data, $email_settings['admin_notification_body'], 'admin');
         $headers = array('Content-Type: text/html; charset=UTF-8');
         
@@ -806,6 +806,40 @@ class Booking_Public {
             'ajax_url' => $ajax_url,
             'nonce' => wp_create_nonce('booking_flow_nonce')
         ));
+    }
+
+    /**
+     * Build email subject with tag replacement
+     */
+    private function build_email_subject($booking_data, $subject_template) {
+        // Prepare booking data for tag replacement
+        $data = array(
+            'booking_id' => isset($booking_data['booking_id']) ? $booking_data['booking_id'] : '',
+            'customer_name' => isset($booking_data['customer_name']) ? $booking_data['customer_name'] : '',
+            'customer_email' => isset($booking_data['customer_email']) ? $booking_data['customer_email'] : '',
+            'booking_date' => isset($booking_data['booking_date']) ? $booking_data['booking_date'] : '',
+            'booking_time' => isset($booking_data['booking_time']) ? $booking_data['booking_time'] : '',
+            'service_type' => isset($booking_data['service_type']) ? $booking_data['service_type'] : '',
+            'time_slot' => isset($booking_data['booking_time']) ? $booking_data['booking_time'] : '',
+            'company_name' => get_bloginfo('name'),
+            'company_url' => get_bloginfo('url'),
+            'admin_email' => get_option('admin_email'),
+            'current_date' => date('Y-m-d'),
+            'current_time' => date('H:i:s')
+        );
+
+        // Replace all available tags in the subject
+        $subject = $subject_template;
+
+        // Replace standard tags
+        foreach ($data as $key => $value) {
+            $subject = str_replace('{' . $key . '}', $value, $subject);
+        }
+
+        // Clean up any remaining tags (replace with empty string)
+        $subject = preg_replace('/\{[^}]+\}/', '', $subject);
+
+        return trim($subject);
     }
 }
 

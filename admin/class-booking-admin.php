@@ -1627,11 +1627,14 @@ class Booking_Admin {
         $subject_key = $new_status . '_email_subject';
         $body_key = $new_status . '_email_body';
 
-        $subject = isset($email_settings[$subject_key]) ? $email_settings[$subject_key] : sprintf(__('Pembaruan Status Booking - %s', 'archeus-booking'), $new_status);
-        $template = isset($email_settings[$body_key]) ? $email_settings[$body_key] : $this->get_default_status_email_template($new_status);
+        $subject_template = isset($email_settings[$subject_key]) ? $email_settings[$subject_key] : sprintf(__('Pembaruan Status Booking - %s', 'archeus-booking'), $new_status);
+        $body_template = isset($email_settings[$body_key]) ? $email_settings[$body_key] : $this->get_default_status_email_template($new_status);
+
+        // Process subject template for tag replacement
+        $subject = $this->build_status_email_subject($booking, $subject_template, $new_status);
 
         // Build email content using the existing build_custom_email_content function
-        $message = $this->build_status_email_content($booking, $template, $new_status);
+        $message = $this->build_status_email_content($booking, $body_template, $new_status);
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
         // Send email and log result
@@ -1683,6 +1686,42 @@ class Booking_Admin {
     }
     
     
+    /**
+     * Build status email subject with tag replacement
+     */
+    private function build_status_email_subject($booking, $subject_template, $status) {
+        // Prepare booking data for tag replacement
+        $booking_data = array(
+            'booking_id' => $booking->id,
+            'customer_name' => !empty($booking->customer_name) ? $booking->customer_name : __('Pelanggan', 'archeus-booking'),
+            'customer_email' => !empty($booking->customer_email) ? $booking->customer_email : '',
+            'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
+            'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
+            'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
+            'time_slot' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
+            'status' => $status,
+            'company_name' => get_bloginfo('name'),
+            'company_url' => get_bloginfo('url'),
+            'admin_email' => get_option('admin_email'),
+            'current_date' => date('Y-m-d'),
+            'current_time' => date('H:i:s'),
+            'email_title' => $this->get_status_email_title($status)
+        );
+
+        // Replace all available tags in the subject
+        $subject = $subject_template;
+
+        // Replace standard tags
+        foreach ($booking_data as $key => $value) {
+            $subject = str_replace('{' . $key . '}', $value, $subject);
+        }
+
+        // Clean up any remaining tags (replace with empty string)
+        $subject = preg_replace('/\{[^}]+\}/', '', $subject);
+
+        return trim($subject);
+    }
+
     /**
      * Build status email content using custom template from admin settings
      */
