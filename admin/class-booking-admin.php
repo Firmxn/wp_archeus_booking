@@ -435,7 +435,7 @@ class Booking_Admin {
                                 <tfoot>
                                     <tr>
                                         <td colspan="7" class="col-add-field">
-                                            <button type="button" id="add-field-btn" class="button button-secondary"><span class="dashicons dashicons-plus-alt"></span> <?php _e('Tambah Field', 'archeus-booking'); ?></button>
+                                            <button type="button" id="add-field-btn" class="button button-secondary"><span class="dashicons dashicons-plus"></span><?php _e('Tambah Field', 'archeus-booking'); ?></button>
                                         </td>
                                     </tr>
                                 </tfoot>
@@ -768,8 +768,8 @@ class Booking_Admin {
             </div>
             
             <div class="booking-filters">
-                <select id="booking-status-filter" class="ab-select ab-dropdown">
-                    <option disabled selected><?php _e('-- Pilih Status --', 'archeus-booking'); ?></option>
+                <select id="booking-status-filter" class="ab-dropdown filter-dashboard">
+                    <option disabled selected><?php _e('-- Pilih Status--', 'archeus-booking'); ?></option>
                     <option value=""><?php _e('Semua Status', 'archeus-booking'); ?></option>
                     <option value="pending"><?php _e('Menunggu (Pending)', 'archeus-booking'); ?></option>
                     <option value="approved"><?php _e('Disetujui (Approved)', 'archeus-booking'); ?></option>
@@ -3700,7 +3700,7 @@ class Booking_Admin {
                         </div>
                         
                         <div class="button-container-flex">
-                            <button type="button" id="add-section-btn" class="button button-secondary add-section"><?php _e('Tambah Bagian', 'archeus-booking'); ?></button>
+                            <button type="button" id="add-section-btn" class="button button-secondary add-section"><span class="dashicons dashicons-plus"></span><?php _e('Tambah Bagian', 'archeus-booking'); ?></button>
                         </div>
                         
                         <?php submit_button($edit_flow ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_booking_flow'); ?>

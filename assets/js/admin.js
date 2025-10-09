@@ -336,6 +336,13 @@ jQuery(document).ready(function ($) {
         setTimeout(function () {
           // Find the last clicked delete button and trigger its confirm action
           var $deleteBtn = $('.delete-booking[data-delete-pending="true"]');
+          console.log('Looking for delete-booking button:', {
+            button: $deleteBtn,
+            length: $deleteBtn.length,
+            allBookingButtons: $('.delete-booking[data-delete-pending="true"]'),
+            allTimeSlotButtons: $('.delete-time-slot[data-delete-pending="true"]')
+          });
+
           if ($deleteBtn.length) {
             var bookingId = $deleteBtn.data("id");
             $deleteBtn.removeAttr("data-delete-pending");
@@ -371,6 +378,13 @@ jQuery(document).ready(function ($) {
       } else {
         // Handle service and form deletion
         setTimeout(function () {
+          console.log('Checking for pending delete buttons:', {
+            service: $('.delete-service[data-delete-pending="true"]').length,
+            flow: $('.delete-flow[data-delete-pending="true"]').length,
+            timeSlot: $('.delete-time-slot[data-delete-pending="true"]').length,
+            form: $('.delete-form[data-delete-pending="true"]').length
+          });
+
           // Find service delete button
           var $serviceBtn = $('.delete-service[data-delete-pending="true"]');
           if ($serviceBtn.length) {
@@ -1994,7 +2008,7 @@ jQuery(document).ready(function ($) {
 
     // Call the custom delete confirmation dialog
     if (typeof showDeleteConfirm === "function") {
-      showDeleteConfirm('Yakin ingin menghapus layanan ini?', '');
+      showDeleteConfirm('Yakin ingin menghapus layanan ini?', 'service-delete');
     }
   });
 
@@ -2018,7 +2032,7 @@ jQuery(document).ready(function ($) {
 
     // Call the custom delete confirmation dialog
     if (typeof showDeleteConfirm === "function") {
-      showDeleteConfirm('Yakin ingin menghapus formulir ini?', '');
+      showDeleteConfirm('Yakin ingin menghapus formulir ini?', 'form-delete');
     }
   });
 
@@ -2057,7 +2071,7 @@ jQuery(document).ready(function ($) {
     // Call the custom delete confirmation dialog
     if (typeof showDeleteConfirm === "function") {
       console.log('Calling showDeleteConfirm for time slot');
-      showDeleteConfirm('Yakin ingin menghapus slot waktu ini?', '');
+      showDeleteConfirm('Yakin ingin menghapus slot waktu ini?', 'time-slot-delete');
     } else {
       console.log('showDeleteConfirm function not available');
     }
@@ -2084,7 +2098,7 @@ jQuery(document).ready(function ($) {
 
     // Call the custom delete confirmation dialog
     if (typeof showDeleteConfirm === "function") {
-      showDeleteConfirm('Yakin ingin menghapus booking flow ini?', '');
+      showDeleteConfirm('Yakin ingin menghapus booking flow ini?', 'flow-delete');
     }
   });
 

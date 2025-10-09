@@ -21,6 +21,8 @@
   --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --transition: all 0.25s ease;
+  --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --button-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 /* Form controls base styles - All input types */
 .booking-admin-page input[type='text'],
@@ -55,7 +57,6 @@
   line-height: 1.4;
   box-sizing: border-box;
 }
-
 
 /* Special case for textarea */
 .booking-admin-page textarea,
@@ -503,42 +504,6 @@
   }
 }
 
-/* Refresh icon button styling */
-#refresh-bookings.ab-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10px !important;
-  height: 40px !important;
-  min-height: 40px !important;
-  line-height: 1 !important;
-  border: 1px solid #e5e7eb !important;
-  background: #f9fafb !important;
-  color: #111827 !important;
-  border-radius: var(--border-radius) !important;
-}
-#refresh-bookings.ab-icon-btn svg {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-}
-#refresh-bookings.ab-icon-btn .dashicons {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  line-height: 18px;
-}
-#refresh-bookings.ab-icon-btn:hover {
-  background: #f3f4f6 !important;
-}
-#refresh-bookings.ab-icon-btn .screen-reader-text {
-  position: absolute;
-  clip: rect(1px, 1px, 1px, 1px);
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-}
-
 /* Enhanced callout notice for shortcode guidance */
 .ab-callout {
   background: transparent;
@@ -654,31 +619,6 @@
   color: inherit !important;
 }
 
-.ab-copy-btn.button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px !important;
-  border-radius: var(--border-radius);
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  color: #111827;
-  transition: var(--transition);
-  font-size: 14px;
-  font-weight: 600;
-}
-.ab-copy-btn.button:hover {
-  background: #f3f4f6;
-}
-.ab-copy-btn.button:active {
-  transform: translateY(1px);
-}
-.ab-copy-btn .dashicons {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-}
-
 /* Callout row layout tweaks */
 .ab-shortcode-row label {
   flex: 0 0 auto;
@@ -735,30 +675,6 @@
   line-height: 1;
 }
 
-/* Action buttons in bookings table */
-.booking-admin-page .view-details-btn.button {
-  background: #f9fafb;
-  color: #111827;
-  border: 1px solid #e5e7eb;
-  font-size: 14px;
-  font-weight: 600;
-}
-.booking-admin-page .view-details-btn.button:hover {
-  background: black;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-}
-.booking-admin-page .delete-booking.button {
-  background: #ef4444;
-  border-color: #ef4444;
-  color: #ffffff;
-}
-.booking-admin-page .delete-booking.button:hover {
-  background: #dc2626;
-  border-color: #dc2626;
-}
-
 /* Booking details card */
 .booking-admin-page .booking-details-card {
   background: #ffffff;
@@ -791,54 +707,6 @@
 .booking-admin-page .booking-details-table tr:first-child th,
 .booking-admin-page .booking-details-table tr:first-child td {
   border-top: none;
-}
-
-/* Vaccine proof actions */
-.booking-admin-page .bv-actions {
-  display: inline-flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-.booking-admin-page .bv-actions .button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.booking-admin-page .bv-actions .button .dashicons {
-  width: 18px;
-  height: 18px;
-  line-height: 1;
-}
-.booking-admin-page .bv-actions .bv-preview.button {
-  background: #f9fafb;
-  color: #111827;
-  border: 1px solid #e5e7eb;
-}
-.booking-admin-page .bv-actions .bv-preview.button:hover {
-  background: black;
-  color: white;
-}
-.booking-admin-page .bv-actions .bv-open.button {
-  background: var(--button-primary);
-  border-color: var(--button-primary);
-  color: var(--button-primary-hover);
-}
-.booking-admin-page .bv-actions .bv-open.button:hover {
-  background: var(--button-primary-hover);
-  border-color: var(--button-primary-hover);
-  color: white;
-}
-.booking-admin-page .bv-actions .bv-download.button {
-  background: var(--info-color);
-  border-color: var(--info-color);
-  color: var(--info-color-hover);
-}
-.booking-admin-page .bv-actions .bv-download.button:hover {
-  background: var(--info-color-hover);
-  border-color: var(--info-color-hover);
-  color: white;
 }
 
 /* Modernize admin UI to align with booking flow */
@@ -1224,59 +1092,6 @@
   }
 }
 
-/* Primary buttons */
-/* tombol utama */
-.booking-admin-page .button-primary,
-.booking-admin-page .button.button-primary {
-  background: var(--success-primary);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.booking-admin-page .button-primary:hover,
-.booking-admin-page .button.button-primary:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-/* Global button radius consistency within plugin admin */
-.booking-admin-page .button,
-.booking-admin-page .button.button-primary,
-.booking-admin-page .button.button-secondary,
-.booking-admin-page .button.button-small,
-.booking-admin-page .button.button-large,
-.ab-callout .button,
-.ab-callout .button.button-primary,
-.ab-callout .button.button-secondary {
-  border-radius: var(--border-radius) !important;
-}
-
-/* Global button sizing consistency within plugin admin */
-.booking-admin-page .button,
-.booking-admin-page .button.button-primary,
-.booking-admin-page .button.button-secondary,
-.booking-admin-page .button.button-small,
-.booking-admin-page .button.button-large,
-.ab-callout .button,
-.ab-callout .button.button-primary,
-.ab-callout .button.button-secondary {
-  height: 40px !important;
-  min-height: 40px !important;
-  line-height: 1 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  padding-left: 12px !important;
-  padding-right: 12px !important;
-  /* border: 1px solid var(--border-color) !important; */
-}
-
 /* Custom dropdown (progressive enhancement) */
 .ab-dd {
   position: relative;
@@ -1301,6 +1116,28 @@
 .ab-dd .ab-dd-toggle:focus {
   outline: none;
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3);
+}
+
+/* filter dashboard */
+.booking-filters .filter-dashboard {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 8px 12px !important;
+  background: red !important;
+  color: #111827 !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+}
+.booking-filters .filter-dashboard :focus {
+  outline: none;
+  border-color: red !important;
+  /* border-color: var(--primary-color); */
   box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3);
 }
 .ab-dd .ab-dd-caret {
@@ -1684,7 +1521,7 @@ select.ab-hidden-select {
 }
 
 /* Remove field button - use global button sizing */
-.form-fields-builder .remove-field.button {
+/* .form-fields-builder .remove-field.button {
   background: #fee2e2;
   color: #ef4444;
   border-color: transparent;
@@ -1696,26 +1533,49 @@ select.ab-hidden-select {
   color: #fff;
   border-color: #ef4444;
   transform: translateY(-1px);
-}
+} */
 
 /* Add field button - use global button sizing */
-#add-field-btn {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-  font-weight: 600;
+/* tombol tambah field booking form */
+/* tombol tambah bagian booking flow  */
+#add-field-btn,
+.booking-admin-page .add-section {
+  background: var(--button-primary);
+  color: var(--primary-color);
+  border-color: var(--button-primary);
+  font-size: 14px;
+  font-weight: 600 !important;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-#add-field-btn:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
-  transform: translateY(-1px);
+
+#add-field-btn:hover,
+.booking-admin-page .add-section:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
-#add-field-btn .dashicons {
+#add-field-btn:focus,
+.booking-admin-page .add-section:focus {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+#add-field-btn .dashicons,
+.booking-admin-page .add-section .dashicons {
   margin-right: 6px;
 }
 
-.form-row{
+.button-container-flex {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-row {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1726,21 +1586,6 @@ select.ab-hidden-select {
   padding-top: 24px;
   border-top: 1px solid #e5e7eb;
   text-align: right;
-}
-
-/* tombol submit */
-.form-actions #submit-form-builder {
-  background: var(--success-primary);
-  border-color: var(--primary-color);
-  color: var(--success-hover);
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-.form-actions #submit-form-builder:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-hover);
-  color: white;
-  transform: translateY(-1px);
 }
 
 /* Column sizing for form fields table */
@@ -1879,7 +1724,7 @@ select.ab-hidden-select {
 /* Options textarea styling */
 /* textarea select booking forms */
 .form-fields-builder .field-options,
-.form-fields-builder .large-text.field-options, 
+.form-fields-builder .large-text.field-options,
 .large-text {
   min-height: 60px;
   resize: none !important;
@@ -2049,7 +1894,6 @@ select.ab-hidden-select {
   opacity: 1;
 }
 
-
 /* Accessibility improvements */
 /* .booking-admin-page input:focus,
 .booking-admin-page select:focus,
@@ -2098,93 +1942,6 @@ select.ab-hidden-select {
   .col-actions {
     display: none;
   }
-}
-
-/* Unified Delete Buttons - Icon Only */
-.booking-admin-page .delete-booking,
-.booking-admin-page .button-danger,
-.booking-admin-page .remove-field,
-.booking-admin-page a.button.delete-booking,
-.booking-admin-page a.button.button-danger {
-  background: #fee2e2 !important;
-  color: #ef4444 !important;
-  border-color: transparent !important;
-  border-radius: var(--border-radius) !important;
-  padding: 6px 12px !important;
-  height: 40px !important;
-  min-height: 40px !important;
-  min-width: 40px !important;
-  width: 40px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 16px !important;
-  font-weight: normal !important;
-  transition: var(--transition) !important;
-  position: relative !important;
-  line-height: 1 !important;
-}
-.booking-admin-page .delete-booking:hover,
-.booking-admin-page .button-danger:hover,
-.booking-admin-page .remove-field:hover,
-.booking-admin-page a.button.delete-booking:hover,
-.booking-admin-page a.button.button-danger:hover {
-  background: #ef4444 !important;
-  color: #ffffff !important;
-  border-color: #ef4444 !important;
-  transform: translateY(-1px) !important;
-}
-.booking-admin-page .delete-booking .dashicons,
-.booking-admin-page .button-danger .dashicons,
-.booking-admin-page .remove-field .dashicons {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
-  line-height: 18px !important;
-  margin: 0 !important;
-}
-
-/* Unified Edit Buttons - Warning Color with Icon */
-.booking-admin-page .button-warning,
-.booking-admin-page a.button.button-warning,
-.booking-admin-page .edit-button,
-.booking-admin-page a.edit-button {
-  background: #fef3c7 !important;
-  color: #f59e0b !important;
-  border-color: transparent !important;
-  border-radius: var(--border-radius) !important;
-  padding: 6px 12px !important;
-  height: 40px !important;
-  min-height: 40px !important;
-  min-width: 40px !important;
-  width: 40px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 16px !important;
-  font-weight: normal !important;
-  transition: var(--transition) !important;
-  position: relative !important;
-  line-height: 1 !important;
-}
-.booking-admin-page .button-warning:hover,
-.booking-admin-page a.button.button-warning:hover,
-.booking-admin-page .edit-button:hover,
-.booking-admin-page a.edit-button:hover {
-  background: #f59e0b !important;
-  color: #ffffff !important;
-  border-color: #f59e0b !important;
-  transform: translateY(-1px) !important;
-}
-.booking-admin-page .button-warning .dashicons,
-.booking-admin-page a.button.button-warning .dashicons,
-.booking-admin-page .edit-button .dashicons,
-.booking-admin-page a.edit-button .dashicons {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
-  line-height: 18px !important;
-  margin: 0 !important;
 }
 
 /* Hide text for icon-only buttons, but keep for screen readers */
@@ -2410,18 +2167,6 @@ select.ab-hidden-select {
   background: linear-gradient(135deg, #10b981, #059669);
 }
 
-/* Enhanced Remove Button */
-.booking-admin-page .section-item .remove-step {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
-}
-
 /* Enhanced Form Table within Section Items */
 .booking-admin-page .section-item .form-table {
   margin: 0;
@@ -2603,42 +2348,6 @@ select.ab-hidden-select {
   border: 1px solid #d1d5db;
 }
 
-/* Add Section Button Enhancement */
-.booking-admin-page .add-section {
-  /* background: linear-gradient(135deg, var(--primary-color), var(--success-color)); */
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(84, 179, 53, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.button-container-flex {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.booking-admin-page .add-section:hover {
-  /* background: linear-gradient(135deg, var(--success-color), var(--primary-color)); */
-  background: var(--primary-hover);
-  /* transform: translateY(-2px); */
-  /* box-shadow: 0 6px 20px rgba(84, 179, 53, 0.3); */
-  color: white;
-}
-
-.booking-admin-page .add-section::before {
-  content: "+";
-  font-size: 18px;
-  font-weight: 700;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .booking-admin-page .section-item {
@@ -2697,3 +2406,359 @@ select.ab-hidden-select {
 .admin-card-body .widefat {
   margin-top: 0;
 }
+
+/* SEMUA TOMBOL */
+.booking-admin-page .section-item .remove-step {
+  background: #fee2e2 !important;
+  color: #ef4444;
+  border-color: transparent !important;
+  border-radius: var(--border-radius) !important;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition) !important;
+}
+.booking-admin-page .section-item .remove-step:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--box-shadow-hover);
+}
+/* Unified Delete Buttons - Icon Only */
+/* tombol hapus panel admin */
+.booking-admin-page .delete-booking,
+.booking-admin-page .button-danger,
+.booking-admin-page .remove-field,
+.booking-admin-page a.button.delete-booking,
+.booking-admin-page a.button.button-danger {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+  border-color: transparent !important;
+  border-radius: var(--border-radius) !important;
+  padding: 6px 12px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  min-width: 40px !important;
+  width: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  font-weight: normal !important;
+  transition: var(--transition) !important;
+  position: relative !important;
+  line-height: 1 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.booking-admin-page .delete-booking:hover,
+.booking-admin-page .button-danger:hover,
+.booking-admin-page .remove-field:hover,
+.booking-admin-page a.button.delete-booking:hover,
+.booking-admin-page a.button.button-danger:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+.booking-admin-page .delete-booking .dashicons,
+.booking-admin-page .button-danger .dashicons,
+.booking-admin-page .remove-field .dashicons {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  margin: 0 !important;
+}
+
+/* Unified Edit Buttons - Warning Color with Icon */
+/* tombol edit panel admin */
+.booking-admin-page .button-warning,
+.booking-admin-page a.button.button-warning,
+.booking-admin-page .edit-button,
+.booking-admin-page a.edit-button {
+  background: #fef3c7 !important;
+  color: #f59e0b !important;
+  border-color: transparent !important;
+  border-radius: var(--border-radius) !important;
+  padding: 6px 12px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  min-width: 40px !important;
+  width: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  font-weight: normal !important;
+  transition: var(--transition) !important;
+  position: relative !important;
+  line-height: 1 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.booking-admin-page .button-warning:hover,
+.booking-admin-page a.button.button-warning:hover,
+.booking-admin-page .edit-button:hover,
+.booking-admin-page a.edit-button:hover {
+  background: #f59e0b !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+.booking-admin-page .button-warning .dashicons,
+.booking-admin-page a.button.button-warning .dashicons,
+.booking-admin-page .edit-button .dashicons,
+.booking-admin-page a.edit-button .dashicons {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  margin: 0 !important;
+}
+
+/* Primary buttons */
+/* tombol utama/submit */
+.booking-admin-page .button-primary,
+.booking-admin-page .button.button-primary {
+  background: var(--button-primary);
+  color: var(--primary-color);
+  border-color: var(--button-primary);
+  font-size: 14px;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.booking-admin-page .button-primary:hover,
+.booking-admin-page .button.button-primary:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Global button radius consistency within plugin admin */
+.booking-admin-page .button,
+.booking-admin-page .button.button-primary,
+.booking-admin-page .button.button-secondary,
+.booking-admin-page .button.button-small,
+.booking-admin-page .button.button-large,
+.ab-callout .button,
+.ab-callout .button.button-primary,
+.ab-callout .button.button-secondary {
+  border-radius: var(--border-radius) !important;
+}
+
+/* Global button sizing consistency within plugin admin */
+.booking-admin-page .button,
+.booking-admin-page .button.button-primary,
+.booking-admin-page .button.button-secondary,
+.booking-admin-page .button.button-small,
+.booking-admin-page .button.button-large,
+.ab-callout .button,
+.ab-callout .button.button-primary,
+.ab-callout .button.button-secondary {
+  height: 40px !important;
+  min-height: 40px !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  /* border: 1px solid var(--border-color) !important; */
+}
+
+/* tombol submit */
+.form-actions #submit-form-builder {
+  background: var(--button-primary);
+  color: var(--primary-color);
+  border-color: var(--button-primary);
+  font-size: 14px;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.form-actions #submit-form-builder:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* tombol open file dashboard */
+.booking-admin-page .bv-actions .bv-open.button {
+  background: var(--button-primary);
+  border-color: var(--button-primary);
+  color: var(--button-primary-hover);
+  transition: var(--transition);
+  font-size: 14px;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  box-shadow: var(--button-shadow);
+}
+.booking-admin-page .bv-actions .bv-open.button:hover {
+  background: var(--button-primary-hover);
+  border-color: var(--button-primary-hover);
+  color: white;
+  box-shadow: var(--button-shadow-hover);
+}
+
+/* tombol download file dashboard */
+.booking-admin-page .bv-actions .bv-download.button {
+  background: var(--info-color);
+  border-color: var(--info-color);
+  color: var(--info-color-hover);
+  transition: var(--transition);
+  font-size: 14px;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  box-shadow: var(--button-shadow);
+}
+.booking-admin-page .bv-actions .bv-download.button:hover {
+  background: var(--info-color-hover);
+  border-color: var(--info-color-hover);
+  color: white;
+  box-shadow: var(--button-shadow-hover);
+}
+
+/* tombol salin */
+/* tombol view */
+/* tombol refresh */
+.ab-copy-btn.button,
+.booking-admin-page .view-details-btn.button,
+#refresh-bookings.ab-icon-btn,
+.booking-admin-page .bv-actions .bv-preview.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px !important;
+  border-radius: var(--border-radius);
+  /* border: 1px solid #e5e7eb; */
+  border: none;
+  background: #f9fafb;
+  color: #111827;
+  transition: var(--transition);
+  font-size: 14px;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  box-shadow: var(--button-shadow);
+}
+
+.ab-copy-btn.button:hover,
+.booking-admin-page .view-details-btn.button:hover,
+#refresh-bookings.ab-icon-btn:hover,
+.booking-admin-page .bv-actions .bv-preview.button:hover {
+  background: black;
+  color: white;
+  box-shadow: var(--button-shadow-hover);
+}
+
+.ab-copy-btn.button:active {
+  transform: translateY(1px);
+  /* border: red; */
+}
+
+.ab-copy-btn .dashicons {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Refresh icon button styling */
+/* #refresh-bookings.ab-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  line-height: 1 !important;
+  border: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+  color: #111827 !important;
+  border-radius: var(--border-radius) !important;
+} */
+#refresh-bookings.ab-icon-btn svg {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+}
+/* #refresh-bookings.ab-icon-btn .dashicons {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+} */
+/* #refresh-bookings.ab-icon-btn:hover {
+  background: #f3f4f6 !important;
+} */
+
+/* detail reservasi dashboard */
+#refresh-bookings.ab-icon-btn .screen-reader-text {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+}
+
+/* Vaccine proof actions */
+/* belum tau */
+/* .booking-admin-page .bv-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.booking-admin-page .bv-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.booking-admin-page .bv-actions .button .dashicons {
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+}
+.booking-admin-page .bv-actions .bv-preview.button {
+  background: #f9fafb;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+.booking-admin-page .bv-actions .bv-preview.button:hover {
+  background: black;
+  color: white;
+}
+
+
+/* Action buttons in bookings table */
+/* .booking-admin-page .view-details-btn.button {
+  background: #f9fafb;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  font-weight: 600;
+}
+.booking-admin-page .view-details-btn.button:hover {
+  background: black;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+} */
+/* .booking-admin-page .delete-booking.button {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+.booking-admin-page .delete-booking.button:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+} */
