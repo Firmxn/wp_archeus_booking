@@ -160,7 +160,7 @@ class Booking_Calendar {
                 // Skip if table doesn't exist yet
                 $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
                 if ($exists !== $table) { continue; }
-                $statuses = get_option('booking_blocking_statuses', array('approved'));
+                $statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
                 if (!is_array($statuses) || empty($statuses)) { continue; }
                 $ph = implode(',', array_fill(0, count($statuses), '%s'));
                 $args = array_merge(array($first_day, $last_day), $statuses);
@@ -201,7 +201,7 @@ class Booking_Calendar {
                 $table = $db->get_flow_table_name($flow->name);
                 $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
                 if ($exists !== $table) { continue; }
-                $statuses = get_option('booking_blocking_statuses', array('approved'));
+                $statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
                 if (!is_array($statuses) || empty($statuses)) { continue; }
                 $ph = implode(',', array_fill(0, count($statuses), '%s'));
                 $args = array_merge(array($date), $statuses);

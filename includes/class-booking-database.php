@@ -1086,6 +1086,7 @@ class Booking_Database {
         
         return $schedule;
     }
+
     
     /**
      * Get available schedules for a specific date and service
@@ -1131,9 +1132,30 @@ class Booking_Database {
         foreach ($all_schedules as $schedule) {
             // Check if this specific time slot still has available capacity
             $slot_remaining = $schedule->max_capacity - $schedule->current_bookings;
-            
-            // If slot still has capacity
-            if ($slot_remaining > 0) {
+
+            // Check if there are any existing bookings with blocking statuses for this time slot
+            $blocking_statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
+            $existing_blocking_bookings = 0;
+
+            // Check for bookings with blocking statuses for this specific time slot
+            $flows = $this->get_booking_flows();
+            foreach ($flows as $flow) {
+                $table = $this->get_flow_table_name($flow->name);
+                // Check if table exists
+                $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+                if ($table_exists !== $table) continue;
+
+                // Check for bookings with blocking statuses for this specific time slot
+                $placeholders = implode(',', array_fill(0, count($blocking_statuses), '%s'));
+                $sql = "SELECT COUNT(*) FROM {$table} WHERE booking_date = %s AND booking_time = %s AND status IN ($placeholders)";
+                $params = array_merge(array($date, $schedule->start_time . '-' . $schedule->end_time), $blocking_statuses);
+
+                $count = $wpdb->get_var($wpdb->prepare($sql, $params));
+                $existing_blocking_bookings += intval($count);
+            }
+
+            // If slot still has capacity AND no blocking bookings
+            if ($slot_remaining > 0 && $existing_blocking_bookings == 0) {
                 // Add this time slot to available slots
                 $available_slots[] = $schedule;
             }
@@ -1222,14 +1244,31 @@ class Booking_Database {
     public function update_schedule_bookings($schedule_id, $change) {
         global $wpdb;
         $schedules_table = $wpdb->prefix . $this->table_prefix . 'booking_schedules';
-        
-        $result = $wpdb->query(
-            $wpdb->prepare(
-                "UPDATE {$schedules_table} SET current_bookings = current_bookings + %d, updated_at = %s WHERE id = %d",
-                $change, current_time('mysql'), $schedule_id
-            )
+
+        // First check if schedule exists and get current bookings
+        $schedule = $wpdb->get_row($wpdb->prepare(
+            "SELECT current_bookings FROM {$schedules_table} WHERE id = %d",
+            intval($schedule_id)
+        ));
+
+        if (!$schedule) {
+            return false;
+        }
+
+        // Calculate new value to prevent negative bookings
+        $new_bookings = max(0, intval($schedule->current_bookings) + intval($change));
+
+        $result = $wpdb->update(
+            $schedules_table,
+            array(
+                'current_bookings' => $new_bookings,
+                'updated_at' => current_time('mysql')
+            ),
+            array('id' => intval($schedule_id)),
+            array('%d', '%s'),
+            array('%d')
         );
-        
+
         return $result !== false;
     }
     
@@ -1506,7 +1545,7 @@ class Booking_Database {
             $wpdb->query("UPDATE `{$table}` SET `status` = 'rejected' WHERE `status` = 'cancelled'");
         }
         // Update blocking statuses option
-        $blocking = get_option('booking_blocking_statuses', array('approved'));
+        $blocking = get_option('booking_blocking_statuses', array('approved', 'completed'));
         if (is_array($blocking)) {
             $changed = false;
             foreach ($blocking as &$st) {

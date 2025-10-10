@@ -778,25 +778,13 @@ jQuery(document).ready(function ($) {
             processedFields.push('customer_name', 'customer_email');
           }
 
-          // Second row: service_type and booking_time (unless time_slot exists)
-          var displayTimeField = data.booking_time;
-          var timeFieldLabel = "Waktu";
-
-          // If time_slot exists, use it instead of booking_time to avoid duplication
-          if (data.time_slot) {
-            displayTimeField = data.time_slot;
-            timeFieldLabel = "Time Slot";
-            processedFields.push('time_slot');
-          } else {
-            processedFields.push('booking_time');
-          }
-
-          if (data.service_type || displayTimeField) {
+          // Second row: service_type and booking_time
+          if (data.service_type || data.booking_time) {
             html += "<tr>";
             html += "<td><strong>Layanan:</strong> " + (data.service_type || "-") + "</td>";
-            html += "<td><strong>" + timeFieldLabel + ":</strong> " + (displayTimeField || "-") + "</td>";
+            html += "<td><strong>Waktu:</strong> " + (data.booking_time || "-") + "</td>";
             html += "</tr>";
-            processedFields.push('service_type');
+            processedFields.push('service_type', 'booking_time');
           }
 
           // Filter and categorize remaining keys

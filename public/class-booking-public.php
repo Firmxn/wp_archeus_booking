@@ -123,7 +123,7 @@ class Booking_Public {
             $table = $booking_db->get_flow_table_name($flow->name);
             $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
             if ($exists !== $table) { continue; }
-            $statuses = get_option('booking_blocking_statuses', array('approved'));
+            $statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
             if (!is_array($statuses) || empty($statuses)) { continue; }
             $ph = implode(',', array_fill(0, count($statuses), '%s'));
             $args = array_merge(array($today), $statuses);
@@ -549,9 +549,12 @@ class Booking_Public {
             $combined_data['customer_email'] = $detected_customer_email;
         }
 
+        // Keep time_slot for validation but will be removed before database storage
+        $time_slot_for_validation = isset($combined_data['time_slot']) ? $combined_data['time_slot'] : null;
+
         // Merge all non-core fields directly into combined_data (including files)
         foreach ($combined_data as $key => $value) {
-            if (!in_array($key, ['customer_name', 'customer_email', 'booking_date', 'booking_time', 'service_type', 'time_slot'])) {
+            if (!in_array($key, ['customer_name', 'customer_email', 'booking_date', 'booking_time', 'service_type'])) {
                 if (isset($_FILES[$key])) {
                     $file = $this->handle_file_upload($_FILES[$key]);
                     if ($file) { $combined_data[$key] = $file; }
@@ -570,7 +573,8 @@ class Booking_Public {
         }
 
         // Handle time slot if provided
-        if (!empty($time_slot)) {
+        if (!empty($time_slot_for_validation)) {
+            $time_slot = $time_slot_for_validation; // Use the validation variable
             // Parse the time slot format "YYYY-MM-DD HH:MM-HH:MM"
             $time_slot_parts = explode(' ', sanitize_text_field($time_slot));
             $date = $time_slot_parts[0];
@@ -612,10 +616,62 @@ class Booking_Public {
                     $date, $start_time, $end_time
                 ));
 
-                if ($schedule && ($schedule->current_bookings < $schedule->max_capacity)) {
+                // If schedule doesn't exist, create it automatically to ensure availability
+                if (!$schedule) {
+                    $wpdb->insert(
+                        $schedules_table,
+                        array(
+                            'service_id' => 0,
+                            'date' => $date,
+                            'start_time' => $start_time,
+                            'end_time' => $end_time,
+                            'max_capacity' => 1,
+                            'current_bookings' => 0,
+                            'is_available' => 1
+                        ),
+                        array('%d', '%s', '%s', '%s', '%d', '%d', '%d')
+                    );
+
+                    // Get the newly created schedule
+                    $schedule = $wpdb->get_row($wpdb->prepare(
+                        "SELECT * FROM {$schedules_table} WHERE date = %s AND start_time = %s AND end_time = %s AND is_available = 1",
+                        $date, $start_time, $end_time
+                    ));
+                }
+
+                // Check if there are any existing bookings with blocking statuses for this time slot
+                $blocking_statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
+                $existing_blocking_bookings = 0;
+
+                if (class_exists('Booking_Database')) {
+                    $db = new Booking_Database();
+                    $flows = $db->get_booking_flows();
+
+                    foreach ($flows as $flow) {
+                        $table = $db->get_flow_table_name($flow->name);
+                        // Check if table exists
+                        $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+                        if ($table_exists !== $table) continue;
+
+                        // Check for bookings with blocking statuses for this specific time slot
+                        $placeholders = implode(',', array_fill(0, count($blocking_statuses), '%s'));
+                        $sql = "SELECT COUNT(*) FROM {$table} WHERE booking_date = %s AND booking_time = %s AND status IN ($placeholders)";
+                        $params = array_merge(array($date, $start_time . '-' . $end_time), $blocking_statuses);
+
+                        $count = $wpdb->get_var($wpdb->prepare($sql, $params));
+                        $existing_blocking_bookings += intval($count);
+                    }
+                }
+
+                // Check schedule capacity AND no blocking bookings
+                $schedule_available = ($schedule && ($schedule->current_bookings < $schedule->max_capacity));
+                $no_blocking_bookings = ($existing_blocking_bookings == 0);
+
+                if ($schedule_available && $no_blocking_bookings) {
                     // Add schedule information to booking data
                     $booking_data['schedule_id'] = $schedule->id;
-                    $booking_data['booking_time'] = $start_time; // Use start time as booking time
+                    $booking_data['booking_date'] = $date; // Ensure booking_date is set
+                    $booking_data['booking_time'] = $start_time . '-' . $end_time; // Store time range in booking_time
 
                     // Save to per-flow table only (no global bookings table)
                     // Ensure columns for file fields use VARCHAR(255)
@@ -625,7 +681,7 @@ class Booking_Public {
                         // Build full spec: default LONGTEXT for all non-core keys
                         $all_spec = array();
                         foreach ($combined_data as $kk => $_vv) {
-                            if (!in_array($kk, array('customer_name','customer_email','booking_date','booking_time','service_type','time_slot'))) {
+                            if (!in_array($kk, array('customer_name','customer_email','booking_date','booking_time','service_type'))) {
                                 $all_spec[$kk] = 'LONGTEXT';
                             }
                         }
@@ -636,11 +692,20 @@ class Booking_Public {
 
                     // Build payload with all inputs as flat columns (no additional_fields)
                     $flow_payload = $booking_data;
-                    foreach ($combined_data as $k => $v) {
+
+                    // Remove time_slot from combined_data before storing to avoid creating a separate field
+                    $combined_data_without_time_slot = $combined_data;
+                    if (isset($combined_data_without_time_slot['time_slot'])) {
+                        unset($combined_data_without_time_slot['time_slot']);
+                    }
+
+                    foreach ($combined_data_without_time_slot as $k => $v) {
                         if (is_array($v)) { $v = wp_json_encode($v); }
                         $flow_payload[$k] = $v;
                     }
-                    $flow_payload['time_slot'] = $time_slot;
+
+                    // Add time_slot to payload for reference but not as a separate database field
+                    $flow_payload['time_slot'] = $time_slot_for_validation;
                     $flow_payload['flow_id'] = $flow_id;
                     $flow_payload['flow_name'] = $flow->name;
                     $insert_id = $booking_db->insert_flow_submission($flow->name, $flow_payload);
@@ -661,8 +726,15 @@ class Booking_Public {
                         ));
                     }
                 } else {
+                    // Provide more specific error message
+                    if (!$schedule_available) {
+                        $error_message = __('Selected time slot is no longer available. Please select another time slot.', 'archeus-booking');
+                    } else {
+                        $error_message = __('Time slot has been reserved. Please select another time slot.', 'archeus-booking');
+                    }
+
                     wp_send_json_error(array(
-                        'message' => __('Selected time slot is no longer available. Please select another time slot.', 'archeus-booking')
+                        'message' => $error_message
                     ));
                 }
             } else {
@@ -695,7 +767,7 @@ class Booking_Public {
             if (method_exists($booking_db, 'ensure_columns_for_flow')) {
                 $all_spec = array();
                 foreach ($combined_data as $kk => $_vv) {
-                    if (!in_array($kk, array('customer_name','customer_email','booking_date','booking_time','service_type','time_slot'))) {
+                    if (!in_array($kk, array('customer_name','customer_email','booking_date','booking_time','service_type'))) {
                         $all_spec[$kk] = 'LONGTEXT';
                     }
                 }

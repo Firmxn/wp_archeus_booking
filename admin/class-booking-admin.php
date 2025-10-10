@@ -1661,19 +1661,17 @@ class Booking_Admin {
 
         if ($result) {
             // Handle schedule bookings count based on status change
-            // If booking was approved/completed and is now rejected, reduce schedule bookings
-            // If booking was rejected and is now approved/completed, increase schedule bookings
+            // Use the configurable blocking statuses from settings
             if ($booking->schedule_id) {
-                // Capacity reflects approved bookings only
-                // Capacity: count only statuses that should consume capacity
-                $capStatuses = array('approved','completed');
-                $was = in_array($old_status, $capStatuses, true);
-                $now = in_array($status, $capStatuses, true);
+                // Get blocking statuses from settings (default: approved)
+                $blocking_statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
+                $was = in_array($old_status, $blocking_statuses, true);
+                $now = in_array($status, $blocking_statuses, true);
                 if ($was && !$now) {
-                    // Leaving capacity-consuming state
+                    // Leaving blocking state
                     $booking_db->update_schedule_bookings($booking->schedule_id, -1);
                 } elseif (!$was && $now) {
-                    // Entering capacity-consuming state
+                    // Entering blocking state
                     global $wpdb;
                     $schedule = $wpdb->get_row($wpdb->prepare(
                         "SELECT * FROM " . $wpdb->prefix . "archeus_booking_schedules WHERE id = %d",
@@ -1684,7 +1682,7 @@ class Booking_Admin {
                     } else {
                         // Revert update if over capacity
                         $booking_db->update_booking_status($booking_id, $old_status);
-                        wp_send_json_error(array('message' => __('Tidak dapat mengonfirmasi: kapasitas jadwal sudah penuh.', 'archeus-booking')));
+                        wp_send_json_error(array('message' => __('Tidak dapat mengubah status: kapasitas jadwal sudah penuh.', 'archeus-booking')));
                     }
                 }
             }
@@ -1811,7 +1809,7 @@ class Booking_Admin {
             'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
             'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
             'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
-            'time_slot' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
+            'time_slot' => !empty($booking->booking_time) ? $booking->booking_time : '',
             'status' => $status,
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
@@ -1847,7 +1845,7 @@ class Booking_Admin {
             'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
             'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
             'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
-            'time_slot' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
+            'time_slot' => !empty($booking->booking_time) ? $booking->booking_time : '',
             'status' => $status,
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
@@ -2861,7 +2859,7 @@ class Booking_Admin {
             // Save blocking statuses option
             $allowed = array('pending','approved','completed','rejected');
             $blocking = isset($_POST['blocking_statuses']) && is_array($_POST['blocking_statuses']) ? array_values(array_intersect($allowed, array_map('sanitize_text_field', $_POST['blocking_statuses']))) : array();
-            if (empty($blocking)) { $blocking = array('approved'); }
+            if (empty($blocking)) { $blocking = array('approved', 'completed'); }
             update_option('booking_blocking_statuses', $blocking);
             echo '<div class="notice notice-success is-dismissible"><p>' . __('Calendar settings updated successfully.', 'archeus-booking') . '</p></div>';
         }
@@ -3032,7 +3030,7 @@ class Booking_Admin {
                             <tr>
                                 <th scope="row"><?php _e('Status yang Memblokir Slot', 'archeus-booking'); ?></th>
                                 <td>
-                                    <?php $current_blocking = get_option('booking_blocking_statuses', array('approved')); ?>
+                                    <?php $current_blocking = get_option('booking_blocking_statuses', array('approved', 'completed')); ?>
                             <label><input type="checkbox" name="blocking_statuses[]" value="pending" <?php checked(in_array('pending', $current_blocking, true)); ?>> <?php _e('Menunggu (pending)', 'archeus-booking'); ?></label><br>
                             <label><input type="checkbox" name="blocking_statuses[]" value="approved" <?php checked(in_array('approved', $current_blocking, true)); ?>> <?php _e('Disetujui', 'archeus-booking'); ?></label><br>
                             <!-- <label><input type="checkbox" name="blocking_statuses[]" value="ready" <?php checked(in_array('ready', $current_blocking, true)); ?>> <?php _e('Siap', 'archeus-booking'); ?></label><br> -->
