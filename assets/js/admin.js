@@ -2602,11 +2602,24 @@ jQuery(document).ready(function ($) {
       formData.append(name, value);
     });
 
-    $form.find('input[name^="field_required["]').each(function() {
-      var name = $(this).attr('name');
-      var value = $(this).is(':checked') ? '1' : '0';
-      formData.append(name, value);
-    });
+    // Ensure all required fields are sent, even unchecked ones
+  $form.find('input[name^="field_keys["]').each(function() {
+    var fieldKey = $(this).val();
+    var checkboxName = 'field_required[' + fieldKey + ']';
+    var $checkbox = $form.find('input[name="' + checkboxName + '"]');
+    var isChecked = $checkbox.length > 0 ? $checkbox.is(':checked') : false;
+    var value = isChecked ? '1' : '0';
+    formData.append(checkboxName, value);
+    console.log('Required field:', checkboxName, 'Value:', value, 'Checked:', isChecked, 'Found checkbox:', $checkbox.length > 0);
+  });
+
+  // Also handle the required checkboxes directly as backup
+  $form.find('input[name^="field_required["]').each(function() {
+    var name = $(this).attr('name');
+    var value = $(this).is(':checked') ? '1' : '0';
+    formData.append(name, value);
+    console.log('Direct checkbox:', name, 'Value:', value, 'Checked:', $(this).is(':checked'));
+  });
 
     $form.find('input[name^="field_placeholders["]').each(function() {
       var name = $(this).attr('name');
@@ -2622,6 +2635,13 @@ jQuery(document).ready(function ($) {
 
     formData.append('action', isUpdate ? 'update_form' : 'create_form');
     formData.append('nonce', archeus_booking_ajax.nonce);
+
+    // Also add the booking forms nonce
+    var $bookingFormsNonce = $form.find('input[name="booking_forms_nonce"]');
+    if ($bookingFormsNonce.length) {
+      formData.append('booking_forms_nonce', $bookingFormsNonce.val());
+      console.log('Added booking_forms_nonce:', $bookingFormsNonce.val());
+    }
 
     // Debug: Log form submission
     console.log('Form submitted via AJAX', {

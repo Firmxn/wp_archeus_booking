@@ -72,11 +72,16 @@ jQuery(document).ready(function($) {
         // Handle final submission (satu tombol di akhir)
         $('.submit-booking-btn').on('click', function(e) {
             e.preventDefault();
-            
+            console.log('Submit button clicked');
+
             // Validation: date, time slot, and service must be selected
             var selectedDate = sessionStorage.getItem('archeus_selected_date');
             var selectedTime = sessionStorage.getItem('archeus_selected_time_slot');
             var selectedService = sessionStorage.getItem('archeus_selected_service');
+
+            console.log('Selected date:', selectedDate);
+            console.log('Selected time:', selectedTime);
+            console.log('Selected service:', selectedService);
 
             // Set default date if missing
             if (!selectedDate) {
@@ -100,9 +105,96 @@ jQuery(document).ready(function($) {
                 return false;
             }
 
+            // Validate all required form fields - both approaches
+            var formSection = $('.flow-section[data-type="form"]');
+            console.log('Form section found:', formSection.length);
+
+            // Approach 1: Section-based validation
+            if (formSection.length > 0) {
+                console.log('Calling validateCurrentSection for form...');
+                var isFormValid = validateCurrentSection(formSection);
+                console.log('Form validation result:', isFormValid);
+                if (!isFormValid) {
+                    console.log('Form validation failed, stopping submission');
+                    return false;
+                }
+            } else {
+                console.log('No form section found');
+            }
+
+            // Approach 2: Direct validation of all required fields in the entire form
+            console.log('Performing direct validation of all required fields...');
+            var allValid = true;
+            var firstError = null;
+
+            $('.booking-form-fields').find('input[required], select[required], textarea[required]').each(function() {
+                var $field = $(this);
+                var isEmpty = false;
+                console.log('Direct validation - checking field:', $field.attr('name'), $field.attr('type'));
+
+                // Handle different field types
+                if ($field.attr('type') === 'file') {
+                    // For file inputs, check if any file is selected
+                    isEmpty = !$field[0].files || $field[0].files.length === 0;
+                    var $errorTarget = $field.closest('.file-upload');
+                } else if ($field.is('select')) {
+                    // For select, check if value is empty (including placeholder option)
+                    // Handle both regular select and enhanced dropdown
+                    var selectValue = $field.val();
+                    var $dropdownContainer = $field.closest('.ab-dd');
+
+                    // If this is an enhanced dropdown, also check the selected option text
+                    if ($dropdownContainer.length > 0) {
+                        var $selectedOption = $dropdownContainer.find('.ab-dd-item.is-selected');
+                        var selectedText = $selectedOption.text() || '';
+                        // Consider empty if value is empty or if it's the placeholder text
+                        isEmpty = !selectValue || selectValue === '' || selectedText === '-- Select --' || selectedText.trim() === '';
+                        // Add error class to the dropdown container for better styling
+                        var $errorTarget = $dropdownContainer;
+                    } else {
+                        // Regular select
+                        isEmpty = !selectValue || selectValue === '';
+                        var $errorTarget = $field;
+                    }
+                    console.log('Direct validation - Select field:', $field.attr('name'), 'value:', selectValue, 'empty:', isEmpty, 'enhanced:', $dropdownContainer.length > 0);
+                } else {
+                    // For other inputs and textareas
+                    isEmpty = !$field.val() || $field.val().trim() === '';
+                    var $errorTarget = $field;
+                }
+
+                if (isEmpty) {
+                    allValid = false;
+                    $errorTarget.addClass('error');
+                    console.log('Field is empty, added error class');
+
+                    // Store the first error element
+                    if (firstError === null) {
+                        firstError = $errorTarget;
+                    }
+                } else {
+                    $errorTarget.removeClass('error');
+                }
+            });
+
+            console.log('Direct validation result:', allValid);
+
+            if (!allValid) {
+                console.log('Direct validation failed, stopping submission');
+                alert('Mohon lengkapi semua field yang diperlukan.');
+                if (firstError) {
+                    $('html, body').animate({
+                        scrollTop: firstError.offset().top - 100
+                    }, 500);
+                }
+                return false;
+            }
+
+            console.log('All validations passed, proceeding with submission');
             // Kumpulkan seluruh data dari halaman (form + pilihan)
             var bookingData = collectBookingData();
-            
+            console.log('Booking data collected:', bookingData);
+
             // Submit the booking data
             submitBooking(bookingData);
         });
@@ -187,35 +279,83 @@ jQuery(document).ready(function($) {
                 
             case 'form':
                 // Enhanced form validation
+                console.log('Validating form section...');
                 var valid = true;
                 var firstError = null;
-                
-                sectionElement.find('input[required], select[required], textarea[required]').each(function() {
-                    if (!$(this).val()) {
+                var requiredFields = sectionElement.find('input[required], select[required], textarea[required]');
+                console.log('Found required fields:', requiredFields.length);
+
+                requiredFields.each(function() {
+                    var $field = $(this);
+                    var isEmpty = false;
+                    console.log('Checking field:', $field.attr('name'), $field.attr('type'));
+
+                    // Handle different field types
+                    if ($field.attr('type') === 'file') {
+                        // For file inputs, check if any file is selected
+                        isEmpty = !$field[0].files || $field[0].files.length === 0;
+                        console.log('File field empty:', isEmpty);
+                        // For file inputs, add error class to the parent .file-upload container
+                        var $errorTarget = $field.closest('.file-upload');
+                    } else if ($field.is('select')) {
+                        // For select, check if value is empty (including placeholder option)
+                        // Handle both regular select and enhanced dropdown
+                        var selectValue = $field.val();
+                        var $dropdownContainer = $field.closest('.ab-dd');
+
+                        // If this is an enhanced dropdown, also check the selected option text
+                        if ($dropdownContainer.length > 0) {
+                            var $selectedOption = $dropdownContainer.find('.ab-dd-item.is-selected');
+                            var selectedText = $selectedOption.text() || '';
+                            // Consider empty if value is empty or if it's the placeholder text
+                            isEmpty = !selectValue || selectValue === '' || selectedText === '-- Select --' || selectedText.trim() === '';
+                            // Add error class to the dropdown container for better styling
+                            var $errorTarget = $dropdownContainer;
+                        } else {
+                            // Regular select
+                            isEmpty = !selectValue || selectValue === '';
+                            var $errorTarget = $field;
+                        }
+                        console.log('Select field value:', selectValue, 'empty:', isEmpty, 'container:', $dropdownContainer.length > 0);
+                    } else {
+                        // For other inputs and textareas
+                        isEmpty = !$field.val() || $field.val().trim() === '';
+                        console.log('Text field value:', $field.val(), 'empty:', isEmpty);
+                        var $errorTarget = $field;
+                    }
+
+                    if (isEmpty) {
                         valid = false;
-                        $(this).addClass('error');
-                        
+                        $errorTarget.addClass('error');
+                        console.log('Added error class to:', $errorTarget);
+
                         // Store the first error element
                         if (firstError === null) {
-                            firstError = $(this);
+                            firstError = $errorTarget;
                         }
                     } else {
-                        $(this).removeClass('error');
+                        $errorTarget.removeClass('error');
                     }
                 });
-                
+
                 // Validate email fields if they exist
                 sectionElement.find('input[type="email"]').each(function() {
-                    var email = $(this).val();
+                    var $emailField = $(this);
+                    var email = $emailField.val();
+                    console.log('Email field value:', email, 'valid:', isValidEmail(email));
                     if (email && !isValidEmail(email)) {
                         valid = false;
-                        $(this).addClass('error');
-                        
+                        $emailField.addClass('error');
+
                         if (firstError === null) {
-                            firstError = $(this);
+                            firstError = $emailField;
                         }
+                    } else {
+                        $emailField.removeClass('error');
                     }
                 });
+
+                console.log('Form validation result:', valid);
                 
                 // Scroll to the first error if any
                 if (!valid && firstError !== null) {

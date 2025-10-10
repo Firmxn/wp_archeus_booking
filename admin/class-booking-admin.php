@@ -455,6 +455,7 @@ class Booking_Admin {
                 <div class="admin-card-body">
                     <form method="post" action="" class="settings-form" data-ajax-form="true">
                         <?php wp_nonce_field('archeus_booking_admin', 'archeus_booking_admin_nonce'); ?>
+                        <?php wp_nonce_field('save_booking_forms', 'booking_forms_nonce'); ?>
                         <input type="hidden" name="form_id" value="<?php echo $edit_form ? esc_attr($edit_form->id) : ''; ?>">
                         
                         <div class="form-row">
@@ -471,7 +472,7 @@ class Booking_Admin {
                                         <th><?php _e('Key', 'archeus-booking'); ?><span class="description"><?php _e('Identifier unik', 'archeus-booking'); ?></span></th>
                                         <th><?php _e('Label', 'archeus-booking'); ?><span class="description"><?php _e('Teks yang ditampilkan', 'archeus-booking'); ?></span></th>
                                         <th><?php _e('Tipe', 'archeus-booking'); ?></th>
-                                        <th class="col-required"><?php _e('Wajib', 'archeus-booking'); ?></th>
+                                        <th class="col-required"><?php _e('Required', 'archeus-booking'); ?><span class="description"><?php _e('Harus/Tidak', 'archeus-booking'); ?></span></th>
                                         <th><?php _e('Placeholder', 'archeus-booking'); ?></th>
                                         <th><?php _e('Pilihan (untuk Select)', 'archeus-booking'); ?></th>
                                         <th class="col-actions"><?php _e('Tindakan', 'archeus-booking'); ?></th>
@@ -2434,8 +2435,20 @@ class Booking_Admin {
      * Handle form update via AJAX
      */
     public function handle_form_update() {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+        // Debug log incoming data
+        error_log('Form Update Handler Called');
+        error_log('POST data: ' . print_r($_POST, true));
+
+        // Verify nonce - try both nonces
+        $nonce_valid = false;
+        if (isset($_POST['nonce'])) {
+            $nonce_valid = wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce');
+        }
+        if (!$nonce_valid && isset($_POST['booking_forms_nonce'])) {
+            $nonce_valid = wp_verify_nonce($_POST['booking_forms_nonce'], 'save_booking_forms');
+        }
+
+        if (!$nonce_valid) {
             wp_send_json_error(array(
                 'message' => __('Security check failed', 'archeus-booking')
             ));
@@ -3542,7 +3555,7 @@ class Booking_Admin {
                                 <td>
                                     <label>
                                         <input type="checkbox" id="is_active" name="is_active" value="1" <?php echo $edit_service ? checked($edit_service->is_active, 1, false) : 'checked'; ?>>
-                                        <?php _e('Aktif', 'archeus-booking'); ?>
+                                        <?php _e('Active', 'archeus-booking'); ?>
                                     </label>
                                     <p class="description"><?php _e('Hapus centang untuk menonaktifkan layanan ini', 'archeus-booking'); ?></p>
                                 </td>
@@ -3868,9 +3881,9 @@ class Booking_Admin {
                                 <td>
                                     <label>
                                         <input type="checkbox" id="is_active" name="is_active" value="1" <?php echo $edit_slot ? checked($edit_slot->is_active, 1, false) : 'checked'; ?>>
-                                        <?php _e('Aktif', 'archeus-booking'); ?>
+                                        <?php _e('Active', 'archeus-booking'); ?>
                                     </label>
-                                    <p class="description"><?php _e('Centang untuk membuat slot waktu ini tersedia untuk pemesanan', 'archeus-booking'); ?></p>
+                                    <p class="description"><?php _e('Hapus centang untuk menonaktifkan slot waktu ini', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
                         </table>

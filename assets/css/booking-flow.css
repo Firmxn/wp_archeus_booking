@@ -404,6 +404,25 @@
 .booking-flow-container .form-group textarea.error {
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.booking-flow-container .form-group .file-upload.error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+  border-style: solid !important;
+}
+
+.booking-flow-container .form-group .file-upload.error .bf-file-name {
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.booking-flow-container .form-group .ab-dd.error .ab-dd-toggle {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
 }
 
 .required {

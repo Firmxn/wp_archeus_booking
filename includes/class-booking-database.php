@@ -673,7 +673,11 @@ class Booking_Database {
     public function update_form($form_id, $name, $slug, $description = '', $fields = array(), $is_active = 1) {
         global $wpdb;
         $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
-        
+
+        // Debug log before update
+        error_log('Updating form ID: ' . $form_id);
+        error_log('Fields being saved: ' . print_r($fields, true));
+
         $result = $wpdb->update(
             $forms_table,
             array(
@@ -687,7 +691,10 @@ class Booking_Database {
             array('%s', '%s', '%s', '%s', '%d'),
             array('%d')
         );
-        
+
+        // Debug log result
+        error_log('Update result: ' . ($result !== false ? 'success' : 'failed'));
+
         return $result !== false;
     }
     
