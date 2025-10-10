@@ -73,9 +73,12 @@ jQuery(document).ready(function($) {
         $('.submit-booking-btn').on('click', function(e) {
             e.preventDefault();
             
-            // Minimal validation: time slot must be selected; date defaults to today if missing
+            // Validation: date, time slot, and service must be selected
             var selectedDate = sessionStorage.getItem('archeus_selected_date');
             var selectedTime = sessionStorage.getItem('archeus_selected_time_slot');
+            var selectedService = sessionStorage.getItem('archeus_selected_service');
+
+            // Set default date if missing
             if (!selectedDate) {
                 const d = new Date();
                 const y = d.getFullYear();
@@ -84,7 +87,18 @@ jQuery(document).ready(function($) {
                 selectedDate = `${y}-${m}-${day}`;
                 sessionStorage.setItem('archeus_selected_date', selectedDate);
             }
-            if (!selectedTime) { alert('Silakan pilih time slot terlebih dahulu.'); return false; }
+
+            // Validate time slot
+            if (!selectedTime) {
+                alert('Silakan pilih waktu terlebih dahulu.');
+                return false;
+            }
+
+            // Validate service selection
+            if (!selectedService) {
+                alert('Silakan pilih layanan terlebih dahulu.');
+                return false;
+            }
 
             // Kumpulkan seluruh data dari halaman (form + pilihan)
             var bookingData = collectBookingData();
@@ -213,7 +227,7 @@ jQuery(document).ready(function($) {
                 
                 return valid;
                 
-            case 'service':
+            case 'services':
                 // Check if a service is selected
                 var serviceSelected = sectionElement.find('input[name="service_type"]:checked').length > 0;
                 if (!serviceSelected) {
@@ -280,7 +294,7 @@ jQuery(document).ready(function($) {
                 sessionStorage.setItem('archeus_form_data', JSON.stringify(formData));
                 break;
                 
-            case 'service':
+            case 'services':
                 // Save selected service
                 var selectedService = sectionElement.find('input[name="service_type"]:checked').val();
                 if (selectedService) {
