@@ -26,7 +26,7 @@
 }
 
 .time-slot-card:hover {
-  border: var(--archeus-primary-color) !important;
+  border-color: var(--archeus-primary-color); /* Primary color */
   transform: translateY(-3px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
 }

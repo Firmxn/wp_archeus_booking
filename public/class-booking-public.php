@@ -191,7 +191,7 @@ class Booking_Public {
             return;
         }
         
-        $to = $this->resolve_customer_email($booking_data);
+        $to = isset($booking_data['customer_email']) ? $booking_data['customer_email'] : '';
         $subject = $this->build_email_subject($booking_data, $email_settings['customer_confirmation_subject']);
         $message = $this->build_custom_email_content($booking_data, $email_settings['customer_confirmation_body'], 'customer');
         $headers = array('Content-Type: text/html; charset=UTF-8');
@@ -258,13 +258,7 @@ class Booking_Public {
 
         // Get customer information
         $display_name = isset($booking_data['customer_name']) ? $booking_data['customer_name'] : '';
-        if ($display_name === '') {
-            foreach (array('nama_lengkap','nama','full_name','name') as $ck) {
-                if (!empty($booking_data[$ck])) { $display_name = $booking_data[$ck]; break; }
-            }
-        }
-
-        $customer_email = $this->resolve_customer_email($booking_data);
+        $customer_email = isset($booking_data['customer_email']) ? $booking_data['customer_email'] : '';
 
         // Basic booking information
         $booking_date = isset($booking_data['booking_date']) ? $booking_data['booking_date'] : '';
@@ -378,26 +372,11 @@ class Booking_Public {
     }
 
     /**
-     * Resolve customer email from additional fields without relying on reserved key.
+     * Resolve customer email from booking data.
+     * With the new auto-detection system, email fields should always use customer_email key.
      */
     private function resolve_customer_email($booking_data) {
-        $email = isset($booking_data['customer_email']) ? $booking_data['customer_email'] : '';
-        if (!empty($email) && is_string($email)) {
-            return $email;
-        }
-        if (!empty($booking_data['additional_fields'])) {
-            $extra = is_array($booking_data['additional_fields']) ? $booking_data['additional_fields'] : @maybe_unserialize($booking_data['additional_fields']);
-            if (is_array($extra)) {
-                $candidates = array('alamat_email','email','e_mail','e-mail','surat_elektronik','mail');
-                foreach ($candidates as $ck) {
-                    if (!empty($extra[$ck]) && is_string($extra[$ck])) {
-                        $val = trim($extra[$ck]);
-                        if (filter_var($val, FILTER_VALIDATE_EMAIL)) { return $val; }
-                    }
-                }
-            }
-        }
-        return '';
+        return isset($booking_data['customer_email']) ? $booking_data['customer_email'] : '';
     }
     
     /**

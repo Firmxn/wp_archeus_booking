@@ -1700,8 +1700,11 @@ jQuery(document).ready(function ($) {
       var $newRow = $container.find('.form-field-row').last();
       $newRow.hide().fadeIn(300);
 
-      // Focus on first input
-      $newRow.find('input[type="text"]').first().focus();
+      // Focus on label input for immediate typing
+      var $labelInput = $newRow.find('input[name^="field_labels["]');
+      $labelInput.focus();
+
+      // Hint removed - no longer needed
 
       // Update select styling and enhance dropdown
       var $newSelect = $newRow.find('select.ab-select');
@@ -1719,16 +1722,30 @@ jQuery(document).ready(function ($) {
         }
       }
 
+      // Set up immediate detection for the new field
+      $labelInput.on('input', function() {
+        clearTimeout($labelInput.data('typing-timer'));
+        $labelInput.data('typing-timer', setTimeout(function() {
+          // Remove hint when user starts typing
+          $hint.fadeOut(300, function() {
+            $(this).remove();
+          });
+
+          // Trigger auto-detection
+          $labelInput.trigger('input');
+        }, 200)); // Faster response for new fields
+      });
+
       $btn.prop('disabled', false);
 
       // Show success feedback
-      showToast('Field baru berhasil ditambahkan', 'success');
+      showToast('Field baru berhasil ditambahkan.', 'success');
     }, 100);
   });
 
   // Helper function to create field row HTML
   function createFieldRowHtml(index) {
-    return '<tr class="form-field-row" data-field-index="' + index + '">' +
+    return '<tr class="form-field-row" data-field-index="' + index + '" data-auto-detected="false">' +
       '<td>' +
         '<input type="hidden" name="field_keys[]" value="custom_' + index + '">' +
         '<input type="text" name="field_keys_input[custom_' + index + ']" value="custom_' + index + '" class="regular-text" placeholder="contoh: nama_hewan">' +
@@ -1770,6 +1787,291 @@ jQuery(document).ready(function ($) {
     } else {
       $optionsCell.find('.field-options').slideUp(200);
     }
+  });
+
+  // Auto-detect field key based on label
+  function autoDetectFieldKey(label) {
+    var labelLower = label.toLowerCase();
+
+    // Primary name detection patterns (must match exactly or contain specific full phrases)
+    var primaryNamePatterns = [
+      'nama lengkap', 'full name', 'complete name', 'customer name',
+      'nama lengkap anda', 'your full name', 'nama customer', 'nama pelanggan',
+      'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name'
+    ];
+
+    // Exact match patterns for single words (only if the entire label matches)
+    var exactNamePatterns = ['nama', 'name'];
+
+    // Email detection patterns
+    var emailPatterns = [
+      'email', 'email address', 'e-mail', 'email anda', 'your email',
+      'alamat email', 'email customer', 'email pelanggan',
+      'surat elektronik', 'electronic mail'
+    ];
+
+    // Check primary name patterns first (these are phrases that should always be detected)
+    for (var i = 0; i < primaryNamePatterns.length; i++) {
+      if (labelLower.indexOf(primaryNamePatterns[i]) !== -1) {
+        return 'customer_name';
+      }
+    }
+
+    // Check exact match for single words (more restrictive)
+    for (var i = 0; i < exactNamePatterns.length; i++) {
+      if (labelLower === exactNamePatterns[i]) {
+        return 'customer_name';
+      }
+    }
+
+    // Check email patterns
+    for (var i = 0; i < emailPatterns.length; i++) {
+      if (labelLower.indexOf(emailPatterns[i]) !== -1) {
+        return 'customer_email';
+      }
+    }
+
+    return null;
+  }
+
+  // Check if field key is already used
+  function isFieldKeyUsed(key, excludeRow) {
+    var used = false;
+    $('#form-fields-container .form-field-row').not(excludeRow).each(function() {
+      var $row = $(this);
+      var $keyInput = $row.find('input[name^="field_keys_input["]');
+      if ($keyInput.val() === key) {
+        used = true;
+        return false;
+      }
+    });
+    return used;
+  }
+
+  // Show conflict warning
+  function showKeyConflictWarning($row, conflictingKey) {
+    // Remove existing warnings
+    $row.find('.key-conflict-warning').remove();
+
+    var $warning = $('<div class="key-conflict-warning" style="color: #dc3545; font-size: 12px; margin-top: 4px; font-weight: bold;">⚠️ Key "' + conflictingKey + '" sudah digunakan oleh field lain</div>');
+    $row.find('td:first').append($warning);
+
+    // Auto-hide after 5 seconds
+    setTimeout(function() {
+      $warning.fadeOut(500, function() {
+        $(this).remove();
+      });
+    }, 5000);
+  }
+
+  // Enhanced key validation
+  function validateFieldKey($keyInput, $row) {
+    var key = $keyInput.val().trim();
+    var $labelInput = $row.find('input[name^="field_labels["]');
+    var label = $labelInput.val().trim();
+
+    // Check if key conflicts with auto-detection
+    var detectedKey = autoDetectFieldKey(label);
+
+    if (detectedKey && key !== detectedKey && $row.data('auto-detected') === 'true') {
+      // Field is auto-detected but key was changed manually
+      showKeyConflictWarning($row, detectedKey);
+      return false;
+    }
+
+    // Check for duplicate keys
+    if (isFieldKeyUsed(key, $row)) {
+      showKeyConflictWarning($row, key);
+      return false;
+    }
+
+    return true;
+  }
+
+  // Handle label changes to auto-detect field keys
+  $(document).on('input', 'input[name^="field_labels["]', function() {
+    var $labelInput = $(this);
+    var $row = $labelInput.closest('tr');
+    var $keyInput = $row.find('input[name^="field_keys_input["]');
+    var $hiddenKey = $row.find('input[name^="field_keys["]');
+    var currentKey = $keyInput.val();
+    var label = $labelInput.val().trim();
+
+    // Simple detection - only match specific patterns
+    var detectedKey = autoDetectFieldKey(label);
+    var isCurrentlyAutoDetected = $row.data('auto-detected') === 'true';
+    var currentKeyType = $row.data('auto-type');
+
+    // Case 1: Label matches name/email pattern - lock it
+    if (detectedKey && !isFieldKeyUsed(detectedKey, $row)) {
+      // Update key to match detection
+      $keyInput.val(detectedKey);
+      $hiddenKey.val(detectedKey);
+      $row.data('auto-detected', 'true');
+      $row.data('auto-type', detectedKey === 'customer_name' ? 'name' : 'email');
+
+      // Update UI to show it's auto-detected
+      $keyInput.prop('readonly', true).addClass('auto-detected-key');
+      $row.find('.remove-field').hide();
+      $row.addClass('auto-detected-row');
+
+      // Show feedback
+      showFieldDetectionFeedback($row, detectedKey === 'customer_name' ? 'nama' : 'email', true);
+    }
+    // Case 2: Label no longer matches - unlock it
+    else if (isCurrentlyAutoDetected && !detectedKey) {
+      // Keep the current key but unlock it
+      $keyInput.prop('readonly', false).removeClass('auto-detected-key');
+      $row.data('auto-detected', 'false');
+      $row.removeData('auto-type');
+      $row.find('.remove-field').show();
+      $row.removeClass('auto-detected-row');
+
+      // Show feedback
+      showFieldDetectionFeedback($row, 'custom', false);
+    }
+    // Case 3: Switching between name/email types
+    else if (isCurrentlyAutoDetected && detectedKey && currentKeyType !== (detectedKey === 'customer_name' ? 'name' : 'email')) {
+      // Update to new detection type
+      $keyInput.val(detectedKey);
+      $hiddenKey.val(detectedKey);
+      $row.data('auto-type', detectedKey === 'customer_name' ? 'name' : 'email');
+
+    
+      // Show feedback
+      showFieldDetectionFeedback($row, detectedKey === 'customer_name' ? 'nama' : 'email', true);
+    }
+  });
+
+  // Function to show detection feedback
+  function showFieldDetectionFeedback($row, fieldType, isDetected, reason = '') {
+    // Remove existing feedback
+    $row.find('.detection-feedback').remove();
+
+    if (isDetected) {
+      var feedbackText = fieldType === 'nama' ? 'Field nama - key otomatis terkunci' : 'Field email - key otomatis terkunci';
+      var $feedback = $('<div class="detection-feedback" style="color: #dc2626; margin-left: 4px; font-size: 12px; margin-top: 4px;">' + feedbackText + '</div>');
+      $row.find('td:first').append($feedback);
+    } else {
+      var feedbackText = 'Field kustom - key dapat diubah';
+      var feedbackColor = '#10b981';
+
+      // Show specific reason if provided
+      if (reason) {
+        feedbackText = reason;
+        feedbackColor = '#ffc107'; // Warning color
+      }
+
+      var $feedback = $('<div class="detection-feedback" style="color: ' + feedbackColor + '; font-size: 12px; margin-top: 4px; margin-left: 4px;">' + feedbackText + '</div>');
+      $row.find('td:first').append($feedback);
+    }
+  }
+
+  
+  // Allow manual override for non-auto-detected fields with confirmation
+  $(document).on('focus', 'input[name^="field_keys_input["]', function() {
+    var $keyInput = $(this);
+    var $row = $keyInput.closest('tr');
+
+    // Only for non-auto-detected fields
+    if ($row.data('auto-detected') !== 'true') {
+      $keyInput.data('original-value', $keyInput.val());
+    }
+  });
+
+  $(document).on('blur', 'input[name^="field_keys_input["]', function() {
+    var $keyInput = $(this);
+    var $row = $keyInput.closest('tr');
+    var originalValue = $keyInput.data('original-value');
+
+    // Only for non-auto-detected fields
+    if ($row.data('auto-detected') !== 'true' && originalValue !== undefined) {
+      var newValue = $keyInput.val();
+      var $labelInput = $row.find('input[name^="field_labels["]');
+      var label = $labelInput.val().trim();
+
+      // Check if the new value conflicts with auto-detection
+      var detectedKey = autoDetectFieldKey(label);
+
+      if (detectedKey && newValue !== detectedKey) {
+        // Warn user about potential conflict
+        if (confirm('Field ini terdeteksi sebagai ' + (detectedKey === 'customer_name' ? 'nama' : 'email') + '. Mengubah key dapat mempengaruhi fungsi sistem. Lanjutkan?')) {
+          // User confirmed, allow the change
+          $keyInput.val(newValue);
+          $row.find('input[name^="field_keys["]').val(newValue);
+        } else {
+          // User cancelled, restore original value
+          $keyInput.val(originalValue);
+        }
+      }
+
+      $keyInput.removeData('original-value');
+    }
+  });
+
+  // Initialize auto-detection for existing fields on page load
+  $(document).ready(function() {
+    $('#form-fields-container .form-field-row').each(function() {
+      var $row = $(this);
+      var $labelInput = $row.find('input[name^="field_labels["]');
+      var $keyInput = $row.find('input[name^="field_keys_input["]');
+      var $hiddenKey = $row.find('input[name^="field_keys["]');
+      var label = $labelInput.val().trim();
+      var currentKey = $keyInput.val();
+
+      // Enhanced initialization logic
+      var detectedKey = autoDetectFieldKey(label);
+
+      // Check if this field should be auto-detected
+      if (detectedKey && (currentKey === detectedKey || currentKey === 'customer_name' || currentKey === 'customer_email')) {
+        // Set as auto-detected
+        $row.data('auto-detected', 'true');
+        $row.data('auto-type', detectedKey === 'customer_name' ? 'name' : 'email');
+
+        // Ensure key is correct
+        $keyInput.val(detectedKey);
+        $hiddenKey.val(detectedKey);
+
+        // Update UI
+        $keyInput.prop('readonly', true).addClass('auto-detected-key');
+        $row.find('.remove-field').hide();
+        $row.addClass('auto-detected-row');
+
+        // Add data attributes for consistency
+        $row.attr('data-auto-detected', 'true');
+        $row.attr('data-auto-type', detectedKey === 'customer_name' ? 'name' : 'email');
+      } else if (detectedKey && !isFieldKeyUsed(detectedKey, $row)) {
+        // New field that should be auto-detected
+        $keyInput.val(detectedKey);
+        $hiddenKey.val(detectedKey);
+        $row.data('auto-detected', 'true');
+        $row.data('auto-type', detectedKey === 'customer_name' ? 'name' : 'email');
+
+        // Update UI
+        $keyInput.prop('readonly', true).addClass('auto-detected-key');
+        $row.find('.remove-field').hide();
+        $row.addClass('auto-detected-row');
+
+        // Add data attributes
+        $row.attr('data-auto-detected', 'true');
+        $row.attr('data-auto-type', detectedKey === 'customer_name' ? 'name' : 'email');
+
+        // Show feedback
+        showFieldDetectionFeedback($row, detectedKey === 'customer_name' ? 'nama' : 'email', true);
+      }
+    });
+
+    // Add real-time validation for all label inputs
+    $('input[name^="field_labels["]').on('keyup', function() {
+      var $labelInput = $(this);
+      var $row = $labelInput.closest('tr');
+
+      // Trigger detection on every keystroke for immediate feedback
+      clearTimeout($labelInput.data('typing-timer'));
+      $labelInput.data('typing-timer', setTimeout(function() {
+        $labelInput.trigger('input');
+      }, 300)); // 300ms delay to avoid excessive triggering while typing
+    });
   });
 
   // Remove field without confirmation

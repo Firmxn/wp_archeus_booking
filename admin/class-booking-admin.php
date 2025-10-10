@@ -212,7 +212,83 @@ class Booking_Admin {
     }
     
 
-    
+  
+    /**
+     * Auto-detect field type based on label
+     *
+     * @param string $label The field label
+     * @param string $current_key The current field key
+     * @param array $used_keys Array of already used keys
+     * @return string The detected/appropriate field key
+     */
+    private function auto_detect_field_key($label, $current_key, &$used_keys) {
+        $label_lower = strtolower($label);
+
+        // Primary name detection patterns (must match exactly or contain specific full phrases)
+        $primary_name_patterns = array(
+            'nama lengkap', 'full name', 'complete name', 'customer name',
+            'nama lengkap anda', 'your full name', 'nama customer', 'nama pelanggan',
+            'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name'
+        );
+
+        // Exact match patterns for single words (only if the entire label matches)
+        $exact_name_patterns = array('nama', 'name');
+
+        // Email detection patterns
+        $email_patterns = array(
+            'email', 'email address', 'e-mail', 'email anda', 'your email',
+            'alamat email', 'email customer', 'email pelanggan',
+            'surat elektronik', 'electronic mail'
+        );
+
+        // Check primary name patterns first (these are phrases that should always be detected)
+        foreach ($primary_name_patterns as $pattern) {
+            if (strpos($label_lower, $pattern) !== false) {
+                // If customer_name is not used, use it
+                if (!isset($used_keys['customer_name'])) {
+                    return 'customer_name';
+                }
+                // If customer_name is used but this is not the current key, don't change
+                if ($current_key !== 'customer_name') {
+                    return $current_key;
+                }
+                break;
+            }
+        }
+
+        // Check exact match for single words (more restrictive)
+        foreach ($exact_name_patterns as $pattern) {
+            if ($label_lower === $pattern) {
+                // If customer_name is not used, use it
+                if (!isset($used_keys['customer_name'])) {
+                    return 'customer_name';
+                }
+                // If customer_name is used but this is not the current key, don't change
+                if ($current_key !== 'customer_name') {
+                    return $current_key;
+                }
+                break;
+            }
+        }
+
+        // Check email patterns
+        foreach ($email_patterns as $pattern) {
+            if (strpos($label_lower, $pattern) !== false) {
+                // If customer_email is not used, use it
+                if (!isset($used_keys['customer_email'])) {
+                    return 'customer_email';
+                }
+                // If customer_email is used but this is not the current key, don't change
+                if ($current_key !== 'customer_email') {
+                    return $current_key;
+                }
+                break;
+            }
+        }
+
+        return $current_key;
+    }
+
     /**
      * Forms page content - Multi-form management
      */
@@ -231,12 +307,20 @@ class Booking_Admin {
             if (isset($_POST['field_keys'])) {
                 $used_keys = array();
                 foreach ($_POST['field_keys'] as $index => $field_key) {
+                    $label = sanitize_text_field($_POST['field_labels'][$field_key]);
+
+                    // First, process the user-provided key as before
                     $new_key_raw = isset($_POST['field_keys_input'][$field_key]) ? $_POST['field_keys_input'][$field_key] : $field_key;
                     $new_key = strtolower($new_key_raw);
                     $new_key = preg_replace('/[^a-z0-9]+/u', '_', $new_key);
                     $new_key = trim($new_key, '_');
                     if ($new_key === '') { $new_key = $field_key; }
                     if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
+
+                    // Apply auto-detection based on label
+                    $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
+
+                    // Handle key conflicts
                     $base = $new_key; $i = 2; while (isset($used_keys[$new_key])) { $new_key = $base . '_' . $i++; }
                     $used_keys[$new_key] = true;
 
@@ -244,7 +328,6 @@ class Booking_Admin {
                         $rename_map[$field_key] = $new_key;
                     }
 
-                    $label = sanitize_text_field($_POST['field_labels'][$field_key]);
                     $type = sanitize_text_field($_POST['field_types'][$field_key]);
                     $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
                     $placeholder = isset($_POST['field_placeholders'][$field_key]) ? sanitize_text_field($_POST['field_placeholders'][$field_key]) : '';
@@ -397,14 +480,24 @@ class Booking_Admin {
                                 <tbody id="form-fields-container">
                                     <?php 
                                     $form_fields = $edit_form ? ($edit_form->fields ? maybe_unserialize($edit_form->fields) : array()) : array(
-                                        'name' => array('label' => 'Name', 'type' => 'text', 'required' => 1, 'placeholder' => ''),
-                                        'email' => array('label' => 'Email', 'type' => 'email', 'required' => 1, 'placeholder' => ''),
+                                        'customer_name' => array('label' => 'Nama Lengkap', 'type' => 'text', 'required' => 1, 'placeholder' => ''),
+                                        'customer_email' => array('label' => 'Email', 'type' => 'email', 'required' => 1, 'placeholder' => ''),
                                     );
-                                    foreach ($form_fields as $field_key => $field_data): ?>
-                                        <tr class="form-field-row">
+                                    foreach ($form_fields as $field_key => $field_data):
+                                        // Check if this is an auto-detected field
+                                        $is_auto_detected = ($field_key === 'customer_name' || $field_key === 'customer_email');
+                                        $auto_type = '';
+                                        if ($field_key === 'customer_name') $auto_type = 'name';
+                                        if ($field_key === 'customer_email') $auto_type = 'email';
+                                        ?>
+                                        <tr class="form-field-row" data-auto-detected="<?php echo $is_auto_detected ? 'true' : 'false'; ?>" data-auto-type="<?php echo esc_attr($auto_type); ?>">
                                             <td>
                                                 <input type="hidden" name="field_keys[]" value="<?php echo esc_attr($field_key); ?>">
-                                                <input type="text" name="field_keys_input[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_key); ?>" class="regular-text" placeholder="contoh: nama_hewan">
+                                                <?php if ($is_auto_detected): ?>
+                                                    <input type="text" name="field_keys_input[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_key); ?>" class="regular-text auto-detected-key" placeholder="contoh: nama_hewan" readonly>
+                                                <?php else: ?>
+                                                    <input type="text" name="field_keys_input[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_key); ?>" class="regular-text" placeholder="contoh: nama_hewan">
+                                                <?php endif; ?>
                                             </td>
                                             <td><input type="text" name="field_labels[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_data['label']); ?>"></td>
                                             <td>
@@ -1372,6 +1465,26 @@ class Booking_Admin {
         .status-rejected { color: #dc3545; font-weight: bold; }
         .success { color: #28a745; }
         .error { color: #dc3545; }
+
+        /* Auto-detected field styles */
+        .auto-detected-key {
+            background-color: #f8f9fa !important;
+            border-color: #dee2e6 !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .form-field-row[data-auto-detected="true"] .remove-field {
+            display: none !important;
+        }
+
+        .form-field-row[data-auto-detected="true"] {
+            background-color: #f8f9fa;
+        }
+
+        .auto-detected-row {
+            background-color: #f8f9fa !important;
+        }
         </style>
         <?php
     }
