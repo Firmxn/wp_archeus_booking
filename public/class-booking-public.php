@@ -508,22 +508,46 @@ class Booking_Public {
         $booking_date = isset($combined_data['booking_date']) ? $combined_data['booking_date'] : '';
         $time_slot = isset($combined_data['time_slot']) ? $combined_data['time_slot'] : '';
 
-        // No dependency on form definitions; rely on submitted keys and files
+        // Auto-detect customer_name and customer_email from form data
+        // This ensures that fields detected as name/email are stored in standardized keys
 
-        // Do not infer customer_email into reserved key; respect custom email fields like 'alamat_email' or 'email'
+        $detected_customer_name = '';
+        $detected_customer_email = '';
 
-        // Intentionally do not infer 'customer_name'; respect custom fields like 'nama_lengkap'
+        // Look for fields that should be mapped to customer_name
+        $name_fields = array('nama_lengkap', 'nama', 'name', 'full_name', 'customer_name', 'nama lengkap', 'full name');
+        foreach ($name_fields as $name_field) {
+            if (isset($combined_data[$name_field]) && !empty($combined_data[$name_field])) {
+                $detected_customer_name = sanitize_text_field($combined_data[$name_field]);
+                break;
+            }
+        }
 
-        // Do not remap keys based on labels; keep submitted keys as-is
+        // Look for fields that should be mapped to customer_email
+        $email_fields = array('email', 'customer_email', 'email_address', 'alamat_email', 'e-mail');
+        foreach ($email_fields as $email_field) {
+            if (isset($combined_data[$email_field]) && !empty($combined_data[$email_field])) {
+                $detected_customer_email = sanitize_email($combined_data[$email_field]);
+                break;
+            }
+        }
 
-        // Prepare booking data, collecting all possible fields from all steps
+        // Prepare booking data with auto-detected customer information
         $booking_data = array(
-            'customer_name' => isset($combined_data['customer_name']) ? sanitize_text_field($combined_data['customer_name']) : '',
-            'customer_email' => isset($combined_data['customer_email']) ? sanitize_email($combined_data['customer_email']) : '',
+            'customer_name' => $detected_customer_name,
+            'customer_email' => $detected_customer_email,
             'booking_date' => $booking_date,
             'booking_time' => isset($combined_data['booking_time']) ? sanitize_text_field($combined_data['booking_time']) : '',
             'service_type' => $service_type,
         );
+
+        // Also update combined_data to ensure consistency
+        if (!empty($detected_customer_name)) {
+            $combined_data['customer_name'] = $detected_customer_name;
+        }
+        if (!empty($detected_customer_email)) {
+            $combined_data['customer_email'] = $detected_customer_email;
+        }
 
         // Merge all non-core fields directly into combined_data (including files)
         foreach ($combined_data as $key => $value) {

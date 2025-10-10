@@ -114,6 +114,10 @@ class Booking_Database {
         ) $charset_collate;";
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
+
+        // Ensure customer fields columns exist
+        $this->ensure_customer_columns_exist($table);
+
         return $table;
     }
 
@@ -130,17 +134,64 @@ class Booking_Database {
     }
 
     /**
+     * Ensure customer_name and customer_email columns exist in table for legacy data
+     * This is only needed for existing tables that might not have these columns
+     */
+    private function ensure_customer_columns_exist($table) {
+        global $wpdb;
+
+        $existing = $wpdb->get_col("SHOW COLUMNS FROM `{$table}`", 0);
+        if (!is_array($existing)) { $existing = array(); }
+
+        $added_columns = false;
+
+        // Add customer_name column if not exists (for legacy support)
+        if (!in_array('customer_name', $existing)) {
+            $result = $wpdb->query("ALTER TABLE `{$table}` ADD COLUMN `customer_name` LONGTEXT NULL DEFAULT NULL");
+            error_log("Added customer_name column to table {$table} for legacy support. Result: " . ($result ? 'success' : 'failed') . ' Error: ' . $wpdb->last_error);
+            $added_columns = true;
+        }
+
+        // Add customer_email column if not exists (for legacy support)
+        if (!in_array('customer_email', $existing)) {
+            $result = $wpdb->query("ALTER TABLE `{$table}` ADD COLUMN `customer_email` LONGTEXT NULL DEFAULT NULL");
+            error_log("Added customer_email column to table {$table} for legacy support. Result: " . ($result ? 'success' : 'failed') . ' Error: ' . $wpdb->last_error);
+            $added_columns = true;
+        }
+
+        if ($added_columns) {
+            // Log final column list for debugging
+            $final_columns = $wpdb->get_col("SHOW COLUMNS FROM `{$table}`", 0);
+            error_log("Final columns in table {$table} after adding customer fields: " . print_r($final_columns, true));
+        }
+    }
+
+    /**
      * Ensure columns exist for provided associative data on per-flow table.
      */
     public function ensure_flow_table_columns($flow_name, $data) {
         global $wpdb;
         $table = $this->ensure_flow_table($flow_name);
+
+        // Ensure customer columns exist
+        $this->ensure_customer_columns_exist($table);
+
         $existing = $wpdb->get_col("SHOW COLUMNS FROM `{$table}`", 0);
         if (!is_array($existing)) { $existing = array(); }
-        $reserved = array('id','flow_id','customer_name','customer_email','booking_date','booking_time','service_type','status','payload','created_at','updated_at');
+
+        // Also ensure core columns exist (excluding id which is created by default)
+        $core_columns = array('flow_id','booking_date','booking_time','service_type','status','payload','created_at','updated_at');
+        foreach ($core_columns as $col) {
+            if (!in_array($col, $existing)) {
+                $wpdb->query("ALTER TABLE `{$table}` ADD COLUMN `{$col}` LONGTEXT NULL");
+                $existing[] = $col;
+            }
+        }
+
+        // Add dynamic fields from data
         foreach ($data as $key => $value) {
             $col = $this->sanitize_column_name($key);
-            if (in_array($col, $existing, true) || in_array($col, $reserved, true)) {
+            if (in_array($col, $existing, true) || in_array($col, $core_columns, true)) {
                 continue;
             }
             $wpdb->query("ALTER TABLE `{$table}` ADD COLUMN `{$col}` LONGTEXT NULL");
@@ -204,6 +255,8 @@ class Booking_Database {
             'booking_time'   => isset($data['booking_time']) ? sanitize_text_field($data['booking_time']) : '',
             'service_type'   => isset($data['service_type']) ? sanitize_text_field($data['service_type']) : '',
             'status'         => isset($data['status']) ? sanitize_text_field($data['status']) : 'pending',
+            'customer_name'  => isset($data['customer_name']) ? sanitize_text_field($data['customer_name']) : '',
+            'customer_email' => isset($data['customer_email']) ? sanitize_email($data['customer_email']) : '',
             'payload'        => wp_json_encode($data),
         );
 
@@ -219,7 +272,7 @@ class Booking_Database {
         }
 
         // Add dynamic fields for every key provided
-        $reserved = array('flow_id','customer_name','customer_email');
+        $reserved = array('flow_id'); // Only flow_id is truly reserved, customer_name and customer_email should be processed normally
         foreach ($data as $key => $value) {
             $col = $this->sanitize_column_name($key);
             if (array_key_exists($col, $row) || in_array($col, $reserved, true)) { continue; }
@@ -231,7 +284,19 @@ class Booking_Database {
 
         // Build formats dynamically (all LONGTEXT/VARCHAR as %s)
         $formats = array_fill(0, count($row), '%s');
+
+        // Enable error reporting for debugging
+        $wpdb->show_errors = true;
+        $wpdb->suppress_errors = false;
+
         $res = $wpdb->insert($table, $row, $formats);
+
+        if ($res === false) {
+            // Log the error for debugging
+            error_log('Booking insertion failed. Table: ' . $table . '. Error: ' . $wpdb->last_error);
+            error_log('Data: ' . print_r($row, true));
+        }
+
         return $res !== false ? $wpdb->insert_id : false;
     }
 
@@ -399,18 +464,110 @@ class Booking_Database {
                 // Compatibility fields
                 if (!isset($row->schedule_id)) { $row->schedule_id = null; }
 
-                // Check if customer_name is empty, try to get from payload
-                if (empty($row->customer_name) && !empty($row->payload)) {
+                // Auto-migrate customer_name and customer_email from legacy fields or payload
+                if (!empty($row->payload)) {
                     $payload_data = json_decode($row->payload, true);
-                    if (json_last_error() === JSON_ERROR_NONE && isset($payload_data['customer_name'])) {
-                        $row->customer_name = $payload_data['customer_name'];
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        // Migrate customer_name if empty
+                        if (empty($row->customer_name)) {
+                            $name_fields = array('nama_lengkap', 'nama', 'name', 'full_name', 'nama lengkap', 'full name');
+                            foreach ($name_fields as $field) {
+                                if (isset($payload_data[$field]) && !empty($payload_data[$field])) {
+                                    $row->customer_name = $payload_data[$field];
+                                    // Update the database record
+                                    $this->update_customer_field($row->id, $flow->name, 'customer_name', $row->customer_name);
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Migrate customer_email if empty
+                        if (empty($row->customer_email)) {
+                            $email_fields = array('email', 'email_address', 'alamat_email', 'e-mail');
+                            foreach ($email_fields as $field) {
+                                if (isset($payload_data[$field]) && !empty($payload_data[$field])) {
+                                    $row->customer_email = $payload_data[$field];
+                                    // Update the database record
+                                    $this->update_customer_field($row->id, $flow->name, 'customer_email', $row->customer_email);
+                                    break;
+                                }
+                            }
+                        }
                     }
+                }
+
+                // Also check direct columns in table for legacy fields
+                if (empty($row->customer_name) || empty($row->customer_email)) {
+                    $this->migrate_from_direct_columns($row, $flow->name);
                 }
 
                 return $row;
             }
         }
         return null;
+    }
+
+    /**
+     * Update customer field (customer_name or customer_email) for a booking
+     */
+    private function update_customer_field($booking_id, $flow_name, $field_name, $field_value) {
+        global $wpdb;
+        $table = $this->get_flow_table_name($flow_name);
+
+        // Ensure column exists
+        $this->ensure_flow_table_columns($flow_name, array($field_name => $field_value));
+
+        $updated = $wpdb->update(
+            $table,
+            array($field_name => $field_value),
+            array('id' => intval($booking_id)),
+            array('%s'),
+            array('%d')
+        );
+
+        return $updated !== false;
+    }
+
+    /**
+     * Migrate customer data from direct columns in table
+     */
+    private function migrate_from_direct_columns(&$row, $flow_name) {
+        global $wpdb;
+        $table = $this->get_flow_table_name($flow_name);
+
+        // Get all columns in this table
+        $columns = $wpdb->get_col("SHOW COLUMNS FROM {$table}", 0);
+        if (!is_array($columns)) { $columns = array(); }
+
+        $updated = false;
+
+        // Check for name fields
+        if (empty($row->customer_name)) {
+            $name_fields = array('nama_lengkap', 'nama', 'name', 'full_name', 'nama lengkap', 'full name');
+            foreach ($name_fields as $field) {
+                if (in_array($field, $columns) && !empty($row->$field)) {
+                    $row->customer_name = $row->$field;
+                    $this->update_customer_field($row->id, $flow_name, 'customer_name', $row->customer_name);
+                    $updated = true;
+                    break;
+                }
+            }
+        }
+
+        // Check for email fields
+        if (empty($row->customer_email)) {
+            $email_fields = array('email', 'email_address', 'alamat_email', 'e-mail');
+            foreach ($email_fields as $field) {
+                if (in_array($field, $columns) && !empty($row->$field)) {
+                    $row->customer_email = $row->$field;
+                    $this->update_customer_field($row->id, $flow_name, 'customer_email', $row->customer_email);
+                    $updated = true;
+                    break;
+                }
+            }
+        }
+
+        return $updated;
     }
 
     /**

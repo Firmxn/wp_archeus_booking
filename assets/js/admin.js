@@ -728,9 +728,36 @@ jQuery(document).ready(function ($) {
             "flowname",
             "flow_name",
             "id",
-            "customer_name",
-            "customer_email",
           ];
+
+          // Function to get user-friendly field labels
+          function getFieldLabel(key) {
+            var labelMap = {
+              'customer_name': 'Nama Lengkap',
+              'customer_email': 'Email',
+              'nama_lengkap': 'Nama Lengkap',
+              'email': 'Email',
+              'nama': 'Nama',
+              'phone': 'No. Telepon',
+              'telepon': 'No. Telepon',
+              'no_hp': 'No. HP',
+              'alamat': 'Alamat',
+              'tanggal': 'Tanggal',
+              'waktu': 'Waktu',
+              'date': 'Tanggal',
+              'time': 'Waktu',
+              'booking_date': 'Tanggal Reservasi',
+              'booking_time': 'Waktu Reservasi',
+              'service_type': 'Layanan',
+              'jenis_layanan': 'Layanan',
+              'status': 'Status',
+              'created_at': 'Tanggal Dibuat',
+              'updated_at': 'Tanggal Diperbarui'
+            };
+
+            return labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+          }
+
           var html = "";
           html += '<div class="booking-details-card">';
           html += '<h4 class="booking-details-title">Detail Reservasi</h4>';
@@ -738,12 +765,46 @@ jQuery(document).ready(function ($) {
           console.log("Starting to process keys...");
           var previewId = "bv-preview-" + bookingId;
 
-          // Filter and categorize keys
+          // Prioritized fields for custom layout
+          var prioritizedFields = ['customer_name', 'customer_email', 'service_type', 'booking_time'];
+          var processedFields = [];
+
+          // First row: customer_name and customer_email
+          if (data.customer_name || data.customer_email) {
+            html += "<tr>";
+            html += "<td><strong>Nama:</strong> " + (data.customer_name || "-") + "</td>";
+            html += "<td><strong>Email:</strong> " + (data.customer_email || "-") + "</td>";
+            html += "</tr>";
+            processedFields.push('customer_name', 'customer_email');
+          }
+
+          // Second row: service_type and booking_time (unless time_slot exists)
+          var displayTimeField = data.booking_time;
+          var timeFieldLabel = "Waktu";
+
+          // If time_slot exists, use it instead of booking_time to avoid duplication
+          if (data.time_slot) {
+            displayTimeField = data.time_slot;
+            timeFieldLabel = "Time Slot";
+            processedFields.push('time_slot');
+          } else {
+            processedFields.push('booking_time');
+          }
+
+          if (data.service_type || displayTimeField) {
+            html += "<tr>";
+            html += "<td><strong>Layanan:</strong> " + (data.service_type || "-") + "</td>";
+            html += "<td><strong>" + timeFieldLabel + ":</strong> " + (displayTimeField || "-") + "</td>";
+            html += "</tr>";
+            processedFields.push('service_type');
+          }
+
+          // Filter and categorize remaining keys
           var filteredKeys = keys.filter(function (k) {
-            return exclude.indexOf(k) === -1;
+            return exclude.indexOf(k) === -1 && processedFields.indexOf(k) === -1;
           });
 
-          // Process keys in pairs, except for address and file fields
+          // Process remaining keys in pairs, except for address and file fields
           for (var i = 0; i < filteredKeys.length; i++) {
             var k = filteredKeys[i];
             var v = data[k];
@@ -784,7 +845,7 @@ jQuery(document).ready(function ($) {
                   "</div>";
                 html +=
                   '<tr><td colspan="2"><div class="bv-container" style="display: flex; justify-content: space-between; align-items: center;"><div><strong>' +
-                  k.replace(/_/g, " ") +
+                  getFieldLabel(k) +
                   ":</strong> " +
                   fileName +
                   '</div><div>' +
@@ -793,7 +854,7 @@ jQuery(document).ready(function ($) {
               } else {
                 html +=
                   '<tr><td colspan="2"><strong>' +
-                  k.replace(/_/g, " ") +
+                  getFieldLabel(k) +
                   ":</strong> " +
                   (v == null ? "" : v) +
                   "</td></tr>";
@@ -812,13 +873,13 @@ jQuery(document).ready(function ($) {
                 html += "<tr>";
                 html +=
                   "<td><strong>" +
-                  k.replace(/_/g, " ") +
+                  getFieldLabel(k) +
                   ":</strong> " +
                   (v == null ? "" : v) +
                   "</td>";
                 html +=
                   "<td><strong>" +
-                  k2.replace(/_/g, " ") +
+                  getFieldLabel(k2) +
                   ":</strong> " +
                   (v2 == null ? "" : v2) +
                   "</td>";
@@ -830,7 +891,7 @@ jQuery(document).ready(function ($) {
                 html += "<tr>";
                 html +=
                   '<td colspan="2"><strong>' +
-                  k.replace(/_/g, " ") +
+                  getFieldLabel(k) +
                   ":</strong> " +
                   (v == null ? "" : v) +
                   "</td>";

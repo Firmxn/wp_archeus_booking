@@ -1144,7 +1144,7 @@ class Booking_Admin {
                     ?>
                     <tr data-id="<?php echo $booking->id; ?>">
                         <td class="col-id"><?php echo $booking->id; ?></td>
-                        <td class="col-name" title="<?php echo esc_attr($booking->nama_lengkap ?? ''); ?>"><?php echo esc_html($booking->nama_lengkap ?? ''); ?></td>
+                        <td class="col-name" title="<?php echo esc_attr($booking->customer_name ?? ''); ?>"><?php echo esc_html($booking->customer_name ?? ''); ?></td>
                         <td><?php echo date('M j, Y', strtotime($booking->booking_date)); ?></td>
                         <td><?php echo esc_html($booking->booking_time); ?></td>
                         <td><?php echo esc_html($booking->service_type); ?></td>
@@ -2089,6 +2089,35 @@ class Booking_Admin {
         $row = $db->get_booking($booking_id);
         if (!$row) { wp_send_json_error(array('message' => __('Booking not found', 'archeus-booking'))); }
         $data = (array)$row;
+
+        // Extract customer data from payload if not already in database fields
+        if (!empty($data['payload'])) {
+            $payload_data = json_decode($data['payload'], true);
+            if (is_array($payload_data)) {
+                // Try to get customer_name from payload if not in database fields
+                if (empty($data['customer_name'])) {
+                    $name_fields = array('nama_lengkap', 'nama', 'name', 'full_name', 'customer_name', 'nama lengkap', 'full name');
+                    foreach ($name_fields as $name_field) {
+                        if (isset($payload_data[$name_field]) && !empty($payload_data[$name_field])) {
+                            $data['customer_name'] = sanitize_text_field($payload_data[$name_field]);
+                            break;
+                        }
+                    }
+                }
+
+                // Try to get customer_email from payload if not in database fields
+                if (empty($data['customer_email'])) {
+                    $email_fields = array('email', 'customer_email', 'email_address', 'alamat_email', 'e-mail');
+                    foreach ($email_fields as $email_field) {
+                        if (isset($payload_data[$email_field]) && !empty($payload_data[$email_field])) {
+                            $data['customer_email'] = sanitize_email($payload_data[$email_field]);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         // Remove heavy/internal fields
         unset($data['payload']);
         wp_send_json_success($data);
