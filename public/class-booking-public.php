@@ -206,6 +206,7 @@ class Booking_Public {
         // Get email settings
         $email_settings = get_option('booking_email_settings', array(
             'enable_admin_notification' => 1,
+            'admin_email_address' => get_option('admin_email'),
             'admin_notification_subject' => __('Reservasi Baru #{booking_id} - {service_type}', 'archeus-booking'),
             'admin_notification_body' => __('<html>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -241,11 +242,12 @@ class Booking_Public {
             return;
         }
         
-        $admin_email = get_option('admin_email');
+        // Use custom admin email if set, otherwise use default
+        $admin_email = !empty($email_settings['admin_email_address']) ? $email_settings['admin_email_address'] : get_option('admin_email');
         $subject = $this->build_email_subject($booking_data, $email_settings['admin_notification_subject']);
         $message = $this->build_custom_email_content($booking_data, $email_settings['admin_notification_body'], 'admin');
         $headers = array('Content-Type: text/html; charset=UTF-8');
-        
+
         wp_mail($admin_email, $subject, $message, $headers);
     }
     

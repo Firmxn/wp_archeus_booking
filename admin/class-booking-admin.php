@@ -598,7 +598,47 @@ class Booking_Admin {
         // Get saved email settings
         $email_settings = get_option('booking_email_settings', array(
             'enable_customer_confirmation' => 1,
+            'customer_confirmation_subject' => __('Konfirmasi Reservasi #{booking_id} - {service_type}', 'archeus-booking'),
+            'customer_confirmation_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Konfirmasi Reservasi Anda</h2>
+        <p>{greeting}</p>
+        <p>Terima kasih telah melakukan reservasi dengan kami. Berikut adalah detail reservasi Anda:</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>ID Reservasi:</strong> #{booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+        <p>Kami akan segera mengkonfirmasi reservasi Anda. Mohon tunggu konfirmasi dari kami.</p>
+        <p>Terima kasih,<br>{company_name}</p>
+    </div>
+</body>
+</html>', 'archeus-booking'),
             'enable_admin_notification' => 1,
+            'admin_email_address' => get_option('admin_email'),
+            'admin_notification_subject' => __('Reservasi Baru #{booking_id} - {service_type}', 'archeus-booking'),
+            'admin_notification_body' => __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Reservasi Baru Diterima</h2>
+        <p>{greeting}</p>
+        <p>Reservasi baru telah masuk dan membutuhkan perhatian Anda. Berikut adalah detail reservasi:</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>ID Reservasi:</strong> #{booking_id}</p>
+            <p><strong>Pelanggan:</strong> {customer_name}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+        </div>
+        <p>Silakan login ke dashboard untuk mengelola reservasi ini.</p>
+        <p>Terima kasih,<br>System</p>
+    </div>
+</body>
+</html>', 'archeus-booking'),
             // Status change email settings
             'enable_status_change_emails' => 1,
             'pending_email_subject' => __('Menunggu Konfirmasi Reservasi #{booking_id}', 'archeus-booking'),
@@ -776,6 +816,7 @@ class Booking_Admin {
             $email_settings = array(
                 'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
                 'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
+                'admin_email_address' => sanitize_email($_POST['email_settings']['admin_email_address']),
                 'enable_status_change_emails' => isset($_POST['email_settings']['enable_status_change_emails']) ? 1 : 0,
                 'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
                 'customer_confirmation_body' => wp_kses_post($_POST['email_settings']['customer_confirmation_body']),
@@ -819,14 +860,31 @@ class Booking_Admin {
                     <tr>
                         <th scope="row"><?php _e('Email Subject', 'archeus-booking'); ?></th>
                         <td>
-                            <input type="text" name="email_settings[customer_confirmation_subject]" value="<?php echo esc_attr($email_settings['customer_confirmation_subject']); ?>">
+                            <input type="text" name="email_settings[customer_confirmation_subject]" value="<?php echo esc_attr(isset($email_settings['customer_confirmation_subject']) ? $email_settings['customer_confirmation_subject'] : __('Konfirmasi Reservasi #{booking_id} - {service_type}', 'archeus-booking')); ?>">
                         </td>
                     </tr>
                     
                     <tr>
                         <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                         <td>
-                            <textarea name="email_settings[customer_confirmation_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea($email_settings['customer_confirmation_body']); ?></textarea>
+                            <textarea name="email_settings[customer_confirmation_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea(isset($email_settings['customer_confirmation_body']) ? $email_settings['customer_confirmation_body'] : __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Konfirmasi Reservasi Anda</h2>
+        <p>{greeting}</p>
+        <p>Terima kasih telah melakukan reservasi dengan kami. Berikut adalah detail reservasi Anda:</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>ID Reservasi:</strong> #{booking_id}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+        </div>
+        <p>Kami akan segera mengkonfirmasi reservasi Anda. Mohon tunggu konfirmasi dari kami.</p>
+        <p>Terima kasih,<br>{company_name}</p>
+    </div>
+</body>
+</html>', 'archeus-booking')); ?></textarea>
                             <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
                         </td>
                     </tr>
@@ -838,23 +896,49 @@ class Booking_Admin {
                         <th scope="row"><?php _e('Enable Admin Notification', 'archeus-booking'); ?></th>
                         <td>
                             <label>
-                                <input type="checkbox" name="email_settings[enable_admin_notification]" value="1" <?php checked($email_settings['enable_admin_notification'], 1); ?>> 
+                                <input type="checkbox" name="email_settings[enable_admin_notification]" value="1" <?php checked($email_settings['enable_admin_notification'], 1); ?>>
                                 <?php _e('Send notification email to admin when new booking is received', 'archeus-booking'); ?>
                             </label>
                         </td>
                     </tr>
-                    
+
+                    <tr>
+                        <th scope="row"><?php _e('Admin Email Address', 'archeus-booking'); ?></th>
+                        <td>
+                            <input type="email" name="email_settings[admin_email_address]" value="<?php echo esc_attr(isset($email_settings['admin_email_address']) ? $email_settings['admin_email_address'] : get_option('admin_email')); ?>" style="width: 100%;">
+                            <p class="description"><?php _e('Email address where admin notifications will be sent. Leave blank to use default WordPress admin email.', 'archeus-booking'); ?></p>
+                        </td>
+                    </tr>
+
                     <tr>
                         <th scope="row"><?php _e('Email Subject', 'archeus-booking'); ?></th>
                         <td>
-                            <input type="text" name="email_settings[admin_notification_subject]" value="<?php echo esc_attr($email_settings['admin_notification_subject']); ?>">
+                            <input type="text" name="email_settings[admin_notification_subject]" value="<?php echo esc_attr(isset($email_settings['admin_notification_subject']) ? $email_settings['admin_notification_subject'] : __('Reservasi Baru #{booking_id} - {service_type}', 'archeus-booking')); ?>">
                         </td>
                     </tr>
                     
                     <tr>
                         <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                         <td>
-                            <textarea name="email_settings[admin_notification_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea($email_settings['admin_notification_body']); ?></textarea>
+                            <textarea name="email_settings[admin_notification_body]" rows="12" style="width: 100%; font-family: monospace;"><?php echo esc_textarea(isset($email_settings['admin_notification_body']) ? $email_settings['admin_notification_body'] : __('<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #54b335;">Reservasi Baru Diterima</h2>
+        <p>{greeting}</p>
+        <p>Reservasi baru telah masuk dan membutuhkan perhatian Anda. Berikut adalah detail reservasi:</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>ID Reservasi:</strong> #{booking_id}</p>
+            <p><strong>Pelanggan:</strong> {customer_name}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+            <p><strong>Layanan:</strong> {service_type}</p>
+            <p><strong>Tanggal:</strong> {booking_date}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
+        </div>
+        <p>Silakan login ke dashboard untuk mengelola reservasi ini.</p>
+        <p>Terima kasih,<br>System</p>
+    </div>
+</body>
+</html>', 'archeus-booking')); ?></textarea>
                             <p class="description"><?php _e('Tersedia tags: {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {admin_email}, {greeting}, {email_title}, {current_date}, {current_time}', 'archeus-booking'); ?></p>
                         </td>
                     </tr>
@@ -1593,20 +1677,30 @@ class Booking_Admin {
         if (!current_user_can('manage_options')) {
             wp_die(__('You do not have sufficient permissions to access this page.', 'archeus-booking'));
         }
-        
+
         if (!isset($_POST['email_settings_nonce']) || !wp_verify_nonce($_POST['email_settings_nonce'], 'save_email_settings')) {
             wp_die(__('Security check failed', 'archeus-booking'));
         }
-        
+
         // Save email settings
         if (isset($_POST['email_settings'])) {
             $email_settings = array(
                 'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
-                'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
                 'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
-                'customer_confirmation_body' => sanitize_textarea_field($_POST['email_settings']['customer_confirmation_body']),
+                'customer_confirmation_body' => wp_kses_post($_POST['email_settings']['customer_confirmation_body']),
+                'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
+                'admin_email_address' => sanitize_email($_POST['email_settings']['admin_email_address']),
                 'admin_notification_subject' => sanitize_text_field($_POST['email_settings']['admin_notification_subject']),
-                'admin_notification_body' => sanitize_textarea_field($_POST['email_settings']['admin_notification_body'])
+                'admin_notification_body' => wp_kses_post($_POST['email_settings']['admin_notification_body']),
+                'enable_status_change_emails' => isset($_POST['email_settings']['enable_status_change_emails']) ? 1 : 0,
+                'pending_email_subject' => sanitize_text_field($_POST['email_settings']['pending_email_subject']),
+                'pending_email_body' => wp_kses_post($_POST['email_settings']['pending_email_body']),
+                'approved_email_subject' => sanitize_text_field($_POST['email_settings']['approved_email_subject']),
+                'approved_email_body' => wp_kses_post($_POST['email_settings']['approved_email_body']),
+                'rejected_email_subject' => sanitize_text_field($_POST['email_settings']['rejected_email_subject']),
+                'rejected_email_body' => wp_kses_post($_POST['email_settings']['rejected_email_body']),
+                'completed_email_subject' => sanitize_text_field($_POST['email_settings']['completed_email_subject']),
+                'completed_email_body' => wp_kses_post($_POST['email_settings']['completed_email_body'])
             );
             
             update_option('booking_email_settings', $email_settings);
