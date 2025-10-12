@@ -1792,6 +1792,14 @@ jQuery(document).ready(function ($) {
   }
 
   // Form field builder enhancements
+  // Initialize validation for existing fields when page loads
+  $(document).ready(function() {
+    // Add validation to existing field rows
+    $('#form-fields-container .form-field-row').each(function() {
+      addFieldValidationListeners($(this));
+    });
+  });
+
   // Remove any existing event handlers to prevent duplication
   $(document).off('click', '#add-field-btn');
   $(document).on('click', '#add-field-btn', function() {
@@ -1812,7 +1820,11 @@ jQuery(document).ready(function ($) {
 
       // Focus on label input for immediate typing
       var $labelInput = $newRow.find('input[name^="field_labels["]');
+      var $keyInput = $newRow.find('input[name^="field_keys_input["]');
       $labelInput.focus();
+
+      // Add validation event listeners
+      addFieldValidationListeners($newRow);
 
       // Hint removed - no longer needed
 
@@ -1845,15 +1857,85 @@ jQuery(document).ready(function ($) {
     }, 100);
   });
 
+  // Add validation listeners to field inputs
+  function addFieldValidationListeners($row) {
+    var $keyInput = $row.find('.field-key-input');
+    var $labelInput = $row.find('.field-label-input');
+
+    // Validate key on input
+    $keyInput.on('input blur', function() {
+      var key = $(this).val();
+      var isValid = validateFieldKey(key, $row);
+
+      if (!isValid) {
+        $(this).addClass('error');
+        $row.addClass('has-error');
+      } else {
+        $(this).removeClass('error');
+        $row.removeClass('has-error');
+
+        // Auto-fill label if key matches custom pattern
+        autoFillLabelFromKey(key, $labelInput);
+      }
+    });
+
+    // Validate label on input
+    $labelInput.on('input blur', function() {
+      var label = $(this).val();
+      var isValid = validateFieldLabel(label, $row);
+
+      if (!isValid) {
+        $(this).addClass('error');
+        $row.addClass('has-error');
+      } else {
+        $(this).removeClass('error');
+        $row.removeClass('has-error');
+      }
+    });
+  }
+
+  // Validate all form fields before submission
+  function validateFormFields() {
+    var isValid = true;
+    var $rows = $('#form-fields-container .form-field-row');
+
+    $rows.each(function() {
+      var $row = $(this);
+      var $keyInput = $row.find('.field-key-input');
+      var $labelInput = $row.find('.field-label-input');
+
+      var key = $keyInput.val();
+      var label = $labelInput.val();
+
+      var keyValid = validateFieldKey(key, $row);
+      var labelValid = validateFieldLabel(label, $row);
+
+      if (!keyValid) {
+        $keyInput.addClass('error');
+        $row.addClass('has-error');
+        isValid = false;
+      }
+
+      if (!labelValid) {
+        $labelInput.addClass('error');
+        $row.addClass('has-error');
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
   // Helper function to create field row HTML
   function createFieldRowHtml(index) {
+    var fieldNumber = index + 1; // Start from 1 instead of 0
     return '<tr class="form-field-row" data-field-index="' + index + '" data-auto-detected="false">' +
       '<td>' +
-        '<input type="hidden" name="field_keys[]" value="custom_' + index + '">' +
-        '<input type="text" name="field_keys_input[custom_' + index + ']" value="custom_' + index + '" class="regular-text" placeholder="contoh: nama_hewan">' +
+        '<input type="hidden" name="field_keys[]" value="custom_' + fieldNumber + '">' +
+        '<input type="text" name="field_keys_input[custom_' + fieldNumber + ']" value="custom_' + fieldNumber + '" class="regular-text field-key-input" placeholder="contoh: nama_hewan">' +
       '</td>' +
       '<td>' +
-        '<input type="text" name="field_labels[custom_' + index + ']" value="" placeholder="Label field">' +
+        '<input type="text" name="field_labels[custom_' + fieldNumber + ']" value="Custom ' + fieldNumber + '" placeholder="Label field" class="field-label-input">' +
       '</td>' +
       '<td>' +
         '<select class="ab-select ab-dropdown field-type-select" name="field_types[custom_' + index + ']">' +
@@ -1867,10 +1949,10 @@ jQuery(document).ready(function ($) {
           '<option value="file">File Upload</option>' +
         '</select>' +
       '</td>' +
-      '<td class="col-required"><input type="checkbox" name="field_required[custom_' + index + ']" value="1"></td>' +
-      '<td><input type="text" name="field_placeholders[custom_' + index + ']" value="" placeholder="Placeholder text"></td>' +
+      '<td class="col-required"><input type="checkbox" name="field_required[custom_' + fieldNumber + ']" value="1"></td>' +
+      '<td><input type="text" name="field_placeholders[custom_' + fieldNumber + ']" value="" placeholder="Placeholder text"></td>' +
       '<td class="options-cell">' +
-        '<textarea name="field_options[custom_' + index + ']" rows="2" class="large-text field-options" placeholder="Satu nilai per baris" style="display:none;"></textarea>' +
+        '<textarea name="field_options[custom_' + fieldNumber + ']" rows="2" class="large-text field-options" placeholder="Satu nilai per baris" style="display:none;"></textarea>' +
       '</td>' +
       '<td class="col-actions"><button type="button" class="button remove-field" title="Hapus Field"><span class="dashicons dashicons-trash" aria-hidden="true"></span><span class="screen-reader-text">Hapus</span></button></td>' +
     '</tr>';
@@ -1934,6 +2016,31 @@ jQuery(document).ready(function ($) {
     }
 
     return null;
+  }
+
+  // Validate field key - ensure it's not empty
+  function validateFieldKey(key, $row) {
+    if (!key || key.trim() === '') {
+      return false;
+    }
+    return true;
+  }
+
+  // Validate field label - ensure it's not empty
+  function validateFieldLabel(label, $row) {
+    if (!label || label.trim() === '') {
+      return false;
+    }
+    return true;
+  }
+
+  // Auto-fill label based on custom key pattern
+  function autoFillLabelFromKey(key, $labelInput) {
+    var customMatch = key.match(/^custom_(\d+)$/);
+    if (customMatch) {
+      var number = customMatch[1];
+      $labelInput.val('Custom ' + number);
+    }
   }
 
   // Check if field key is already used
@@ -2632,6 +2739,24 @@ jQuery(document).ready(function ($) {
     var formName = $formNameField.length ? $formNameField.val().trim() : '';
     if (!formName) {
       showToast('Nama formulir wajib diisi', 'error');
+      return;
+    }
+
+    // Validate form fields
+    if (!validateFormFields()) {
+      showToast('Key dan Label field tidak boleh kosong', 'error');
+
+      // Scroll to first error
+      var $firstError = $('#form-fields-container .has-error').first();
+      if ($firstError.length) {
+        $('html, body').animate({
+          scrollTop: $firstError.offset().top - 100
+        }, 300);
+
+        // Focus on first error input
+        $firstError.find('input.error').first().focus();
+      }
+
       return;
     }
 
