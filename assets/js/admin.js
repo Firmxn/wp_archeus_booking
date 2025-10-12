@@ -1775,11 +1775,6 @@ jQuery(document).ready(function ($) {
       $labelInput.on('input', function() {
         clearTimeout($labelInput.data('typing-timer'));
         $labelInput.data('typing-timer', setTimeout(function() {
-          // Remove hint when user starts typing
-          $hint.fadeOut(300, function() {
-            $(this).remove();
-          });
-
           // Trigger auto-detection
           $labelInput.trigger('input');
         }, 200)); // Faster response for new fields
@@ -2313,11 +2308,13 @@ jQuery(document).ready(function ($) {
           $button.removeAttr('data-delete-handled');
           $button.removeAttr('data-delete-pending');
 
-          // Remove the row with animation
-          $row.fadeOut(300, function() {
-            $(this).remove();
-            showToast(response.data.message, 'success');
-          });
+          // Show success message
+          showToast(response.data.message, 'success');
+
+          // Reload the page to show empty form (redirect to same page without edit parameters)
+          setTimeout(function() {
+            window.location.href = window.location.pathname + '?page=archeus-booking-forms';
+          }, 1000); // Wait 1 second for toast to show
         } else {
           showToast(response.data.message, 'error');
           $button.prop('disabled', false);
@@ -2602,24 +2599,32 @@ jQuery(document).ready(function ($) {
       formData.append(name, value);
     });
 
-    // Ensure all required fields are sent, even unchecked ones
+    // Handle required checkboxes properly - only process once to avoid duplication
+  console.log('Starting required checkbox processing...');
   $form.find('input[name^="field_keys["]').each(function() {
     var fieldKey = $(this).val();
     var checkboxName = 'field_required[' + fieldKey + ']';
     var $checkbox = $form.find('input[name="' + checkboxName + '"]');
     var isChecked = $checkbox.length > 0 ? $checkbox.is(':checked') : false;
     var value = isChecked ? '1' : '0';
+
+    console.log('Required field processing:', {
+      fieldKey: fieldKey,
+      checkboxName: checkboxName,
+      checkboxFound: $checkbox.length > 0,
+      isChecked: isChecked,
+      valueToSend: value,
+      checkboxHTML: $checkbox.length > 0 ? $checkbox[0].outerHTML : 'NOT_FOUND'
+    });
+
     formData.append(checkboxName, value);
-    console.log('Required field:', checkboxName, 'Value:', value, 'Checked:', isChecked, 'Found checkbox:', $checkbox.length > 0);
   });
 
-  // Also handle the required checkboxes directly as backup
-  $form.find('input[name^="field_required["]').each(function() {
-    var name = $(this).attr('name');
-    var value = $(this).is(':checked') ? '1' : '0';
-    formData.append(name, value);
-    console.log('Direct checkbox:', name, 'Value:', value, 'Checked:', $(this).is(':checked'));
-  });
+  // Log entire FormData for debugging
+  console.log('FormData contents being sent:');
+  for (var pair of formData.entries()) {
+    console.log(pair[0] + ': ' + pair[1]);
+  }
 
     $form.find('input[name^="field_placeholders["]').each(function() {
       var name = $(this).attr('name');

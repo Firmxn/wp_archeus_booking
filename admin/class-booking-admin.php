@@ -318,12 +318,21 @@ class Booking_Admin {
             echo '<div class="notice notice-success is-dismissible"><p>' . __('Formulir berhasil disimpan!', 'archeus-booking') . '</p></div>';
         }
 
+        // Show success message if form was deleted
+        if (isset($_GET['form_deleted']) && $_GET['form_deleted'] === '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Formulir berhasil dihapus!', 'archeus-booking') . '</p></div>';
+        }
+
         // Handle form creation/update (fallback for non-AJAX requests)
         if (isset($_POST['save_form']) && wp_verify_nonce($_POST['booking_forms_nonce'], 'save_booking_forms') && !isset($_POST['action'])) {
             $name = sanitize_text_field($_POST['form_name']);
             $slug = '';
             $description = '';
-            
+
+            // Debug fallback handler
+            error_log('Fallback Handler Debug - POST data: ' . print_r($_POST, true));
+            error_log('Fallback Handler Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
+
             $fields = array();
             $rename_map = array();
             if (isset($_POST['field_keys'])) {
@@ -351,7 +360,27 @@ class Booking_Admin {
                     }
 
                     $type = sanitize_text_field($_POST['field_types'][$field_key]);
-                    $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
+
+                    // Debug required field processing in fallback
+                    $received_required = isset($_POST['field_required'][$field_key]) ? $_POST['field_required'][$field_key] : 'NOT_SET';
+                    error_log('Fallback Handler Debug - Processing Field: ' . $field_key . ', Received required: ' . $received_required);
+
+                    // Gunakan validasi ketat yang sama seperti AJAX handler
+                    if (isset($_POST['field_required'][$field_key])) {
+                        $raw_value = $_POST['field_required'][$field_key];
+                        error_log('Fallback Handler Debug - Field ' . $field_key . ' raw value: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
+
+                        $str_value = (string)$raw_value;
+                        if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
+                            $required = 1;
+                        } else {
+                            $required = 0;
+                        }
+                    } else {
+                        $required = 0;
+                    }
+                    error_log('Fallback Handler Debug - Field ' . $field_key . ' set to: ' . $required);
+
                     $placeholder = isset($_POST['field_placeholders'][$field_key]) ? sanitize_text_field($_POST['field_placeholders'][$field_key]) : '';
 
                     $options = array();
@@ -371,6 +400,9 @@ class Booking_Admin {
                         'placeholder' => $placeholder,
                         'options' => $options
                     );
+
+                    // Debug final field data
+                    error_log('Fallback Handler Debug - Final field ' . $new_key . ': ' . print_r($fields[$new_key], true));
                 }
             }
             
@@ -418,10 +450,16 @@ class Booking_Admin {
             $form_id = intval($_GET['form_id']);
             $result = $booking_db->delete_form($form_id);
             $message = $result ? __('Formulir berhasil dihapus.', 'archeus-booking') : __('Gagal menghapus formulir.', 'archeus-booking');
-            if (isset($message)) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
+
+            // Redirect to show empty form after deletion
+            $redirect_url = admin_url('admin.php?page=archeus-booking-forms');
+            if ($result) {
+                // Add success message as URL parameter
+                $redirect_url = add_query_arg('form_deleted', '1', $redirect_url);
             }
-            $forms = $booking_db->get_forms();
+
+            wp_redirect($redirect_url);
+            exit;
         }
         
         $edit_form = null;
@@ -1274,6 +1312,20 @@ class Booking_Admin {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('archeus_booking_admin_nonce')
         ));
+
+        // Add inline script for form deletion toast notification
+        if (isset($_GET['page']) && $_GET['page'] === 'archeus-booking-forms' && isset($_GET['form_deleted']) && $_GET['form_deleted'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Show toast notification for form deletion
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Formulir berhasil dihapus!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
     }
 
     /**
@@ -2671,6 +2723,10 @@ class Booking_Admin {
         $name = sanitize_text_field($_POST['form_name']);
         $description = sanitize_textarea_field($_POST['form_description']);
 
+        // Debug: log all received POST data for form creation
+        error_log('Form Creation Debug - POST data: ' . print_r($_POST, true));
+        error_log('Form Creation Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
+
         // Process fields
         $fields = array();
         if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
@@ -2679,7 +2735,29 @@ class Booking_Admin {
 
                 $label = isset($_POST['field_labels'][$key]) ? sanitize_text_field($_POST['field_labels'][$key]) : $key;
                 $type = isset($_POST['field_types'][$key]) ? sanitize_text_field($_POST['field_types'][$key]) : 'text';
-                $required = isset($_POST['field_required'][$key]) ? 1 : 0;
+
+                // Debug: log detailed required field data
+                $received_required = isset($_POST['field_required'][$key]) ? $_POST['field_required'][$key] : 'NOT_SET';
+                $isset_check = isset($_POST['field_required'][$key]) ? 'TRUE' : 'FALSE';
+                error_log('Form Creation Debug - Field: ' . $key . ', Required isset: ' . $isset_check . ', Value: ' . $received_required);
+
+                // Tambahkan pengecekan lebih detail dengan validasi ketat
+                if (isset($_POST['field_required'][$key])) {
+                    $raw_value = $_POST['field_required'][$key];
+                    error_log('Form Creation Debug - Field ' . $key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
+
+                    // Konversi ke string untuk memastikan perbandingan yang benar
+                    $str_value = (string)$raw_value;
+                    if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
+                        $required = 1;
+                    } else {
+                        $required = 0;
+                    }
+                    error_log('Form Creation Debug - Field ' . $key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
+                } else {
+                    $required = 0;
+                    error_log('Form Creation Debug - Field ' . $key . ' set to 0 (not in POST)');
+                }
                 $placeholder = isset($_POST['field_placeholders'][$key]) ? sanitize_text_field($_POST['field_placeholders'][$key]) : '';
 
                 $options = array();
@@ -2699,8 +2777,14 @@ class Booking_Admin {
                     'placeholder' => $placeholder,
                     'options' => $options
                 );
+
+                // Debug: log final field data being saved
+                error_log('Form Creation Debug - Final field data for ' . $key . ': ' . print_r($fields[$key], true));
             }
         }
+
+        // Debug: log complete fields array being saved
+        error_log('Form Creation Debug - Complete fields array: ' . print_r($fields, true));
 
         $booking_db = new Booking_Database();
         $auto_slug = 'form-' . uniqid();
@@ -2755,12 +2839,33 @@ class Booking_Admin {
         // Process fields
         $fields = array();
         if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
+            error_log('Form Update Debug - Processing fields array');
+            error_log('Form Update Debug - field_keys: ' . print_r($_POST['field_keys'], true));
+            error_log('Form Update Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
+
             foreach ($_POST['field_keys'] as $index => $key) {
                 if (empty($key)) continue;
 
                 $label = isset($_POST['field_labels'][$key]) ? sanitize_text_field($_POST['field_labels'][$key]) : $key;
                 $type = isset($_POST['field_types'][$key]) ? sanitize_text_field($_POST['field_types'][$key]) : 'text';
-                $required = isset($_POST['field_required'][$key]) ? 1 : 0;
+
+                // Strict validation for required field - same as other handlers
+                if (isset($_POST['field_required'][$key])) {
+                    $raw_value = $_POST['field_required'][$key];
+                    error_log('Form Update Debug - Field ' . $key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
+
+                    $str_value = (string)$raw_value;
+                    if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
+                        $required = 1;
+                    } else {
+                        $required = 0;
+                    }
+                    error_log('Form Update Debug - Field ' . $key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
+                } else {
+                    $required = 0;
+                    error_log('Form Update Debug - Field ' . $key . ' not found in field_required array, setting to 0');
+                }
+
                 $placeholder = isset($_POST['field_placeholders'][$key]) ? sanitize_text_field($_POST['field_placeholders'][$key]) : '';
 
                 $options = array();
