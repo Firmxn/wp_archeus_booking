@@ -471,7 +471,7 @@ class Booking_Admin {
         }
         ?>
         <div class="wrap booking-admin-page">
-            <h1 class="title-page"><?php _e('Booking Form (Formulir Reservasi)', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Booking Form (Formulir Pemesanan)', 'archeus-booking'); ?></h1>
             <?php
             $flows = method_exists($booking_db, 'get_booking_flows') ? (array) $booking_db->get_booking_flows() : array();
             $first_id = 1;
@@ -2601,11 +2601,6 @@ class Booking_Admin {
         $result = $booking_db->delete_booking($booking_id);
 
         if ($result) {
-            // If booking had a schedule, reduce the schedule bookings count
-            if ($booking && !empty($booking->schedule_id)) {
-                $booking_db->update_schedule_bookings($booking->schedule_id, -1);
-            }
-            
             wp_send_json_success(array(
                 'message' => __('Booking deleted successfully', 'archeus-booking')
             ));

@@ -8,8 +8,11 @@ class Booking_Database {
     public function __construct() {
         // Deprecated main table; per-flow tables are used instead
         $this->table_name = null;
-        
+
         add_action('plugins_loaded', array($this, 'create_tables'));
+
+        // Run automatic cleanup on initialization (with probability to avoid performance impact)
+        $this->run_automatic_cleanup();
     }
 
     /**
@@ -595,15 +598,88 @@ class Booking_Database {
         global $wpdb;
         $booking = $this->get_booking($booking_id);
         if (!$booking || empty($booking->flow_name)) { return false; }
+
+        // Check if this booking has a blocking status and needs to release schedule slot
+        $blocking_statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
+        $is_blocking = in_array($booking->status, $blocking_statuses, true);
+
+        // Release schedule slot if this booking was blocking
+        if ($is_blocking && !empty($booking->schedule_id)) {
+            $this->update_schedule_bookings($booking->schedule_id, -1);
+        }
+
         $table = $this->get_flow_table_name($booking->flow_name);
         $deleted = $wpdb->delete(
             $table,
             array('id' => intval($booking_id)),
             array('%d')
         );
+
         return $deleted !== false;
     }
     
+    /**
+     * Clean up expired availability data (real-time)
+     * Deletes availability and schedule data for dates that have passed
+     * Preserves booking data for historical records
+     */
+    public function cleanup_expired_availability() {
+        global $wpdb;
+
+        $today = current_time('Y-m-d');
+        $cleanup_count = 0;
+
+        // Clean up availability table
+        $availability_table = $wpdb->prefix . 'archeus_booking_availability';
+        $availability_deleted = $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$availability_table} WHERE date < %s",
+                $today
+            )
+        );
+        $cleanup_count += $availability_deleted ?: 0;
+
+        // Clean up schedules table
+        $schedules_table = $wpdb->prefix . $this->table_prefix . 'booking_schedules';
+        $schedules_deleted = $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$schedules_table} WHERE date < %s",
+                $today
+            )
+        );
+        $cleanup_count += $schedules_deleted ?: 0;
+
+        // Log cleanup activity (optional)
+        if ($cleanup_count > 0) {
+            error_log("Archeus Booking: Cleaned up {$cleanup_count} expired availability records on " . current_time('mysql'));
+        }
+
+        return $cleanup_count;
+    }
+
+    /**
+     * Run automatic cleanup with randomized probability to avoid performance issues
+     *
+     * @return int|false Number of records cleaned up or false if cleanup was skipped
+     */
+    public function run_automatic_cleanup() {
+        // Run cleanup with 10% probability on each call to avoid performance impact
+        if (rand(1, 10) !== 1) {
+            return false;
+        }
+
+        return $this->cleanup_expired_availability();
+    }
+
+    /**
+     * Force cleanup (for manual triggers)
+     *
+     * @return int Number of records cleaned up
+     */
+    public function force_cleanup() {
+        return $this->cleanup_expired_availability();
+    }
+
     /**
      * Get all forms
      */

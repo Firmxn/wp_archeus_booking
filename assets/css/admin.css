@@ -1121,7 +1121,7 @@
 }
 
 /* filter dashboard */
-.booking-filters .filter-dashboard {
+/* .booking-filters .filter-dashboard {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -1134,13 +1134,12 @@
   border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius) !important;
   cursor: pointer !important;
-}
-.booking-filters .filter-dashboard :focus {
+} */
+/* .booking-filters .filter-dashboard :focus {
   outline: none;
   border-color: red !important;
-  /* border-color: var(--primary-color); */
   box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3);
-}
+} */
 .ab-dd .ab-dd-caret {
   margin-left: 8px;
   width: 0;

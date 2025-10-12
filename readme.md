@@ -9,7 +9,7 @@
 
 **A comprehensive WordPress booking plugin with intelligent form builder, service management, and booking flows**
 
-[🚀 Live Demo](#) • [📖 Documentation](#-features) • [⚡ Installation](#-installation) • [🐛 Issues](https://github.com/firmxn/archeus-booking/issues)
+[🚀 Live Demo](#) • [📖 Documentation](#-features) • [⚡ Installation](#-installation) • [🐛 Issues](https://github.com/Firmxn/wp_archeus_booking)
 
 </div>
 
@@ -103,10 +103,6 @@ composer require firmxn/archeus-booking
 [archeus_booking_calendar]
 ```
 
-### Custom Flow with Multiple Services
-```shortcode
-[archeus_booking id="2" service="consultation"]
-```
 
 ---
 
@@ -153,7 +149,7 @@ composer require firmxn/archeus-booking
 ### Local Development
 ```bash
 # Clone repository
-git clone https://github.com/firmxn/archeus-booking.git
+git clone https://github.com/Firmxn/wp_archeus_booking.git
 
 # Install dependencies
 composer install
@@ -189,18 +185,18 @@ npm run build
 ## 🤝 Support
 
 ### Documentation
-- 📖 [Full Documentation](https://github.com/firmxn/archeus-booking/wiki)
+- 📖 [Full Documentation](https://https://github.com/Firmxn/wp_archeus_booking/wiki)
 - 🎬 [Video Tutorials](https://youtube.com/playlist)
-- 💡 [FAQ Section](https://github.com/firmxn/archeus-booking/wiki/FAQ)
+- 💡 [FAQ Section](https://https://github.com/Firmxn/wp_archeus_booking/wiki/FAQ)
 
 ### Getting Help
-- 🐛 [Report Issues](https://github.com/firmxn/archeus-booking/issues)
-- 💬 [Discussions](https://github.com/firmxn/archeus-booking/discussions)
-- 📧 [Email Support](mailto:firmansyah@example.com)
+- 🐛 [Report Issues](https://https://github.com/Firmxn/wp_archeus_booking/issues)
+- 💬 [Discussions](https://https://github.com/Firmxn/wp_archeus_booking/discussions)
+- 📧 [Email Support](mailto:firmansyahpramudiaa@gmail.com)
 
 ### Community
 - 💬 [WordPress.org Support Forum](https://wordpress.org/support/plugin/archeus-booking/)
-- 🐙 [GitHub Discussions](https://github.com/firmxn/archeus-booking/discussions)
+- 🐙 [GitHub Discussions](https://https://github.com/Firmxn/wp_archeus_booking/discussions)
 - 🐦 [Twitter Updates](https://twitter.com/firmxn)
 
 ---
