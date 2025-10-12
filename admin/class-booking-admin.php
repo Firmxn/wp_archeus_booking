@@ -1326,6 +1326,47 @@ class Booking_Admin {
             </script>
             <?php
         }
+
+        // Add inline script for time slot operations toast notifications
+        $current_page = isset($_GET['page']) ? $_GET['page'] : '';
+        if ($current_page === 'archeus-booking-time-slots' && isset($_GET['time_slot_created']) && $_GET['time_slot_created'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Show toast notification for time slot creation
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Slot waktu berhasil dibuat!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        if ($current_page === 'archeus-booking-time-slots' && isset($_GET['time_slot_updated']) && $_GET['time_slot_updated'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Show toast notification for time slot update
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Slot waktu berhasil diperbarui!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        if ($current_page === 'archeus-booking-time-slots' && isset($_GET['time_slot_deleted']) && $_GET['time_slot_deleted'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Show toast notification for time slot deletion
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Slot waktu berhasil dihapus!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
     }
 
     /**
@@ -4103,6 +4144,21 @@ class Booking_Admin {
      */
     public function time_slots_page() {
         $time_slots_manager = new Time_Slots_Manager();
+
+        // Show success message if time slot was created
+        if (isset($_GET['time_slot_created']) && $_GET['time_slot_created'] === '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Slot waktu berhasil dibuat!', 'archeus-booking') . '</p></div>';
+        }
+
+        // Show success message if time slot was updated
+        if (isset($_GET['time_slot_updated']) && $_GET['time_slot_updated'] === '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Slot waktu berhasil diperbarui!', 'archeus-booking') . '</p></div>';
+        }
+
+        // Show success message if time slot was deleted
+        if (isset($_GET['time_slot_deleted']) && $_GET['time_slot_deleted'] === '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Slot waktu berhasil dihapus!', 'archeus-booking') . '</p></div>';
+        }
         
         // Handle form submission for adding/updating time slots (fallback for non-AJAX requests)
         if (isset($_POST['save_time_slot']) && wp_verify_nonce($_POST['time_slot_nonce'], 'save_time_slot_action') && !isset($_POST['action'])) {
@@ -4149,7 +4205,15 @@ class Booking_Admin {
                     }
                     
                     if ($result) {
-                        echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
+                        // Redirect to empty form after successful creation/update
+                        $redirect_url = admin_url('admin.php?page=archeus-booking-time-slots');
+                        if ($slot_id > 0) {
+                            $redirect_url = add_query_arg('time_slot_updated', '1', $redirect_url);
+                        } else {
+                            $redirect_url = add_query_arg('time_slot_created', '1', $redirect_url);
+                        }
+                        wp_redirect($redirect_url);
+                        exit;
                     } else {
                         echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
                     }
@@ -4161,13 +4225,15 @@ class Booking_Admin {
         if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['slot_id'])) {
             $slot_id = intval($_GET['slot_id']);
             $result = $time_slots_manager->delete_time_slot($slot_id);
-            $message = $result ? __('Slot waktu berhasil dihapus.', 'archeus-booking') : __('Gagal menghapus slot waktu.', 'archeus-booking');
-            
+
+            // Redirect to empty form after deletion
+            $redirect_url = admin_url('admin.php?page=archeus-booking-time-slots');
             if ($result) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
-            } else {
-                echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
+                $redirect_url = add_query_arg('time_slot_deleted', '1', $redirect_url);
             }
+
+            wp_redirect($redirect_url);
+            exit;
         }
         
         // Get time slot data for editing

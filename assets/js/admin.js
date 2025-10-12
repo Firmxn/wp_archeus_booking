@@ -2208,11 +2208,11 @@ jQuery(document).ready(function ($) {
           $button.removeAttr('data-delete-handled');
           $button.removeAttr('data-delete-pending');
 
-          // Remove the row with animation
-          $row.fadeOut(300, function() {
-            $(this).remove();
-            showToast(response.data.message, 'success');
-          });
+          // Show success message and redirect to empty form
+          showToast(response.data.message, 'success');
+          setTimeout(function() {
+            window.location.href = window.location.pathname + '?page=archeus-booking-time-slots';
+          }, 1000);
         } else {
           console.log('Time slot deletion failed:', response.data);
           showToast(response.data.message, 'error');
@@ -2770,17 +2770,10 @@ jQuery(document).ready(function ($) {
           // Show success toast
           showToast(response.data.message, 'success');
 
-          // If creating new slot, redirect to edit page or refresh
-          if (!isUpdate && response.data.slot_id) {
-            setTimeout(function() {
-              window.location.href = window.location.href + '&action=edit&slot_id=' + response.data.slot_id;
-            }, 1500);
-          } else {
-            // Refresh the page for updates
-            setTimeout(function() {
-              window.location.reload();
-            }, 1500);
-          }
+          // Redirect to empty form after creation/update
+          setTimeout(function() {
+            window.location.href = window.location.pathname + '?page=archeus-booking-time-slots';
+          }, 1500);
         } else {
           // Show detailed error message
           var errorMessage = response.data.message;
