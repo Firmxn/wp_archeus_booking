@@ -2663,17 +2663,12 @@ jQuery(document).ready(function ($) {
           // Show success toast
           showToast(response.data.message, 'success');
 
-          // If creating new form, redirect to edit page or refresh
-          if (!isUpdate && response.data.form_id) {
-            setTimeout(function() {
-              window.location.href = window.location.href + '&action=edit&form_id=' + response.data.form_id;
-            }, 1500);
-          } else {
-            // Refresh the page for updates
-            setTimeout(function() {
-              window.location.reload();
-            }, 1500);
-          }
+          // For both create and update, redirect to clean form page
+          setTimeout(function() {
+            var baseUrl = window.location.href.split('?')[0];
+            var newUrl = baseUrl + '?page=archeus-booking-forms&form_saved=true';
+            window.location.href = newUrl;
+          }, 1500);
         } else {
           showToast(response.data.message, 'error');
           $submitBtn.prop('disabled', false);

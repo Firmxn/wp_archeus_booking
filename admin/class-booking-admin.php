@@ -312,7 +312,12 @@ class Booking_Admin {
     public function forms_page() {
         $booking_db = new Booking_Database();
         $forms = $booking_db->get_forms();
-        
+
+        // Show success message if form was saved
+        if (isset($_GET['form_saved']) && $_GET['form_saved'] === 'true') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Formulir berhasil disimpan!', 'archeus-booking') . '</p></div>';
+        }
+
         // Handle form creation/update (fallback for non-AJAX requests)
         if (isset($_POST['save_form']) && wp_verify_nonce($_POST['booking_forms_nonce'], 'save_booking_forms') && !isset($_POST['action'])) {
             $name = sanitize_text_field($_POST['form_name']);
@@ -1567,8 +1572,12 @@ class Booking_Admin {
         }
         
         update_option('booking_form_fields', $fields);
-        
-        wp_redirect(add_query_arg(array('page' => 'archeus-booking-forms', 'updated' => 'true'), admin_url('admin.php')));
+
+        // Redirect to clear form data and show success message
+        wp_redirect(add_query_arg(array(
+            'page' => 'archeus-booking-forms',
+            'form_saved' => 'true'
+        ), admin_url('admin.php')));
         exit;
     }
 
