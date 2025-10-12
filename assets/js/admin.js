@@ -1781,9 +1781,6 @@ jQuery(document).ready(function ($) {
       });
 
       $btn.prop('disabled', false);
-
-      // Show success feedback
-      showToast('Field baru berhasil ditambahkan.', 'success');
     }, 100);
   });
 
@@ -2125,7 +2122,6 @@ jQuery(document).ready(function ($) {
 
     $row.fadeOut(300, function() {
       $(this).remove();
-      showToast('Field berhasil dihapus', 'success');
     });
   });
 
