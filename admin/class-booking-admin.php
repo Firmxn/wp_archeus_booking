@@ -2601,6 +2601,11 @@ class Booking_Admin {
         $result = $booking_db->delete_booking($booking_id);
 
         if ($result) {
+            // If booking had a schedule, reduce the schedule bookings count
+            if ($booking && !empty($booking->schedule_id)) {
+                $booking_db->update_schedule_bookings($booking->schedule_id, -1);
+            }
+            
             wp_send_json_success(array(
                 'message' => __('Booking deleted successfully', 'archeus-booking')
             ));
