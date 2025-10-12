@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Archeus Booking System
  * Description: A comprehensive booking system plugin for WordPress developed by Archeus Catalyst
- * Version: 1.2.45
+ * Version: 1.0.0
  * Author: Archeus Catalyst
  * Text Domain: archeus-booking
  *
@@ -23,7 +23,7 @@ if (!headers_sent() && !ob_get_level()) {
 
 // Define plugin constants using __FILE__ directly instead of functions that might not be available yet
 if (!defined('ARCHEUS_BOOKING_VERSION')) {
-    define('ARCHEUS_BOOKING_VERSION', '1.2.62.' . time());
+    define('ARCHEUS_BOOKING_VERSION', '1.0.0.' . time());
 }
 
 // Define paths early so other files can use them

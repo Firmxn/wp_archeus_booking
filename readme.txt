@@ -1,70 +1,94 @@
 === Archeus Booking System ===
 Contributors: ArcheusCatalyst
-Tags: booking, appointments, calendar, reservations, scheduling
+Tags: booking, appointments, calendar, reservations, scheduling, forms
 Requires at least: 5.0
 Tested up to: 6.3
 Requires PHP: 7.0
-Stable tag: 1.0.5
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A comprehensive booking system plugin for WordPress developed by Archeus Catalyst that allows users to book appointments and manage reservations.
+A comprehensive booking system plugin for WordPress developed by Archeus Catalyst that allows users to create custom booking flows, manage appointments, and handle reservations with advanced form builder and calendar features.
 
 == Description ==
 
-Archeus Booking System is a comprehensive and easy-to-use WordPress plugin developed by Archeus Catalyst that provides advanced booking functionality for your website. It allows visitors to submit booking requests, which can be managed through the WordPress admin panel.
+Archeus Booking System is a comprehensive and easy-to-use WordPress plugin developed by Archeus Catalyst that provides advanced booking functionality for your website. It features a powerful form builder, flexible booking flows, service management, time slot configuration, and complete booking management system.
 
 Features:
-* Custom booking form with multiple fields
-* Calendar integration for date selection
-* Admin panel for managing bookings
-* Email notifications for booking confirmations
-* Shortcode support for easy integration
-* Responsive design
+* **Custom Form Builder**: Create dynamic booking forms with various field types (text, email, number, date, time, select, textarea, file upload)
+* **Booking Flow Management**: Build custom booking flows with multiple sections (forms, services, time slots, confirmation)
+* **Service Management**: Manage different services with pricing, duration, and availability settings
+* **Time Slot Management**: Configure available time slots with customizable durations
+* **Calendar Integration**: Full calendar system with availability management and color-coded status indicators
+* **Auto-Detection**: Smart field detection for customer_name and customer_email with automatic required validation
+* **Email System**: Customizable email templates for customer confirmations, admin notifications, and status change emails
+* **Admin Panel**: Comprehensive admin interface for managing all aspects of the booking system
+* **Shortcode Support**: Easy integration with [archeus_booking id="<flow_id>"] and [archeus_booking_calendar]
+* **Responsive Design**: Mobile-friendly interface for both admin and frontend
+* **Status Management**: Complete booking status tracking (pending, approved, rejected, completed, cancelled)
 
 == Installation ==
 
-1. Upload the `booking-plugin` folder to the `/wp-content/plugins/` directory
+1. Upload the `archeus-booking` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Create a Booking Flow in the admin, then use the shortcode [archeus_booking id="<flow_id>"] on a page or post
-4. Manage bookings through the 'Bookings' menu in the WordPress admin panel
+3. Configure your booking system:
+   - Create Services under Bookings > Service Management
+   - Set up Time Slots under Bookings > Time Slot Management
+   - Create Booking Forms under Bookings > Booking Forms
+   - Build Booking Flows under Bookings > Booking Flow Management
+4. Use the shortcode [archeus_booking id="<flow_id>"] on any page or post to display your booking flow
+5. Display availability calendar with [archeus_booking_calendar] shortcode
+6. Manage all bookings through the 'Bookings' dashboard in WordPress admin panel
 
 == Frequently Asked Questions ==
 
-= How do I add the booking flow to my site? =
+= How do I create a booking flow? =
 
-Create a flow under Bookings > Booking Flow, then embed it using [archeus_booking id="<flow_id>"] on a page or post.
+Go to Bookings > Booking Flow Management and create a new flow. You can add multiple sections including forms, services, time slots, and confirmation pages. Each flow generates a unique shortcode for embedding.
 
-= Can I customize the form fields? =
+= How does the form builder work? =
 
-Yes, the plugin allows for customization of form fields through the admin panel.
+The form builder allows you to create custom fields with various types (text, email, number, date, time, select, textarea, file upload). The system automatically detects customer_name and customer_email fields and makes them required.
 
-= Does the plugin include a calendar? =
+= Can I manage multiple services? =
 
-Yes, the plugin includes a date selection calendar for bookings.
+Yes! Use Service Management to create different services with specific pricing, duration, and availability settings. Each service can be assigned different time slots.
 
-= Can I customize the form fields? =
+= How do time slots work? =
 
-Yes. Add a “Form” section to your Booking Flow and configure its fields under Bookings > Booking Forms.
+Time Slot Management allows you to configure available booking times with customizable durations. You can set different time slots for different days and services.
 
-= Can I display an availability calendar on my site? =
+= What email notifications are available? =
 
-Yes! Use the [archeus_booking_calendar] shortcode to display an availability calendar on any page or post.
-The calendar shows availability based on your settings in the admin panel, with different colors indicating:
+The system includes customizable email templates for:
+- Customer confirmation emails
+- Admin notification emails
+- Status change emails (when booking status is updated)
+
+= Can I display an availability calendar? =
+
+Yes! Use the [archeus_booking_calendar] shortcode to display an availability calendar. The calendar shows:
 - Green: Available dates
 - Red: Fully booked dates
 - Yellow: Holiday/unavailable dates
-- Light blue: Limited availability (some slots filled)
+- Light blue: Limited availability
 
-= How do I manage calendar availability? =
+= How do I manage bookings? =
 
-Go to Bookings > Calendar in your WordPress admin panel to set availability for individual dates or date ranges.
+All bookings can be managed through the main Bookings dashboard where you can view, approve, reject, or cancel bookings. The system also provides filtering by status and booking flow.
 
 == Changelog ==
 
 = 1.0.0 =
-* Initial release
-* Added availability calendar feature with color-coded status indicators
-* Added admin panel for managing calendar availability
-* Added [archeus_booking_calendar] shortcode for displaying calendar on frontend
+* Initial stable release
+* Complete booking system with form builder, flow management, and admin interface
+* Service management with pricing and duration configuration
+* Time slot management with customizable booking periods
+* Advanced form builder with multiple field types and auto-detection
+* Email notification system with customizable templates
+* Calendar integration with availability management
+* Status management system for complete booking lifecycle
+* Responsive design for both admin and frontend interfaces
+* Shortcode support for easy integration
+* Auto-detection of customer_name and customer_email fields with required validation
 

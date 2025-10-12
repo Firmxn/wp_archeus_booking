@@ -1660,7 +1660,7 @@ class Booking_Admin {
             </div>
             
             <h2><?php _e('About Archeus Booking System', 'archeus-booking'); ?></h2>
-            <p><?php _e('Version: 1.0.2', 'archeus-booking'); ?></p>
+            <p><?php _e('Version: 1.0.0', 'archeus-booking'); ?></p>
             <p><?php _e('Developed by: Archeus Catalyst', 'archeus-booking'); ?></p>
         </div>
         <?php
