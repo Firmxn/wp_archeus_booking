@@ -1141,10 +1141,62 @@ jQuery(document).ready(function ($) {
       function closeMenu() {
         $wrap.removeClass("open");
         $btn.attr("aria-expanded", "false");
+
+        // Reset positioning when closing
+        if ($wrap.closest('.form-fields-builder.table-overflow').length > 0) {
+          $menu.css({
+            position: '',
+            left: '',
+            top: '',
+            width: '',
+            maxHeight: ''
+          });
+        }
       }
       function openMenu() {
         $wrap.addClass("open");
         $btn.attr("aria-expanded", "true");
+
+        // Handle positioning for dropdown in overflow container
+        if ($wrap.closest('.form-fields-builder.table-overflow').length > 0) {
+          positionDropdownFixed($menu, $btn);
+        }
+      }
+
+      // Position dropdown using fixed positioning to escape overflow
+      function positionDropdownFixed($menu, $btn) {
+        var btnRect = $btn[0].getBoundingClientRect();
+        var menuWidth = 200; // Default menu width
+        var viewportWidth = window.innerWidth;
+        var viewportHeight = window.innerHeight;
+
+        // Calculate position
+        var left = btnRect.left;
+        var top = btnRect.bottom + 2; // 2px gap
+
+        // Adjust if menu would go off right edge
+        if (left + menuWidth > viewportWidth) {
+          left = Math.max(10, viewportWidth - menuWidth - 10);
+        }
+
+        // Adjust if menu would go off bottom edge
+        var menuHeight = Math.min(300, $menu.find('.ab-dd-item').length * 40); // Estimate height
+        if (top + menuHeight > viewportHeight) {
+          // Position above button instead
+          top = btnRect.top - menuHeight - 2;
+          if (top < 10) {
+            top = 10; // Minimum top position
+          }
+        }
+
+        // Apply positioning
+        $menu.css({
+          position: 'fixed',
+          left: left + 'px',
+          top: top + 'px',
+          width: menuWidth + 'px',
+          maxHeight: (viewportHeight - top - 10) + 'px'
+        });
       }
 
       $btn.on("click", function (e) {
@@ -1164,6 +1216,13 @@ jQuery(document).ready(function ($) {
         $(this).addClass("is-selected");
         $label.text($(this).text());
         closeMenu();
+      });
+
+      // Handle window scroll/resize to reposition dropdown
+      $(window).on('scroll resize', function() {
+        if ($wrap.hasClass("open") && $wrap.closest('.form-fields-builder.table-overflow').length > 0) {
+          positionDropdownFixed($menu, $btn);
+        }
       });
 
       $sel.on("change", function () {
@@ -1794,9 +1853,13 @@ jQuery(document).ready(function ($) {
   // Form field builder enhancements
   // Initialize validation for existing fields when page loads
   $(document).ready(function() {
-    // Add validation to existing field rows
+    // Add validation to existing field rows (skip auto-detected fields)
     $('#form-fields-container .form-field-row').each(function() {
-      addFieldValidationListeners($(this));
+      var $row = $(this);
+      // Only add validation to non-auto-detected fields
+      if ($row.data('auto-detected') !== 'true') {
+        addFieldValidationListeners($row);
+      }
     });
   });
 
@@ -1862,6 +1925,14 @@ jQuery(document).ready(function ($) {
     var $keyInput = $row.find('.field-key-input');
     var $labelInput = $row.find('.field-label-input');
 
+    // Fallback: find inputs by name pattern if class not found
+    if ($keyInput.length === 0) {
+      $keyInput = $row.find('input[name^="field_keys_input["]');
+    }
+    if ($labelInput.length === 0) {
+      $labelInput = $row.find('input[name^="field_labels["]');
+    }
+
     // Validate key on input
     $keyInput.on('input blur', function() {
       var key = $(this).val();
@@ -1899,13 +1970,27 @@ jQuery(document).ready(function ($) {
     var isValid = true;
     var $rows = $('#form-fields-container .form-field-row');
 
-    $rows.each(function() {
+    $rows.each(function(index) {
       var $row = $(this);
+
+      // Skip validation for auto-detected fields (they have predefined values)
+      if ($row.data('auto-detected') === 'true') {
+        return; // continue to next row
+      }
+
       var $keyInput = $row.find('.field-key-input');
       var $labelInput = $row.find('.field-label-input');
 
-      var key = $keyInput.val();
-      var label = $labelInput.val();
+      // Fallback: find inputs by name pattern if class not found
+      if ($keyInput.length === 0) {
+        $keyInput = $row.find('input[name^="field_keys_input["]');
+      }
+      if ($labelInput.length === 0) {
+        $labelInput = $row.find('input[name^="field_labels["]');
+      }
+
+      var key = $keyInput.val() || '';
+      var label = $labelInput.val() || '';
 
       var keyValid = validateFieldKey(key, $row);
       var labelValid = validateFieldLabel(label, $row);
@@ -1922,7 +2007,6 @@ jQuery(document).ready(function ($) {
         isValid = false;
       }
     });
-
     return isValid;
   }
 
@@ -2055,46 +2139,6 @@ jQuery(document).ready(function ($) {
       }
     });
     return used;
-  }
-
-  // Show conflict warning
-  function showKeyConflictWarning($row, conflictingKey) {
-    // Remove existing warnings
-    $row.find('.key-conflict-warning').remove();
-
-    var $warning = $('<div class="key-conflict-warning" style="color: #dc3545; font-size: 12px; margin-top: 4px; font-weight: bold;">⚠️ Key "' + conflictingKey + '" sudah digunakan oleh field lain</div>');
-    $row.find('td:first').append($warning);
-
-    // Auto-hide after 5 seconds
-    setTimeout(function() {
-      $warning.fadeOut(500, function() {
-        $(this).remove();
-      });
-    }, 5000);
-  }
-
-  // Enhanced key validation
-  function validateFieldKey($keyInput, $row) {
-    var key = $keyInput.val().trim();
-    var $labelInput = $row.find('input[name^="field_labels["]');
-    var label = $labelInput.val().trim();
-
-    // Check if key conflicts with auto-detection
-    var detectedKey = autoDetectFieldKey(label);
-
-    if (detectedKey && key !== detectedKey && $row.data('auto-detected') === 'true') {
-      // Field is auto-detected but key was changed manually
-      showKeyConflictWarning($row, detectedKey);
-      return false;
-    }
-
-    // Check for duplicate keys
-    if (isFieldKeyUsed(key, $row)) {
-      showKeyConflictWarning($row, key);
-      return false;
-    }
-
-    return true;
   }
 
   // Handle label changes to auto-detect field keys
@@ -3007,26 +3051,58 @@ jQuery(document).ready(function ($) {
     }
   });
 
-  // Email Settings Success Toast
-  $(document).ready(function() {
-    // Check if URL has updated parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('updated') === 'true') {
-      // Check if success message element exists
-      const $successElement = $('#email-settings-success');
-      if ($successElement.length) {
-        const message = $successElement.data('message');
-        if (message) {
-          showToast(message, 'success');
-        }
-      } else {
-        // Fallback message
-        showToast('Pengaturan email berhasil diperbarui.', 'success');
-      }
+  // Initialize auto-detected fields to ensure required checkbox is checked
+  function initializeAutoDetectedFields() {
+    console.log('initializeAutoDetectedFields called');
+    var $autoRows = $('.form-field-row[data-auto-detected="true"]');
+    console.log('Found auto-detected rows:', $autoRows.length);
 
-      // Clean URL by removing updated parameter
-      const newUrl = window.location.pathname + window.location.search.replace(/[?&]updated=true/, '');
-      window.history.replaceState({}, document.title, newUrl);
-    }
+    // Find all auto-detected field rows
+    $autoRows.each(function() {
+      var $row = $(this);
+      var $keyInput = $row.find('.field-key-input');
+      var $hiddenKey = $row.find('input[name^="field_keys["]');
+      var $labelInput = $row.find('.field-label-input');
+      var keyValue = $keyInput.val() || $hiddenKey.val() || '';
+      var labelValue = $labelInput.val() || '';
+
+      console.log('Processing row:', keyValue, labelValue);
+      console.log('Key input found:', $keyInput.length, 'Hidden key found:', $hiddenKey.length);
+      console.log('Row HTML:', $row.html());
+
+      // Check if this is customer_name or customer_email field
+      if (keyValue === 'customer_name' || keyValue === 'customer_email') {
+        console.log('Found customer field, processing...');
+
+        // Ensure required checkbox is always checked and disabled for customer_name and customer_email
+        var $requiredCheckbox = $row.find('input[name^="field_required["]');
+        console.log('Required checkbox found:', $requiredCheckbox.length);
+        console.log('Required checkbox before:', $requiredCheckbox.prop('checked'), $requiredCheckbox.prop('disabled'));
+
+        $requiredCheckbox.prop('checked', true).prop('disabled', true);
+        console.log('Required checkbox after:', $requiredCheckbox.prop('checked'), $requiredCheckbox.prop('disabled'));
+
+        $row.find('.col-required').addClass('required-locked');
+
+        // Trigger auto detection feedback to show the field is locked
+        showFieldDetectionFeedback($row, keyValue === 'customer_name' ? 'nama' : 'email', true);
+
+        // Make key input readonly and add visual feedback
+        $keyInput.prop('readonly', true).addClass('auto-detected-key');
+        $row.find('.remove-field').hide();
+        $row.addClass('auto-detected-row');
+
+        console.log('Successfully initialized:', keyValue);
+      }
+    });
+  }
+
+  // Run initialization when page loads
+  console.log('Page loaded, running initializeAutoDetectedFields...');
+  initializeAutoDetectedFields();
+
+  // Also initialize when new fields are added
+  $(document).on('click', '#add-field-btn', function() {
+    setTimeout(initializeAutoDetectedFields, 150);
   });
 });

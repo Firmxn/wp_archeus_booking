@@ -543,8 +543,8 @@ class Booking_Admin {
                                 <tbody id="form-fields-container">
                                     <?php 
                                     $form_fields = $edit_form ? ($edit_form->fields ? maybe_unserialize($edit_form->fields) : array()) : array(
-                                        'customer_name' => array('label' => 'Nama Lengkap', 'type' => 'text', 'required' => 0, 'placeholder' => ''),
-                                        'customer_email' => array('label' => 'Email', 'type' => 'email', 'required' => 0, 'placeholder' => ''),
+                                        'customer_name' => array('label' => 'Nama Lengkap', 'type' => 'text', 'required' => 1, 'placeholder' => ''),
+                                        'customer_email' => array('label' => 'Email', 'type' => 'email', 'required' => 1, 'placeholder' => ''),
                                     );
                                     foreach ($form_fields as $field_key => $field_data):
                                         // Check if this is an auto-detected field

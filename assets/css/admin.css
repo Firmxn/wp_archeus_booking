@@ -716,6 +716,21 @@
 /* Add scroll when columns don't fit */
 .form-fields-builder.table-overflow {
   overflow-x: auto !important;
+  /* Ensure dropdown positioning context */
+  position: relative !important;
+}
+
+/* Special rule for dropdown to escape overflow container */
+.form-fields-builder.table-overflow .ab-dd {
+  /* Allow dropdown to break out of overflow constraint */
+  position: relative !important;
+}
+
+/* Use fixed positioning for dropdown menu to escape overflow */
+.form-fields-builder.table-overflow .ab-dd .ab-dd-menu {
+  position: fixed !important;
+  /* Calculate position based on trigger element */
+  /* This will be handled by JavaScript */
 }
 
 /* Add scroll indicator for overflow */
@@ -1747,9 +1762,20 @@ select.ab-hidden-select {
 /* Ensure form-fields-builder dropdowns appear above other elements */
 .form-fields-builder .ab-dd {
   position: relative !important;
+  /* Create stacking context for dropdown */
+  z-index: 1 !important;
+}
+
+/* Special rule for dropdown menu when opened */
+.form-fields-builder .ab-dd.ab-dd-open .ab-dd-menu {
+  /* Ensure dropdown appears above everything */
+  z-index: 999999 !important;
+  position: absolute !important;
+  /* Add shadow for better visibility */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
 .form-fields-builder .ab-dd .ab-dd-menu {
-  z-index: 100000;
+  z-index: 999999 !important;
   position: absolute !important;
   min-width: 200px;
   max-height: 300px;
@@ -1768,6 +1794,9 @@ select.ab-hidden-select {
   box-sizing: border-box !important;
   border: none !important;
   outline: none !important;
+  /* Ensure proper stacking context */
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 /* Special handling for file upload option */
@@ -1785,6 +1814,12 @@ select.ab-hidden-select {
   border: 1px solid #e5e7eb !important;
   border-radius: var(--border-radius) !important;
   overflow: hidden !important;
+  /* Ensure dropdown appears above table scroll container */
+  transform: translateZ(0); /* Force GPU acceleration */
+  will-change: transform; /* Optimize for animations */
+  backface-visibility: hidden; /* Prevent flickering */
+  /* Prevent dropdown from being clipped */
+  contain: layout style paint; /* Optimize rendering */
 }
 
 /* Remove field button - use global button sizing */
