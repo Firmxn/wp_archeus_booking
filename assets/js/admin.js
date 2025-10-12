@@ -962,8 +962,8 @@ jQuery(document).ready(function ($) {
     $target.html(html).show();
   });
 
-  // Function to show messages
-  function showToast(message, type) {
+  // Function to show messages - make it global
+  window.showToast = function(message, type) {
     try {
       if (!document.getElementById("ab-toast-style")) {
         var css =
@@ -985,7 +985,7 @@ jQuery(document).ready(function ($) {
             el.parentNode.removeChild(el);
           }
         }, 400);
-      }, 2500);
+      }, 1000);
     } catch (e) {
       showMessage(message, type === "error" ? "error" : "success");
     }
@@ -2818,6 +2818,29 @@ jQuery(document).ready(function ($) {
     } else {
       $indicator.removeClass('active').addClass('inactive');
       $statusText.text('Disabled');
+    }
+  });
+
+  // Email Settings Success Toast
+  $(document).ready(function() {
+    // Check if URL has updated parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('updated') === 'true') {
+      // Check if success message element exists
+      const $successElement = $('#email-settings-success');
+      if ($successElement.length) {
+        const message = $successElement.data('message');
+        if (message) {
+          showToast(message, 'success');
+        }
+      } else {
+        // Fallback message
+        showToast('Pengaturan email berhasil diperbarui.', 'success');
+      }
+
+      // Clean URL by removing updated parameter
+      const newUrl = window.location.pathname + window.location.search.replace(/[?&]updated=true/, '');
+      window.history.replaceState({}, document.title, newUrl);
     }
   });
 });

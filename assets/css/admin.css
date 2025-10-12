@@ -1,13 +1,14 @@
 /* General Admin Styles */
 :root {
   --primary-color: #54b335;
-  --primary-hover: #629e40;
-  --success-primary: #ecfdf5;
-  --success-hover: #54b335;
-  --button-primary: red;
-  --button-primary-hover: #357622;
-  --secondary-color: #6c757d;
+  /* --primary-hover: #629e40; */
   --success-color: #10b981;
+  --success-background: #ecfdf5;
+  /* --success-hover: #54b335; */
+  --button-primary:#a0ff8a;
+  --button-primary-hover: #357622;
+
+  --secondary-color: #6c757d;
   --danger-color: #ef4444;
   --danger-hover: #dc2626;
   --warning-color: #f59e0b;
@@ -527,7 +528,7 @@
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  background: var(--success-primary);
+  background: var(--success-background);
   color: var(--primary-color);
 }
 
@@ -2833,8 +2834,8 @@ select.ab-hidden-select {
 .email-type-badge {
     display: inline-block;
     padding: 4px 8px;
-    background: #e7f3ff;
-    color: #0073aa;
+    background: var(--success-background);
+    color: var(--primary-color);
     border-radius: 3px;
     font-size: 11px;
     font-weight: 500;
@@ -2891,7 +2892,7 @@ select.ab-hidden-select {
 }
 
 input:checked + .toggle-slider-simple {
-    background-color: #0073aa;
+    background-color: var(--primary-color);
 }
 
 input:checked + .toggle-slider-simple:before {

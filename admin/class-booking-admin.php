@@ -32,8 +32,7 @@ class Booking_Admin {
 
 
         add_action('admin_post_save_form_settings', array($this, 'save_form_settings'));
-        add_action('admin_post_save_email_settings', array($this, 'save_email_settings'));
-        add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
+                add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
 
         // Add debugging page
         add_action('admin_menu', array($this, 'add_debug_menu'));
@@ -813,38 +812,54 @@ class Booking_Admin {
         
         // Save settings if form was submitted
         if (isset($_POST['save_email_settings']) && wp_verify_nonce($_POST['email_settings_nonce'], 'save_email_settings')) {
-            $email_settings = array(
-                'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
-                'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
-                'admin_email_address' => sanitize_email($_POST['email_settings']['admin_email_address']),
-                'enable_status_change_emails' => isset($_POST['email_settings']['enable_status_change_emails']) ? 1 : 0,
-                'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
-                'customer_confirmation_body' => wp_kses_post($_POST['email_settings']['customer_confirmation_body']),
-                'admin_notification_subject' => sanitize_text_field($_POST['email_settings']['admin_notification_subject']),
-                'admin_notification_body' => wp_kses_post($_POST['email_settings']['admin_notification_body']),
-                // Status email settings
-                'pending_email_subject' => sanitize_text_field($_POST['email_settings']['pending_email_subject']),
-                'pending_email_body' => wp_kses_post($_POST['email_settings']['pending_email_body']),
-                'approved_email_subject' => sanitize_text_field($_POST['email_settings']['approved_email_subject']),
-                'approved_email_body' => wp_kses_post($_POST['email_settings']['approved_email_body']),
-                'rejected_email_subject' => sanitize_text_field($_POST['email_settings']['rejected_email_subject']),
-                'rejected_email_body' => wp_kses_post($_POST['email_settings']['rejected_email_body']),
-                'completed_email_subject' => sanitize_text_field($_POST['email_settings']['completed_email_subject']),
-                'completed_email_body' => wp_kses_post($_POST['email_settings']['completed_email_body'])
-            );
+            // Save email settings
+            if (isset($_POST['email_settings'])) {
+                $email_settings = array(
+                    'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
+                    'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
+                    'admin_email_address' => sanitize_email($_POST['email_settings']['admin_email_address']),
+                    'enable_status_change_emails' => isset($_POST['email_settings']['enable_status_change_emails']) ? 1 : 0,
+                    'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
+                    'customer_confirmation_body' => wp_kses_post($_POST['email_settings']['customer_confirmation_body']),
+                    'admin_notification_subject' => sanitize_text_field($_POST['email_settings']['admin_notification_subject']),
+                    'admin_notification_body' => wp_kses_post($_POST['email_settings']['admin_notification_body']),
+                    // Status email settings
+                    'pending_email_subject' => sanitize_text_field($_POST['email_settings']['pending_email_subject']),
+                    'pending_email_body' => wp_kses_post($_POST['email_settings']['pending_email_body']),
+                    'approved_email_subject' => sanitize_text_field($_POST['email_settings']['approved_email_subject']),
+                    'approved_email_body' => wp_kses_post($_POST['email_settings']['approved_email_body']),
+                    'rejected_email_subject' => sanitize_text_field($_POST['email_settings']['rejected_email_subject']),
+                    'rejected_email_body' => wp_kses_post($_POST['email_settings']['rejected_email_body']),
+                    'completed_email_subject' => sanitize_text_field($_POST['email_settings']['completed_email_subject']),
+                    'completed_email_body' => wp_kses_post($_POST['email_settings']['completed_email_body'])
+                );
 
-            update_option('booking_email_settings', $email_settings);
+                update_option('booking_email_settings', $email_settings);
+            }
 
-            echo '<div class="notice notice-success is-dismissible"><p>' . __('Pengaturan email berhasil diperbarui.', 'archeus-booking') . '</p></div>';
+            echo '<script>
+                (function() {
+                    var checkShowToast = setInterval(function() {
+                        if (typeof showToast === "function") {
+                            clearInterval(checkShowToast);
+                            showToast("' . esc_js(__('Pengaturan email berhasil diperbarui.', 'archeus-booking')) . '", "success");
+                        }
+                    }, 100);
+
+                    // Timeout fallback after 3 seconds
+                    setTimeout(function() {
+                        clearInterval(checkShowToast);
+                        if (typeof showToast !== "function") {
+                            alert("' . esc_js(__('Pengaturan email berhasil diperbarui.', 'archeus-booking')) . '");
+                        }
+                    }, 3000);
+                })();
+            </script>';
         }
         ?>
         <div class="wrap booking-admin-page">
             <h1><?php _e('Pengaturan Email', 'archeus-booking'); ?></h1>
 
-            <div class="notice notice-info">
-                <p><strong><?php _e('Fitur Baru:', 'archeus-booking'); ?></strong> <?php _e('Sekarang Anda dapat menggunakan Visual Editor (TinyMCE) untuk mengatur konten email. Gunakan toolbar untuk memformat teks, menambahkan gambar, atau membuat tautan.', 'archeus-booking'); ?></p>
-                <p><?php _e('Tags seperti {customer_name}, {booking_date}, dll. akan otomatis diganti dengan data yang sesuai saat email dikirim.', 'archeus-booking'); ?></p>
-            </div>
 
             <form method="post" action="" class="settings-form">
                 <?php wp_nonce_field('save_email_settings', 'email_settings_nonce'); ?>
@@ -1813,46 +1828,7 @@ class Booking_Admin {
         exit;
     }
 
-    /**
-     * Save email settings
-     */
-    public function save_email_settings() {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'archeus-booking'));
-        }
-
-        if (!isset($_POST['email_settings_nonce']) || !wp_verify_nonce($_POST['email_settings_nonce'], 'save_email_settings')) {
-            wp_die(__('Security check failed', 'archeus-booking'));
-        }
-
-        // Save email settings
-        if (isset($_POST['email_settings'])) {
-            $email_settings = array(
-                'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
-                'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
-                'customer_confirmation_body' => wp_kses_post($_POST['email_settings']['customer_confirmation_body']),
-                'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
-                'admin_email_address' => sanitize_email($_POST['email_settings']['admin_email_address']),
-                'admin_notification_subject' => sanitize_text_field($_POST['email_settings']['admin_notification_subject']),
-                'admin_notification_body' => wp_kses_post($_POST['email_settings']['admin_notification_body']),
-                'enable_status_change_emails' => isset($_POST['email_settings']['enable_status_change_emails']) ? 1 : 0,
-                'pending_email_subject' => sanitize_text_field($_POST['email_settings']['pending_email_subject']),
-                'pending_email_body' => wp_kses_post($_POST['email_settings']['pending_email_body']),
-                'approved_email_subject' => sanitize_text_field($_POST['email_settings']['approved_email_subject']),
-                'approved_email_body' => wp_kses_post($_POST['email_settings']['approved_email_body']),
-                'rejected_email_subject' => sanitize_text_field($_POST['email_settings']['rejected_email_subject']),
-                'rejected_email_body' => wp_kses_post($_POST['email_settings']['rejected_email_body']),
-                'completed_email_subject' => sanitize_text_field($_POST['email_settings']['completed_email_subject']),
-                'completed_email_body' => wp_kses_post($_POST['email_settings']['completed_email_body'])
-            );
-            
-            update_option('booking_email_settings', $email_settings);
-        }
-        
-        wp_redirect(add_query_arg(array('page' => 'archeus-booking-email', 'updated' => 'true'), admin_url('admin.php')));
-        exit;
-    }
-
+    
     /**
      * Handle booking status update via AJAX
      */
