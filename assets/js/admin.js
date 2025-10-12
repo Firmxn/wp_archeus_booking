@@ -1956,6 +1956,11 @@ jQuery(document).ready(function ($) {
       $row.find('.remove-field').hide();
       $row.addClass('auto-detected-row');
 
+      // Ensure required checkbox is always checked and disabled for customer_name and customer_email
+      var $requiredCheckbox = $row.find('input[name^="field_required["]');
+      $requiredCheckbox.prop('checked', true).prop('disabled', true);
+      $row.find('.col-required').addClass('required-locked');
+
       // Show feedback
       showFieldDetectionFeedback($row, detectedKey === 'customer_name' ? 'nama' : 'email', true);
     }
@@ -1968,6 +1973,11 @@ jQuery(document).ready(function ($) {
       $row.find('.remove-field').show();
       $row.removeClass('auto-detected-row');
 
+      // Re-enable required checkbox for non-auto-detected fields
+      var $requiredCheckbox = $row.find('input[name^="field_required["]');
+      $requiredCheckbox.prop('disabled', false);
+      $row.find('.col-required').removeClass('required-locked');
+
       // Show feedback
       showFieldDetectionFeedback($row, 'custom', false);
     }
@@ -1978,7 +1988,11 @@ jQuery(document).ready(function ($) {
       $hiddenKey.val(detectedKey);
       $row.data('auto-type', detectedKey === 'customer_name' ? 'name' : 'email');
 
-    
+      // Ensure required checkbox is always checked and disabled for customer_name and customer_email
+      var $requiredCheckbox = $row.find('input[name^="field_required["]');
+      $requiredCheckbox.prop('checked', true).prop('disabled', true);
+      $row.find('.col-required').addClass('required-locked');
+
       // Show feedback
       showFieldDetectionFeedback($row, detectedKey === 'customer_name' ? 'nama' : 'email', true);
     }
@@ -2092,6 +2106,11 @@ jQuery(document).ready(function ($) {
         $keyInput.prop('readonly', true).addClass('auto-detected-key');
         $row.find('.remove-field').hide();
         $row.addClass('auto-detected-row');
+
+        // Ensure required checkbox is always checked and disabled for customer_name and customer_email
+        var $requiredCheckbox = $row.find('input[name^="field_required["]');
+        $requiredCheckbox.prop('checked', true).prop('disabled', true);
+        $row.find('.col-required').addClass('required-locked');
 
         // Add data attributes
         $row.attr('data-auto-detected', 'true');

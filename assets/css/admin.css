@@ -1681,6 +1681,37 @@ select.ab-hidden-select {
 .form-field-row {
   animation: slideIn 0.3s ease-out;
 }
+
+/* Auto-detected field styles */
+.auto-detected-row {
+  background-color: #f0f9ff !important;
+}
+
+.auto-detected-key {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+  font-weight: 600;
+}
+
+/* Required checkbox locked state */
+.col-required.required-locked input[type="checkbox"] {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.col-required.required-locked input[type="checkbox"]:checked {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+}
+
+.col-required.required-locked::after {
+  content: "required";
+  color: #059669;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+  text-transform: uppercase;
+}
 @keyframes slideIn {
   from {
     opacity: 0;
