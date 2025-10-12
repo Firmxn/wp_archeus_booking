@@ -276,6 +276,30 @@ class Booking_Public {
         $message = str_replace('{service_type}', $service_type, $message);
         $message = str_replace('{time_slot}', $time_slot, $message);
 
+        // Replace Indonesian language tags (aliases for English tags)
+        $message = str_replace('{nama_lengkap}', $display_name, $message);
+        $message = str_replace('{nama}', $display_name, $message);
+        $message = str_replace('{email_pelanggan}', $customer_email, $message);
+        $message = str_replace('{alamat_email}', $customer_email, $message);
+        $message = str_replace('{tanggal_reservasi}', $booking_date, $message);
+        $message = str_replace('{waktu_reservasi}', $booking_time, $message);
+        $message = str_replace('{layanan}', $service_type, $message);
+        $message = str_replace('{jenis_layanan}', $service_type, $message);
+        $message = str_replace('{slot_waktu}', $time_slot, $message);
+
+        // Additional common Indonesian tags
+        $message = str_replace('{nama_perusahaan}', get_bloginfo('name'), $message);
+        $message = str_replace('{url_perusahaan}', get_bloginfo('url'), $message);
+        $message = str_replace('{email_admin}', get_option('admin_email'), $message);
+
+        // Status change specific tags (for consistency, though primarily used in admin)
+        if (isset($booking_data['new_status'])) {
+            $message = str_replace('{new_status}', $booking_data['new_status'], $message);
+        }
+        if (isset($booking_data['status'])) {
+            $message = str_replace('{status}', $booking_data['status'], $message);
+        }
+
         // Company information
         $message = str_replace('{company_name}', get_bloginfo('name'), $message);
         $message = str_replace('{company_url}', get_bloginfo('url'), $message);
@@ -902,7 +926,8 @@ class Booking_Public {
             'company_url' => get_bloginfo('url'),
             'admin_email' => get_option('admin_email'),
             'current_date' => date('Y-m-d'),
-            'current_time' => date('H:i:s')
+            'current_time' => date('H:i:s'),
+            'current_datetime' => date('Y-m-d H:i:s')
         );
 
         // Replace all available tags in the subject
@@ -912,6 +937,21 @@ class Booking_Public {
         foreach ($data as $key => $value) {
             $subject = str_replace('{' . $key . '}', $value, $subject);
         }
+
+        // Replace Indonesian language tags (aliases for English tags)
+        $subject = str_replace('{nama_lengkap}', $data['customer_name'], $subject);
+        $subject = str_replace('{nama}', $data['customer_name'], $subject);
+        $subject = str_replace('{email_pelanggan}', $data['customer_email'], $subject);
+        $subject = str_replace('{alamat_email}', $data['customer_email'], $subject);
+        $subject = str_replace('{tanggal_reservasi}', $data['booking_date'], $subject);
+        $subject = str_replace('{waktu_reservasi}', $data['booking_time'], $subject);
+        $subject = str_replace('{layanan}', $data['service_type'], $subject);
+        $subject = str_replace('{jenis_layanan}', $data['service_type'], $subject);
+        $subject = str_replace('{slot_waktu}', $data['time_slot'], $subject);
+        $subject = str_replace('{nama_perusahaan}', $data['company_name'], $subject);
+        $subject = str_replace('{url_perusahaan}', $data['company_url'], $subject);
+        $subject = str_replace('{email_admin}', $data['admin_email'], $subject);
+        $subject = str_replace('{current_datetime}', $data['current_datetime'], $subject);
 
         // Clean up any remaining tags (replace with empty string)
         $subject = preg_replace('/\{[^}]+\}/', '', $subject);

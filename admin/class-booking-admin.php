@@ -2024,6 +2024,7 @@ class Booking_Admin {
             'admin_email' => get_option('admin_email'),
             'current_date' => date('Y-m-d'),
             'current_time' => date('H:i:s'),
+            'current_datetime' => date('Y-m-d H:i:s'),
             'email_title' => $this->get_status_email_title($status)
         );
 
@@ -2034,6 +2035,21 @@ class Booking_Admin {
         foreach ($booking_data as $key => $value) {
             $subject = str_replace('{' . $key . '}', $value, $subject);
         }
+
+        // Replace Indonesian language tags (aliases for English tags)
+        $subject = str_replace('{nama_lengkap}', $booking_data['customer_name'], $subject);
+        $subject = str_replace('{nama}', $booking_data['customer_name'], $subject);
+        $subject = str_replace('{email_pelanggan}', $booking_data['customer_email'], $subject);
+        $subject = str_replace('{alamat_email}', $booking_data['customer_email'], $subject);
+        $subject = str_replace('{tanggal_reservasi}', $booking_data['booking_date'], $subject);
+        $subject = str_replace('{waktu_reservasi}', $booking_data['booking_time'], $subject);
+        $subject = str_replace('{layanan}', $booking_data['service_type'], $subject);
+        $subject = str_replace('{jenis_layanan}', $booking_data['service_type'], $subject);
+        $subject = str_replace('{slot_waktu}', $booking_data['time_slot'], $subject);
+        $subject = str_replace('{nama_perusahaan}', $booking_data['company_name'], $subject);
+        $subject = str_replace('{url_perusahaan}', $booking_data['company_url'], $subject);
+        $subject = str_replace('{email_admin}', $booking_data['admin_email'], $subject);
+        $subject = str_replace('{current_datetime}', $booking_data['current_datetime'], $subject);
 
         // Clean up any remaining tags (replace with empty string)
         $subject = preg_replace('/\{[^}]+\}/', '', $subject);
@@ -2060,6 +2076,7 @@ class Booking_Admin {
             'admin_email' => get_option('admin_email'),
             'current_date' => date('Y-m-d'),
             'current_time' => date('H:i:s'),
+            'current_datetime' => date('Y-m-d H:i:s'),
             'email_title' => $this->get_status_email_title($status)
         );
 
@@ -2077,6 +2094,21 @@ class Booking_Admin {
         foreach ($booking_data as $key => $value) {
             $message = str_replace('{' . $key . '}', $value, $message);
         }
+
+        // Replace Indonesian language tags (aliases for English tags)
+        $message = str_replace('{nama_lengkap}', $booking_data['customer_name'], $message);
+        $message = str_replace('{nama}', $booking_data['customer_name'], $message);
+        $message = str_replace('{email_pelanggan}', $booking_data['customer_email'], $message);
+        $message = str_replace('{alamat_email}', $booking_data['customer_email'], $message);
+        $message = str_replace('{tanggal_reservasi}', $booking_data['booking_date'], $message);
+        $message = str_replace('{waktu_reservasi}', $booking_data['booking_time'], $message);
+        $message = str_replace('{layanan}', $booking_data['service_type'], $message);
+        $message = str_replace('{jenis_layanan}', $booking_data['service_type'], $message);
+        $message = str_replace('{slot_waktu}', $booking_data['time_slot'], $message);
+        $message = str_replace('{nama_perusahaan}', $booking_data['company_name'], $message);
+        $message = str_replace('{url_perusahaan}', $booking_data['company_url'], $message);
+        $message = str_replace('{email_admin}', $booking_data['admin_email'], $message);
+        $message = str_replace('{current_datetime}', $booking_data['current_datetime'], $message);
 
         // Auto-wrap HTML if not present
         if (strpos($message, '<html') === false) {
