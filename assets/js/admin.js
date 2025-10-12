@@ -2804,4 +2804,20 @@ jQuery(document).ready(function ($) {
       }
     });
   });
+
+  // Email Settings Toggle Switches
+  $('.toggle-switch-simple input').on('change', function() {
+    const $toggle = $(this);
+    const $card = $toggle.closest('.admin-card');
+    const $indicator = $card.find('.status-indicator-simple');
+    const $statusText = $card.find('.admin-card-status').not($indicator);
+
+    if ($toggle.is(':checked')) {
+      $indicator.removeClass('inactive').addClass('active');
+      $statusText.text('Enabled');
+    } else {
+      $indicator.removeClass('active').addClass('inactive');
+      $statusText.text('Disabled');
+    }
+  });
 });

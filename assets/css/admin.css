@@ -4,8 +4,8 @@
   --primary-hover: #629e40;
   --success-primary: #ecfdf5;
   --success-hover: #54b335;
-  --button-primary: #edfbe2;
-  --button-primary-hover: #54b335;
+  --button-primary: red;
+  --button-primary-hover: #357622;
   --secondary-color: #6c757d;
   --success-color: #10b981;
   --danger-color: #ef4444;
@@ -1540,9 +1540,9 @@ select.ab-hidden-select {
 /* tombol tambah bagian booking flow  */
 #add-field-btn,
 .booking-admin-page .add-section {
-  background: var(--button-primary);
-  color: var(--primary-color);
-  border-color: var(--button-primary);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
   font-size: 14px;
   font-weight: 600 !important;
   transition: all 0.2s ease;
@@ -1551,9 +1551,11 @@ select.ab-hidden-select {
 
 #add-field-btn:hover,
 .booking-admin-page .add-section:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
+  background: var(--button-primary-hover);
+  /* color: var(--primary-color); */
   color: white;
+  border-color: var(--button-primary-hover);
+
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
@@ -2523,9 +2525,10 @@ select.ab-hidden-select {
 /* tombol utama/submit */
 .booking-admin-page .button-primary,
 .booking-admin-page .button.button-primary {
-  background: var(--button-primary);
-  color: var(--primary-color);
-  border-color: var(--button-primary);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+
   font-size: 14px;
   font-weight: 600 !important;
   transition: all 0.2s ease;
@@ -2534,9 +2537,9 @@ select.ab-hidden-select {
 
 .booking-admin-page .button-primary:hover,
 .booking-admin-page .button.button-primary:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
+  background: var(--button-primary-hover);
   color: white;
+  border-color: var(--button-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
@@ -2575,19 +2578,22 @@ select.ab-hidden-select {
 }
 
 /* tombol submit */
-.form-actions #submit-form-builder {
-  background: var(--button-primary);
-  color: var(--primary-color);
-  border-color: var(--button-primary);
+.form-actions #submit-form-builder,
+#test_email_notification {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+
   font-size: 14px;
   font-weight: 600 !important;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.form-actions #submit-form-builder:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
+.form-actions #submit-form-builder:hover,
+#test_email_notification:hover {
+  background: var(--button-primary-hover);
   color: white;
+  border-color: var(--button-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
@@ -2762,3 +2768,168 @@ select.ab-hidden-select {
   background: #dc2626;
   border-color: #dc2626;
 } */
+
+/* Email Settings Admin Cards */
+.admin-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+/* .admin-card-header {
+    background: #fbfbfb;
+    border-bottom: 1px solid #ccd0d4;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+} */
+
+.admin-card-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #23282d;
+    display: flex;
+    align-items: center;
+}
+
+.admin-card-title .icon {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.admin-card-status {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #646970;
+}
+
+.admin-card-body {
+    padding: 20px;
+}
+
+.admin-card-section {
+    margin-bottom: 25px;
+}
+
+.admin-card-section:last-child {
+    margin-bottom: 0;
+}
+
+/* .admin-card-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #23282d;
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+} */
+
+/* Email Type Badges */
+.email-type-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #e7f3ff;
+    color: #0073aa;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+}
+
+/* Toggle Switch */
+.toggle-switch-simple {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    vertical-align: middle;
+    margin: 0 10px 0 0;
+}
+
+.toggle-label {
+    vertical-align: middle;
+    margin-left: 5px;
+    color: #23282d;
+    font-size: 14px;
+}
+
+.toggle-switch-simple input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider-simple {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 12px;
+}
+
+.toggle-slider-simple:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider-simple {
+    background-color: #0073aa;
+}
+
+input:checked + .toggle-slider-simple:before {
+    transform: translateX(20px);
+}
+
+/* Status Indicators */
+.status-indicator-simple {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.status-indicator-simple.active {
+    background: #46b450;
+}
+
+.status-indicator-simple.inactive {
+    background: #dc3232;
+}
+
+/* Responsive Design for Admin Cards */
+@media (max-width: 782px) {
+    .admin-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .admin-card-body {
+        padding: 15px;
+    }
+
+    .admin-card .form-table th,
+    .admin-card .form-table td {
+        padding: 10px 0;
+    }
+}
