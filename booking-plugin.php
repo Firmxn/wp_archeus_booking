@@ -1,9 +1,10 @@
 <?php
 /**
  * Plugin Name: Archeus Booking System
- * Description: A comprehensive booking system plugin for WordPress developed by Archeus Catalyst
+ * Description: A comprehensive booking system plugin for WordPress with form builder, service management, and booking flows
  * Version: 1.0.0
- * Author: Archeus Catalyst
+ * Author: Firmansyah Pramudia Ariyanto
+ * Author URI: https://github.com/firmxn
  * Text Domain: archeus-booking
  *
  * Shortcodes:

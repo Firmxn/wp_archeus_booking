@@ -1,5 +1,5 @@
 # Indonesian translation for Archeus Booking System
-# Copyright (C) YEAR Archeus Catalyst
+# Copyright (C) YEAR Firmansyah Pramudia Ariyanto
 # This file is distributed under the same license as the archeus-booking package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #

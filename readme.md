@@ -1,94 +1,231 @@
-=== Archeus Booking System ===
-Contributors: ArcheusCatalyst
-Tags: booking, appointments, calendar, reservations, scheduling, forms
-Requires at least: 5.0
-Tested up to: 6.3
-Requires PHP: 7.0
-Stable tag: 1.0.0
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+# 🎯 Archeus Booking System
 
-A comprehensive booking system plugin for WordPress developed by Archeus Catalyst that allows users to create custom booking flows, manage appointments, and handle reservations with advanced form builder and calendar features.
+<div align="center">
 
-== Description ==
+![WordPress](https://img.shields.io/badge/WordPress-6.3%2B-blue?style=for-the-badge&logo=wordpress&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-7.0%2B-purple?style=for-the-badge&logo=php&logoColor=white)
+![License](https://img.shields.io/badge/License-GPLv2-green?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.0.0-orange?style=for-the-badge)
 
-Archeus Booking System is a comprehensive and easy-to-use WordPress plugin developed by Archeus Catalyst that provides advanced booking functionality for your website. It features a powerful form builder, flexible booking flows, service management, time slot configuration, and complete booking management system.
+**A comprehensive WordPress booking plugin with intelligent form builder, service management, and booking flows**
 
-Features:
-* **Custom Form Builder**: Create dynamic booking forms with various field types (text, email, number, date, time, select, textarea, file upload)
-* **Booking Flow Management**: Build custom booking flows with multiple sections (forms, services, time slots, confirmation)
-* **Service Management**: Manage different services with pricing, duration, and availability settings
-* **Time Slot Management**: Configure available time slots with customizable durations
-* **Calendar Integration**: Full calendar system with availability management and color-coded status indicators
-* **Auto-Detection**: Smart field detection for customer_name and customer_email with automatic required validation
-* **Email System**: Customizable email templates for customer confirmations, admin notifications, and status change emails
-* **Admin Panel**: Comprehensive admin interface for managing all aspects of the booking system
-* **Shortcode Support**: Easy integration with [archeus_booking id="<flow_id>"] and [archeus_booking_calendar]
-* **Responsive Design**: Mobile-friendly interface for both admin and frontend
-* **Status Management**: Complete booking status tracking (pending, approved, rejected, completed, cancelled)
+[🚀 Live Demo](#) • [📖 Documentation](#-features) • [⚡ Installation](#-installation) • [🐛 Issues](https://github.com/firmxn/archeus-booking/issues)
 
-== Installation ==
+</div>
 
-1. Upload the `archeus-booking` folder to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Configure your booking system:
-   - Create Services under Bookings > Service Management
-   - Set up Time Slots under Bookings > Time Slot Management
-   - Create Booking Forms under Bookings > Booking Forms
-   - Build Booking Flows under Bookings > Booking Flow Management
-4. Use the shortcode [archeus_booking id="<flow_id>"] on any page or post to display your booking flow
-5. Display availability calendar with [archeus_booking_calendar] shortcode
-6. Manage all bookings through the 'Bookings' dashboard in WordPress admin panel
+---
 
-== Frequently Asked Questions ==
+## ✨ Features
 
-= How do I create a booking flow? =
+### 🎨 **Smart Form Builder**
+- **Dynamic Field Types**: Text, Email, Number, Date, Time, Select, Textarea, File Upload
+- **Auto-Detection**: Intelligent customer_name & customer_email field detection with required validation
+- **Real-time Validation**: Live form validation with user-friendly feedback
+- **Customizable Layout**: Drag-and-drop form building interface
 
-Go to Bookings > Booking Flow Management and create a new flow. You can add multiple sections including forms, services, time slots, and confirmation pages. Each flow generates a unique shortcode for embedding.
+### 🔄 **Booking Flow Management**
+- **Multi-Step Flows**: Create custom booking flows with multiple sections
+- **Flexible Sections**: Forms, Services, Time Slots, Confirmation pages
+- **Conditional Logic**: Show/hide sections based on user input
+- **Flow Templates**: Pre-built templates for common use cases
 
-= How does the form builder work? =
+### 🛠️ **Service Management**
+- **Service Catalog**: Manage different services with pricing and duration
+- **Availability Settings**: Set service-specific availability rules
+- **Pricing Flexibility**: Fixed prices, variable pricing, or free services
+- **Service Categories**: Organize services into logical groups
 
-The form builder allows you to create custom fields with various types (text, email, number, date, time, select, textarea, file upload). The system automatically detects customer_name and customer_email fields and makes them required.
+### ⏰ **Time Slot Management**
+- **Customizable Slots**: Configure available booking time slots
+- **Duration Control**: Set different durations for different services
+- **Buffer Times**: Add breaks between appointments
+- **Recurring Schedules**: Set up recurring availability patterns
 
-= Can I manage multiple services? =
+### 📧 **Email Notification System**
+- **Customizable Templates**: Edit email content for all notifications
+- **Multiple Triggers**: Customer confirmations, admin notifications, status changes
+- **Tag Replacement**: Dynamic content with {booking_id}, {customer_name}, etc.
+- **HTML Support**: Rich text emails with branding
 
-Yes! Use Service Management to create different services with specific pricing, duration, and availability settings. Each service can be assigned different time slots.
+### 📊 **Admin Dashboard**
+- **Comprehensive Overview**: All bookings in one place
+- **Status Management**: Track booking lifecycle (pending → approved → completed)
+- **Filtering & Search**: Find bookings quickly by date, status, or customer
+- **Export Functionality**: Export booking data for reporting
 
-= How do time slots work? =
+### 📱 **Responsive Design**
+- **Mobile-First**: Works perfectly on all devices
+- **Admin Interface**: Clean, intuitive admin panel
+- **Frontend Forms**: Beautiful, user-friendly booking forms
+- **Accessibility**: WCAG compliant design
 
-Time Slot Management allows you to configure available booking times with customizable durations. You can set different time slots for different days and services.
+---
 
-= What email notifications are available? =
+## 🚀 Installation
 
-The system includes customizable email templates for:
-- Customer confirmation emails
-- Admin notification emails
-- Status change emails (when booking status is updated)
+### Method 1: WordPress Admin
+1. Download the plugin ZIP file
+2. Go to **Plugins → Add New → Upload Plugin**
+3. Upload `archeus-booking.zip`
+4. Activate the plugin
 
-= Can I display an availability calendar? =
+### Method 2: FTP/SFTP
+1. Extract the ZIP file
+2. Upload `archeus-booking` folder to `/wp-content/plugins/`
+3. Go to WordPress admin and activate the plugin
 
-Yes! Use the [archeus_booking_calendar] shortcode to display an availability calendar. The calendar shows:
-- Green: Available dates
-- Red: Fully booked dates
-- Yellow: Holiday/unavailable dates
-- Light blue: Limited availability
+### Method 3: Composer
+```bash
+composer require firmxn/archeus-booking
+```
 
-= How do I manage bookings? =
+---
 
-All bookings can be managed through the main Bookings dashboard where you can view, approve, reject, or cancel bookings. The system also provides filtering by status and booking flow.
+## ⚡ Quick Start
 
-== Changelog ==
+1. **Configure Services** → Bookings → Service Management
+2. **Set Time Slots** → Bookings → Time Slot Management
+3. **Create Forms** → Bookings → Booking Forms
+4. **Build Flows** → Bookings → Booking Flow Management
+5. **Embed Shortcode**: `[archeus_booking id="1"]` on any page
 
-= 1.0.0 =
-* Initial stable release
-* Complete booking system with form builder, flow management, and admin interface
-* Service management with pricing and duration configuration
-* Time slot management with customizable booking periods
-* Advanced form builder with multiple field types and auto-detection
-* Email notification system with customizable templates
-* Calendar integration with availability management
-* Status management system for complete booking lifecycle
-* Responsive design for both admin and frontend interfaces
-* Shortcode support for easy integration
-* Auto-detection of customer_name and customer_email fields with required validation
+---
 
+## 📖 Usage
+
+### Basic Booking Form
+```shortcode
+[archeus_booking id="1"]
+```
+
+### Availability Calendar
+```shortcode
+[archeus_booking_calendar]
+```
+
+### Custom Flow with Multiple Services
+```shortcode
+[archeus_booking id="2" service="consultation"]
+```
+
+---
+
+## 🔧 Configuration
+
+### Service Setup
+- Define service names, descriptions, and pricing
+- Set duration and availability rules
+- Configure service-specific requirements
+
+### Time Slot Configuration
+- Set available hours and days
+- Configure slot durations
+- Add buffer times between appointments
+
+### Form Building
+- Add custom fields with validation rules
+- Set up conditional logic
+- Configure auto-detection for key fields
+
+### Email Templates
+- Customize confirmation emails
+- Set up admin notifications
+- Configure status change notifications
+
+---
+
+## 🎨 Screenshots
+
+<!-- Add screenshots here when available -->
+<!-- ![Admin Dashboard](screenshots/admin-dashboard.png)
+![Form Builder](screenshots/form-builder.png)
+![Booking Calendar](screenshots/booking-calendar.png) -->
+
+---
+
+## 🛠️ Development
+
+### Requirements
+- WordPress 6.3+
+- PHP 7.0+
+- MySQL 5.6+
+
+### Local Development
+```bash
+# Clone repository
+git clone https://github.com/firmxn/archeus-booking.git
+
+# Install dependencies
+composer install
+
+# Set up local environment
+npm install
+npm run build
+```
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📋 Changelog
+
+### [1.0.0] - 2024-10-12
+- ✨ Initial stable release
+- 🎨 Complete form builder with auto-detection
+- 🔄 Flexible booking flow management
+- 🛠️ Comprehensive service management
+- ⏰ Advanced time slot configuration
+- 📧 Customizable email notification system
+- 📊 Full admin dashboard with filtering
+- 📱 Responsive design for all devices
+
+---
+
+## 🤝 Support
+
+### Documentation
+- 📖 [Full Documentation](https://github.com/firmxn/archeus-booking/wiki)
+- 🎬 [Video Tutorials](https://youtube.com/playlist)
+- 💡 [FAQ Section](https://github.com/firmxn/archeus-booking/wiki/FAQ)
+
+### Getting Help
+- 🐛 [Report Issues](https://github.com/firmxn/archeus-booking/issues)
+- 💬 [Discussions](https://github.com/firmxn/archeus-booking/discussions)
+- 📧 [Email Support](mailto:firmansyah@example.com)
+
+### Community
+- 💬 [WordPress.org Support Forum](https://wordpress.org/support/plugin/archeus-booking/)
+- 🐙 [GitHub Discussions](https://github.com/firmxn/archeus-booking/discussions)
+- 🐦 [Twitter Updates](https://twitter.com/firmxn)
+
+---
+
+## 📄 License
+
+This project is licensed under the GPLv2 License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [WordPress](https://wordpress.org/) for the amazing CMS platform
+- [Bootstrap](https://getbootstrap.com/) for the UI components
+- [jQuery](https://jquery.com/) for JavaScript utilities
+- All contributors and users who make this plugin better
+
+---
+
+<div align="center">
+
+**Made with ❤️ by [Firmansyah Pramudia Ariyanto](https://github.com/firmxn)**
+
+[🌐 Website](https://firmxn.dev) • [💼 LinkedIn](https://linkedin.com/in/firmxn) • [🐙 GitHub](https://github.com/firmxn)
+
+![Star History](https://img.shields.io/github/stars/firmxn/archeus-booking?style=social)
+
+</div>
