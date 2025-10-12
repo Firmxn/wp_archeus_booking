@@ -1509,7 +1509,7 @@ class Booking_Admin {
             foreach ($_POST['field_keys'] as $index => $field_key) {
                 $label = sanitize_text_field($_POST['field_labels'][$field_key]);
                 $type = sanitize_text_field($_POST['field_types'][$field_key]);
-                $required = isset($_POST['field_required'][$field_key]) ? true : false;
+                $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
                 
                 $fields[$field_key] = array(
                     'label' => $label,
@@ -1556,7 +1556,7 @@ class Booking_Admin {
             foreach ($_POST['field_keys'] as $index => $field_key) {
                 $label = sanitize_text_field($_POST['field_labels'][$field_key]);
                 $type = sanitize_text_field($_POST['field_types'][$field_key]);
-                $required = isset($_POST['field_required'][$field_key]) ? true : false;
+                $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
                 
                 $fields[$field_key] = array(
                     'label' => $label,

@@ -35,17 +35,17 @@ class Booking_Shortcodes {
                     <div class="form-group field-<?php echo esc_attr($field_key); ?>">
                         <label for="<?php echo esc_attr($field_key); ?>_<?php echo esc_attr($form_id); ?>">
                             <?php echo esc_html($field_data['label']); ?>
-                            <?php if ($field_data['required']): ?><span class="required">*</span><?php endif; ?>
+                            <?php if (!empty($field_data['required'])): ?><span class="required">*</span><?php endif; ?>
                         </label>
 <?php
                         switch ($field_data['type']) {
-                            case 'text': echo '<input type="text" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
-                            case 'email': echo '<input type="email" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
-                            case 'number': echo '<input type="number" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
-                            case 'date': echo '<input type="date" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
-                            case 'time': echo '<input type="time" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
+                            case 'text': echo '<input type="text" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
+                            case 'email': echo '<input type="email" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
+                            case 'number': echo '<input type="number" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
+                            case 'date': echo '<input type="date" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
+                            case 'time': echo '<input type="time" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
                             case 'select':
-                                echo '<select id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . ($field_data['required'] ? 'required' : '') . '>';
+                                echo '<select id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . '>';
                                 echo '<option value="">' . esc_html(($field_data['placeholder'] ?? '') ?: '-- Select --') . '</option>';
                                 if ($field_key === 'service_type') {
                                     $booking_db_inner = new Booking_Database();
@@ -56,10 +56,10 @@ class Booking_Shortcodes {
                                 }
                                 echo '</select>';
                                 break;
-                            case 'textarea': echo '<textarea id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" rows="2" ' . ($field_data['required'] ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '"></textarea>'; break;
+                            case 'textarea': echo '<textarea id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" rows="2" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '"></textarea>'; break;
                             case 'file':
                                 echo '<input type="file" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . 
-                                     ($field_data['required'] ? 'required' : '') . '>';
+                                     (!empty($field_data['required']) ? 'required' : '') . '>';
                                 break;
                         }
                         ?>
