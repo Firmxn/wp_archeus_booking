@@ -93,8 +93,8 @@ class Booking_Admin {
         // Forms submenu
         add_submenu_page(
             'archeus-booking-management',
-            __('Pengaturan Formulir', 'archeus-booking'),
-            __('Booking Forms', 'archeus-booking'),
+            __('Formulir', 'archeus-booking'),
+            __('Forms', 'archeus-booking'),
             'manage_options',
             'archeus-booking-forms',
             array($this, 'forms_page')
@@ -103,8 +103,8 @@ class Booking_Admin {
         // Email submenu
         add_submenu_page(
             'archeus-booking-management',
-            __('Pengaturan Email', 'archeus-booking'),
-            __('Email Settings', 'archeus-booking'),
+            __('Email', 'archeus-booking'),
+            __('Email', 'archeus-booking'),
             'manage_options',
             'archeus-booking-email',
             array($this, 'email_page')
@@ -408,7 +408,7 @@ class Booking_Admin {
         }
         ?>
         <div class="wrap booking-admin-page">
-            <h1><?php _e('Formulir Pemesanan', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Booking Form (Formulir Reservasi)', 'archeus-booking'); ?></h1>
             <?php
             $flows = method_exists($booking_db, 'get_booking_flows') ? (array) $booking_db->get_booking_flows() : array();
             $first_id = 1;
@@ -858,7 +858,7 @@ class Booking_Admin {
         }
         ?>
         <div class="wrap booking-admin-page">
-            <h1><?php _e('Pengaturan Email', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Email Setting (Pengaturan Email)', 'archeus-booking'); ?></h1>
 
 
             <form method="post" action="" class="settings-form">
@@ -1317,7 +1317,7 @@ class Booking_Admin {
         }
         ?>
         <div class="wrap booking-admin-page">
-            <h1><?php _e('Dashboard', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Dashboard (Daftar Pemesanan)', 'archeus-booking'); ?></h1>
             
             <div class="booking-stats-meta">
                 <span class="flow-badge">
@@ -1624,7 +1624,7 @@ class Booking_Admin {
 
         ?>
         <div class="wrap">
-            <h1><?php _e('Email Debug Log', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Email Debug Log', 'archeus-booking'); ?></h1>
 
             <div class="notice notice-info">
                 <h4><?php _e('How to Debug Email Issues', 'archeus-booking'); ?></h4>
@@ -3160,7 +3160,7 @@ class Booking_Admin {
         ));
         ?>
         <div class="wrap booking-admin-page">
-            <h1><?php _e('Kalendar', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Calendar Management (Kelola Kalendar)', 'archeus-booking'); ?></h1>
             
             <div class="calendar-availability-container">
                 <!-- Calendar View -->
@@ -3743,7 +3743,7 @@ class Booking_Admin {
         
         ?>
         <div class="wrap booking-admin-page">
-            <h1><?php _e('Kelola Layanan', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Service Management (Kelola Layanan)', 'archeus-booking'); ?></h1>
             
             <?php
             // Admin notice/callout for Services page (same as dashboard)
@@ -4061,7 +4061,7 @@ class Booking_Admin {
         
         ?>
         <div class="wrap booking-admin-page time-slots-page">
-            <h1><?php _e('Kelola Slot Waktu', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Time Slot Management (Kelola Slot Waktu)', 'archeus-booking'); ?></h1>
             <?php
             // Admin notice/callout for Time Slots page
             $booking_db = new Booking_Database();
@@ -4300,7 +4300,7 @@ class Booking_Admin {
         $forms = $booking_db->get_forms();
         ?>
         <div class="wrap booking-admin-page">
-            <h1><?php _e('Manajemen Booking Flow', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Booking Flow Management (Kelola Alur Pemesanan)', 'archeus-booking'); ?></h1>
             
             <?php
             // Admin notice/callout for Booking Flow page

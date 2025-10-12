@@ -5,7 +5,7 @@
   --success-color: #10b981;
   --success-background: #ecfdf5;
   /* --success-hover: #54b335; */
-  --button-primary:#a0ff8a;
+  --button-primary: #a0ff8a;
   --button-primary-hover: #357622;
 
   --secondary-color: #6c757d;
@@ -2772,11 +2772,11 @@ select.ab-hidden-select {
 
 /* Email Settings Admin Cards */
 .admin-card {
-    background: #fff;
-    border: 1px solid #ccd0d4;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+  background: #fff;
+  border: 1px solid #ccd0d4;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
 /* .admin-card-header {
@@ -2789,36 +2789,36 @@ select.ab-hidden-select {
 } */
 
 .admin-card-title {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #23282d;
-    display: flex;
-    align-items: center;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #23282d;
+  display: flex;
+  align-items: center;
 }
 
 .admin-card-title .icon {
-    margin-right: 10px;
-    font-size: 18px;
+  margin-right: 10px;
+  font-size: 18px;
 }
 
 .admin-card-status {
-    display: flex;
-    align-items: center;
-    font-size: 13px;
-    color: #646970;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #646970;
 }
 
 .admin-card-body {
-    padding: 20px;
+  padding: 20px;
 }
 
 .admin-card-section {
-    margin-bottom: 25px;
+  margin-bottom: 25px;
 }
 
 .admin-card-section:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* .admin-card-section-title {
@@ -2832,105 +2832,182 @@ select.ab-hidden-select {
 
 /* Email Type Badges */
 .email-type-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    background: var(--success-background);
-    color: var(--primary-color);
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-left: 8px;
+  display: inline-block;
+  padding: 4px 8px;
+  background: var(--success-background);
+  color: var(--primary-color);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
 }
 
 /* Toggle Switch */
 .toggle-switch-simple {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
-    vertical-align: middle;
-    margin: 0 10px 0 0;
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  vertical-align: middle;
+  margin: 0 10px 0 0;
 }
 
 .toggle-label {
-    vertical-align: middle;
-    margin-left: 5px;
-    color: #23282d;
-    font-size: 14px;
+  vertical-align: middle;
+  margin-left: 5px;
+  color: #23282d;
+  font-size: 14px;
 }
 
 .toggle-switch-simple input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 .toggle-slider-simple {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.3s;
-    border-radius: 12px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 12px;
 }
 
 .toggle-slider-simple:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: 0.3s;
-    border-radius: 50%;
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
 }
 
 input:checked + .toggle-slider-simple {
-    background-color: var(--primary-color);
+  background-color: var(--primary-color);
 }
 
 input:checked + .toggle-slider-simple:before {
-    transform: translateX(20px);
+  transform: translateX(20px);
 }
 
 /* Status Indicators */
 .status-indicator-simple {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
-    vertical-align: middle;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .status-indicator-simple.active {
-    background: #46b450;
+  background: #46b450;
 }
 
 .status-indicator-simple.inactive {
-    background: #dc3232;
+  background: #dc3232;
 }
 
 /* Responsive Design for Admin Cards */
 @media (max-width: 782px) {
-    .admin-card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
+  .admin-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 
-    .admin-card-body {
-        padding: 15px;
-    }
+  .admin-card-body {
+    padding: 15px;
+  }
 
-    .admin-card .form-table th,
-    .admin-card .form-table td {
-        padding: 10px 0;
-    }
+  .admin-card .form-table th,
+  .admin-card .form-table td {
+    padding: 10px 0;
+  }
+}
+
+/* Title Page Styling - Modern Minimalist */
+.title-page {
+  font-size: 30px !important; /* ukuran judul */
+  font-weight: 600 !important;
+  color: #23282d;
+  margin: 0 0 28px 0 !important; /* jarak bawah dari konten */
+  padding-bottom: 16px; /* ruang kecil di bawah teks */
+  border-bottom: 2px solid #e2e8f0; /* garis bawah halus untuk pemisah */
+  letter-spacing: 0.5px; /* sedikit spasi antar huruf */
+  text-transform: capitalize; /* huruf awal tiap kata besar */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* kalau nanti ditambah ikon */
+}
+
+/* ================================
+   TITLE PAGE VARIATIONS GUIDE
+   ================================
+
+   Default: Modern minimalist dengan left accent bar
+   <h1 class="title-page">Title</h1>
+
+   Card Style: Card-like dengan background gradient
+   <h1 class="title-page card-style">Title</h1>
+
+   Dots Style: Elegant dotted underline
+   <h1 class="title-page dots-style">Title</h1>
+
+   Center Badge: Centered dengan gradient badge
+   <h1 class="title-page center-badge">Title</h1>
+
+   Gradient Style: Text gradient modern
+   <h1 class="title-page gradient-style">Title</h1>
+
+   Icon Style: Dengan icon setting di kiri
+   <h1 class="title-page icon-style">Title</h1>
+
+   Minimal Line: Clean minimal line
+   <h1 class="title-page minimal-line">Title</h1>
+
+   ================================ */
+
+/* Responsive Title Page */
+@media (max-width: 782px) {
+  .title-page {
+    font-size: 28px;
+    margin-bottom: 30px;
+    padding: 18px 0;
+  }
+
+  .title-page::before {
+    width: 6px;
+  }
+
+  .title-page::after {
+    width: 80px;
+    height: 3px;
+  }
+}
+
+@media (max-width: 600px) {
+  .title-page {
+    font-size: 24px;
+    margin-bottom: 25px;
+    padding: 15px 0;
+  }
+
+  .title-page::before {
+    width: 5px;
+  }
+
+  .title-page::after {
+    width: 60px;
+    height: 3px;
+  }
 }
