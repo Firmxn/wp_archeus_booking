@@ -4,7 +4,7 @@
  */
 
 :root {
-  --primary-color: #4a6cf7; /* A more modern blue */
+  --primary-color: #54b335; /* A more modern blue */
   --primary-hover: #3b56c4;
   --secondary-color: #6c757d;
   --success-color: #10b981;
@@ -14,6 +14,9 @@
   --light-color: #f3f4f6;
   --dark-color: #1f2937;
   --border-color: #e2e8f0;
+
+  --button-primary-hover: #357622;
+
   --border-radius: 8px;
   --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -451,8 +454,8 @@
 }
 
 .booking-flow-container .submit-booking-btn.button.button-primary:hover {
-  background: #629e40 !important;
-  border-color: #629e40 !important;
+  background: var(--button-primary-hover) !important;
+  border-color: var(--button-primary-hover) !important;
   color: white !important;
 }
 
@@ -538,8 +541,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-  padding: 10px;
-  background-color: #f3f4f6;
+  padding: 16px;
+  background-color: var(--light-color);
   border-radius: 8px;
 }
 
@@ -549,19 +552,19 @@
 }
 
 .section-calendar .calendar-nav-btn {
-  background-color: #54b335 !important;
+  background-color: var(--primary-color) !important;
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .section-calendar .calendar-nav-btn:hover {
-  background-color: #629e40;
-  transform: translateY(-2px);
+  background-color: var(--button-primary-hover) !important;
+  transform: translateY(-1px);
 }
 
 .section-calendar .current-month {
@@ -637,7 +640,7 @@
 }
 
 .section-calendar .calendar-day.selected-date:hover {
-  background-color: #629e40;
+  background-color: var(--button-primary-hover);
 }
 
 .section-calendar .calendar-day.unavailable {
@@ -662,13 +665,13 @@
 }
 
 .section-calendar .calendar-day.past {
-  background-color: #f3f4f6;
+  background-color: var(--light-color);
   color: #1f2937;
   text-decoration: line-through;
 }
 
 .section-calendar .calendar-day.selected-date {
-  background-color: #54b335;
+  background-color: var(--primary-color);
   color: #ffffff !important;
 }
 

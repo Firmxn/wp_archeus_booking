@@ -5,16 +5,16 @@
   --success-color: #10b981;
   --success-background: #ecfdf5;
   /* --success-hover: #54b335; */
-  --button-primary: #a0ff8a;
+  --button-primary: #54b335;
   --button-primary-hover: #357622;
 
   --secondary-color: #6c757d;
-  --danger-color: #ef4444;
-  --danger-hover: #dc2626;
-  --warning-color: #f59e0b;
-  --warning-hover: #fef3c7;
-  --info-color: #bfdbfe;
-  --info-color-hover: #3b82f6;
+  --danger-background: #ef4444;
+  --danger-color: #dc2626;
+  --warning-background: #f59e0b;
+  --warning-color: #fef3c7;
+  --info-background: #bfdbfe;
+  --info-color: #3b82f6;
   --light-color: #f3f4f6;
   --dark-color: #1f2937;
   --border-radius: 10px;
@@ -199,7 +199,7 @@
 }
 
 .stat-box.pending {
-  border-left: 4px solid var(--warning-color);
+  border-left: 4px solid var(--warning-background);
 }
 
 .stat-box.success {
@@ -207,11 +207,11 @@
 }
 
 .stat-box.danger {
-  border-left: 4px solid var(--danger-color);
+  border-left: 4px solid var(--danger-background);
 }
 
 .stat-box.done {
-  border-left: 4px solid var(--info-color);
+  border-left: 4px solid var(--info-background);
 }
 
 .stat-value {
@@ -633,16 +633,180 @@
   flex: 0 0 auto;
 }
 .ab-shortcode-row .ab-shortcode-code {
-  flex: 1 1 220px;
-  min-width: 160px;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 0 1 auto;
+  min-width: auto;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 .ab-shortcode-row .ab-copy-btn,
 .ab-shortcode-row .button-primary {
   flex: 0 0 auto;
+}
+
+/* Responsive styles for ab-shortcode-row */
+@media (max-width: 1024px) {
+  .ab-shortcode-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .ab-shortcode-row .ab-shortcode-code {
+    flex: 0 1 auto;
+    width: auto;
+    text-align: left;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+
+  .ab-shortcode-row .ab-select {
+    width: auto !important;
+    min-width: auto;
+    flex: 0 1 auto;
+  }
+
+  .ab-shortcode-row .ab-copy-btn,
+  .ab-shortcode-row .button-primary {
+    width: auto;
+    flex: 0 0 auto;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .ab-shortcode-row .ab-shortcode-code {
+    font-size: 14px;
+    padding: 7px 11px;
+  }
+
+  .ab-shortcode-row .ab-copy-btn,
+  .ab-shortcode-row .button-primary {
+    font-size: 14px;
+    padding: 7px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ab-shortcode-row .ab-shortcode-code {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .ab-shortcode-row .ab-copy-btn,
+  .ab-shortcode-row .button-primary {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+}
+
+/* Responsive table for form fields builder */
+.admin-card-body .form-fields-builder,
+.form-fields-builder {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -1px;
+  padding: 0 1px;
+  position: relative;
+  min-width: 0;
+}
+
+/* Add scroll when columns don't fit */
+.form-fields-builder.table-overflow {
+  overflow-x: auto !important;
+}
+
+/* Add scroll indicator for overflow */
+.form-fields-builder::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.form-fields-builder.overflowing::after {
+  opacity: 1;
+}
+
+.form-fields-builder table {
+  width: 100%;
+  table-layout: fixed;
+  min-width: auto;
+}
+
+.form-fields-builder .widefat {
+  margin: 0;
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+/* Mobile responsive for form fields table */
+@media (max-width: 782px) {
+  .form-fields-builder {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin: 0;
+    width: 100%;
+    overflow-x: auto !important;
+  }
+
+  .form-fields-builder.table-overflow table {
+    min-width: 700px;
+  }
+
+  /* Hide less important columns on mobile */
+  .form-fields-builder .col-required .description,
+  .form-fields-builder th:nth-child(4) .description,
+  .form-fields-builder .options-cell .description {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-fields-builder.table-overflow table {
+    min-width: 600px;
+  }
+
+  /* Further optimize for very small screens */
+  .form-fields-builder.table-overflow th,
+  .form-fields-builder.table-overflow td {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  .form-fields-builder.table-overflow input[type="text"],
+  .form-fields-builder.table-overflow input[type="email"],
+  .form-fields-builder.table-overflow input[type="number"] {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .form-fields-builder.table-overflow .ab-dd-toggle {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .form-fields-builder.table-overflow textarea {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .form-fields-builder.table-overflow .button {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .form-fields-builder.table-overflow .dashicons {
+    font-size: 16px;
+  }
 }
 
 /* Uniform control heights in callout row */
@@ -729,7 +893,7 @@
   border-left: 6px solid var(--success-color);
 }
 .stat-box.danger {
-  border-left: 6px solid var(--danger-color);
+  border-left: 6px solid var(--danger-background);
 } */
 .stat-value {
   color: var(--dark-color);
@@ -1419,7 +1583,7 @@ select.ab-hidden-select {
   font-weight: 600;
 }
 .booking-admin-page .status-rejected {
-  color: var(--danger-color);
+  color: var(--danger-background);
   font-weight: 600;
 }
 .booking-admin-page .status-pending {
@@ -1801,7 +1965,7 @@ select.ab-hidden-select {
 }
 
 /* Form list table enhancements */
-.admin-card-body .widefat {
+.admin-card-body .widefat:not(.form-fields-builder .widefat) {
   margin-top: 0;
 }
 .admin-card-body .widefat thead th {
@@ -2261,14 +2425,12 @@ select.ab-hidden-select {
 }
 
 /* Additional override for any parent container constraints */
-.form-fields-builder,
 .booking-admin-page .section-item,
-.admin-card-body,
+.admin-card-body:not(.form-fields-builder-container),
 .widefat {
   overflow: visible !important;
 }
 
-.form-fields-builder .widefat,
 .booking-admin-page .section-item .form-table {
   overflow: visible !important;
 }
@@ -2649,9 +2811,9 @@ select.ab-hidden-select {
 
 /* tombol download file dashboard */
 .booking-admin-page .bv-actions .bv-download.button {
-  background: var(--info-color);
-  border-color: var(--info-color);
-  color: var(--info-color-hover);
+  background: var(--info-background);
+  border-color: var(--info-background);
+  color: var(--info-color);
   transition: var(--transition);
   font-size: 14px;
   font-weight: 600 !important;
@@ -2659,8 +2821,8 @@ select.ab-hidden-select {
   box-shadow: var(--button-shadow);
 }
 .booking-admin-page .bv-actions .bv-download.button:hover {
-  background: var(--info-color-hover);
-  border-color: var(--info-color-hover);
+  background: var(--info-color);
+  border-color: var(--info-color);
   color: white;
   box-shadow: var(--button-shadow-hover);
 }

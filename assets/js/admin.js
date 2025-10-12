@@ -1,5 +1,66 @@
 // Debug: Check if functions are loaded
 jQuery(document).ready(function ($) {
+  // Check for table overflow and add visual indicator
+  function checkTableOverflow() {
+    $('.form-fields-builder').each(function() {
+      var $builder = $(this);
+      var $table = $builder.find('table');
+      var tableNaturalWidth = 0;
+
+      // Calculate natural width by summing column widths
+      $table.find('thead th').each(function() {
+        var $th = $(this);
+        var text = $th.text().trim();
+        var tempSpan = $('<span>').text(text).css({
+          'white-space': 'nowrap',
+          'visibility': 'hidden',
+          'position': 'absolute',
+          'font': $th.css('font'),
+          'padding': $th.css('padding')
+        });
+        $('body').append(tempSpan);
+        var textWidth = tempSpan.width();
+        tempSpan.remove();
+        tableNaturalWidth += textWidth + 40; // Add padding buffer
+      });
+
+      // Check if natural width exceeds container width
+      if (tableNaturalWidth > $builder.width()) {
+        $builder.addClass('table-overflow overflowing');
+        // Switch to auto layout for scrollable table
+        $table.css({
+          'width': tableNaturalWidth,
+          'table-layout': 'auto'
+        });
+      } else {
+        $builder.removeClass('table-overflow overflowing');
+        // Use full width layout
+        $table.css({
+          'width': '100%',
+          'table-layout': 'fixed'
+        });
+      }
+    });
+  }
+
+  // Check overflow on load and resize
+  checkTableOverflow();
+  $(window).on('resize', checkTableOverflow);
+
+  // Check overflow when form fields are added/removed
+  $(document).on('click', '#add-field-btn, .remove-field', function() {
+    setTimeout(checkTableOverflow, 100);
+  });
+
+  // Check overflow when input fields change size
+  $(document).on('input', '.form-fields-builder input[type="text"], .form-fields-builder textarea', function() {
+    setTimeout(checkTableOverflow, 50);
+  });
+
+  // Check overflow when dropdown changes
+  $(document).on('change', '.form-fields-builder select', function() {
+    setTimeout(checkTableOverflow, 50);
+  });
   // Define global functions directly on window object
   window.showStatusChangeDialog = function (callback, newStatus, prevStatus) {
     console.log("showStatusChangeDialog called with:", {

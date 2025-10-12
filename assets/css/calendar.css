@@ -1,7 +1,7 @@
 /* Calendar Styles - Modern UI */
 :root {
   --primary-color: #54b335;
-  --primary-hover: #629e40;
+  --button-primary-hover: #357622;
   --secondary-color: #6c757d;
   --success-color: #10b981;
   --danger-color: #ef4444;
@@ -29,13 +29,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 16px;
   background-color: var(--light-color);
   border-radius: var(--border-radius);
 }
 
 .booking-calendar.loading {
-  opacity: 0.6;
+  opacity: 0.6 ;
   pointer-events: none;
 }
 
@@ -51,8 +51,8 @@
 }
 
 .calendar-nav-btn:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
+  background-color: var(--button-primary-hover) !important;
+  transform: translateY(-1px);
 }
 
 .current-month {
