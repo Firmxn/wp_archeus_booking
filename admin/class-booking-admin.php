@@ -503,8 +503,8 @@ class Booking_Admin {
                                 <tbody id="form-fields-container">
                                     <?php 
                                     $form_fields = $edit_form ? ($edit_form->fields ? maybe_unserialize($edit_form->fields) : array()) : array(
-                                        'customer_name' => array('label' => 'Nama Lengkap', 'type' => 'text', 'required' => 1, 'placeholder' => ''),
-                                        'customer_email' => array('label' => 'Email', 'type' => 'email', 'required' => 1, 'placeholder' => ''),
+                                        'customer_name' => array('label' => 'Nama Lengkap', 'type' => 'text', 'required' => 0, 'placeholder' => ''),
+                                        'customer_email' => array('label' => 'Email', 'type' => 'email', 'required' => 0, 'placeholder' => ''),
                                     );
                                     foreach ($form_fields as $field_key => $field_data):
                                         // Check if this is an auto-detected field
@@ -535,7 +535,7 @@ class Booking_Admin {
                                                     <option value="file" <?php selected($field_data['type'], 'file'); ?>>File Upload</option>
                                                 </select>
                                             </td>
-                                            <td class="col-required"><input type="checkbox" name="field_required[<?php echo esc_attr($field_key); ?>]" <?php checked($field_data['required'], 1); ?> value="1"></td>
+                                            <td class="col-required"><input type="checkbox" name="field_required[<?php echo esc_attr($field_key); ?>]" <?php echo !empty($field_data['required']) ? 'checked' : ''; ?> value="1"></td>
                                             <td><input type="text" name="field_placeholders[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_data['placeholder']); ?>"></td>
                                             <td class="options-cell">
                                                 <?php $opts = isset($field_data['options']) && is_array($field_data['options']) ? implode("\n", $field_data['options']) : ''; ?>
