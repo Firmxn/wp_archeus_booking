@@ -55,6 +55,24 @@ class Booking_Admin {
     }
 
     // Note: auto-translation of labels to field keys removed by request.
+
+    /**
+     * Get email content with proper logic - no defaults if custom content exists or empty
+     */
+    private function get_email_content($email_settings, $content_key, $default_callback = null) {
+        // Check if content exists and is not empty
+        if (isset($email_settings[$content_key])) {
+            $content = $email_settings[$content_key];
+            // Trim and check if it's not empty (not just whitespace)
+            if (trim($content) !== '') {
+                return $content;
+            }
+        }
+
+        // If no content exists or it's empty, return empty string
+        // Don't use default templates unless explicitly requested
+        return '';
+    }
     
     /**
      * Load plugin textdomain
@@ -634,7 +652,7 @@ class Booking_Admin {
             <p><strong>Waktu:</strong> {booking_time}</p>
         </div>
         <p>Silakan login ke dashboard untuk mengelola reservasi ini.</p>
-        <p>Terima kasih,<br>System</p>
+        <p>Terima kasih,<br>{company_name}</p>
     </div>
 </body>
 </html>', 'archeus-booking'),
@@ -902,18 +920,7 @@ class Booking_Admin {
                                 <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                                 <td>
                                     <?php
-                                    $customer_confirmation_content = isset($email_settings['customer_confirmation_body']) ? $email_settings['customer_confirmation_body'] : __('<h2>Konfirmasi Reservasi Anda</h2>
-<p>{greeting}</p>
-<p>Terima kasih telah melakukan reservasi dengan kami. Berikut adalah detail reservasi Anda:</p>
-<div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-    <p><strong>ID Reservasi:</strong> #{booking_id}</p>
-    <p><strong>Layanan:</strong> {service_type}</p>
-    <p><strong>Tanggal:</strong> {booking_date}</p>
-    <p><strong>Waktu:</strong> {booking_time}</p>
-    <p><strong>Email:</strong> {customer_email}</p>
-</div>
-<p>Kami akan segera mengkonfirmasi reservasi Anda. Mohon tunggu konfirmasi dari kami.</p>
-<p>Terima kasih,<br>{company_name}</p>', 'archeus-booking');
+                                    $customer_confirmation_content = $this->get_email_content($email_settings, 'customer_confirmation_body');
 
                                     $editor_id = 'customer_confirmation_body';
                                     $settings = array(
@@ -937,7 +944,7 @@ class Booking_Admin {
                                     wp_editor($customer_confirmation_content, $editor_id, $settings);
                                     ?>
                                     <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                 </td>
                             </tr>
                         </table>
@@ -989,19 +996,7 @@ class Booking_Admin {
                                 <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                                 <td>
                                     <?php
-                                    $admin_notification_content = isset($email_settings['admin_notification_body']) ? $email_settings['admin_notification_body'] : __('<h2>Reservasi Baru Diterima</h2>
-<p>{greeting}</p>
-<p>Reservasi baru telah masuk dan membutuhkan perhatian Anda. Berikut adalah detail reservasi:</p>
-<div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-    <p><strong>ID Reservasi:</strong> #{booking_id}</p>
-    <p><strong>Pelanggan:</strong> {customer_name}</p>
-    <p><strong>Email:</strong> {customer_email}</p>
-    <p><strong>Layanan:</strong> {service_type}</p>
-    <p><strong>Tanggal:</strong> {booking_date}</p>
-    <p><strong>Waktu:</strong> {booking_time}</p>
-</div>
-<p>Silakan login ke dashboard untuk mengelola reservasi ini.</p>
-<p>Terima kasih,<br>System</p>', 'archeus-booking');
+                                    $admin_notification_content = $this->get_email_content($email_settings, 'admin_notification_body');
 
                                     $editor_id = 'admin_notification_body';
                                     $settings = array(
@@ -1015,7 +1010,7 @@ class Booking_Admin {
                                     wp_editor($admin_notification_content, $editor_id, $settings);
                                     ?>
                                     <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {admin_email}, {booking_id}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {admin_website}, {admin_email}, {booking_id}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                 </td>
                             </tr>
                         </table>
@@ -1064,7 +1059,7 @@ class Booking_Admin {
                                     <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                                     <td>
                                         <?php
-                                        $pending_email_content = isset($email_settings['pending_email_body']) ? $email_settings['pending_email_body'] : $this->get_default_status_email_template('pending');
+                                        $pending_email_content = $this->get_email_content($email_settings, 'pending_email_body');
 
                                         $editor_id = 'pending_email_body';
                                         $settings = array(
@@ -1078,7 +1073,7 @@ class Booking_Admin {
                                         wp_editor($pending_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1097,7 +1092,7 @@ class Booking_Admin {
                                     <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                                     <td>
                                         <?php
-                                        $approved_email_content = isset($email_settings['approved_email_body']) ? $email_settings['approved_email_body'] : $this->get_default_status_email_template('approved');
+                                        $approved_email_content = $this->get_email_content($email_settings, 'approved_email_body');
 
                                         $editor_id = 'approved_email_body';
                                         $settings = array(
@@ -1111,7 +1106,7 @@ class Booking_Admin {
                                         wp_editor($approved_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1130,7 +1125,7 @@ class Booking_Admin {
                                     <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                                     <td>
                                         <?php
-                                        $rejected_email_content = isset($email_settings['rejected_email_body']) ? $email_settings['rejected_email_body'] : $this->get_default_status_email_template('rejected');
+                                        $rejected_email_content = $this->get_email_content($email_settings, 'rejected_email_body');
 
                                         $editor_id = 'rejected_email_body';
                                         $settings = array(
@@ -1144,7 +1139,7 @@ class Booking_Admin {
                                         wp_editor($rejected_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1163,7 +1158,7 @@ class Booking_Admin {
                                     <th scope="row"><?php _e('Email Content', 'archeus-booking'); ?></th>
                                     <td>
                                         <?php
-                                        $completed_email_content = isset($email_settings['completed_email_body']) ? $email_settings['completed_email_body'] : $this->get_default_status_email_template('completed');
+                                        $completed_email_content = $this->get_email_content($email_settings, 'completed_email_body');
 
                                         $editor_id = 'completed_email_body';
                                         $settings = array(
@@ -1177,7 +1172,7 @@ class Booking_Admin {
                                         wp_editor($completed_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1953,7 +1948,13 @@ class Booking_Admin {
         $body_key = $new_status . '_email_body';
 
         $subject_template = isset($email_settings[$subject_key]) ? $email_settings[$subject_key] : sprintf(__('Pembaruan Status Booking - %s', 'archeus-booking'), $new_status);
-        $body_template = isset($email_settings[$body_key]) ? $email_settings[$body_key] : $this->get_default_status_email_template($new_status);
+        $body_template = $this->get_email_content($email_settings, $body_key);
+
+        // Check if body template is empty - if so, don't send email
+        if (empty(trim($body_template))) {
+            $this->log_email_activity($booking->id, $new_status, $to, false, 'Email not sent: no email content configured');
+            return;
+        }
 
         // Process subject template for tag replacement
         $subject = $this->build_status_email_subject($booking, $subject_template, $new_status);
@@ -2053,6 +2054,7 @@ class Booking_Admin {
             'status' => $status,
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
+            'admin_website' => admin_url(),
             'admin_email' => get_option('admin_email'),
             'current_date' => date('Y-m-d'),
             'current_time' => date('H:i:s'),
@@ -2080,6 +2082,8 @@ class Booking_Admin {
         $subject = str_replace('{slot_waktu}', $booking_data['time_slot'], $subject);
         $subject = str_replace('{nama_perusahaan}', $booking_data['company_name'], $subject);
         $subject = str_replace('{url_perusahaan}', $booking_data['company_url'], $subject);
+        $subject = str_replace('{url_admin}', $booking_data['admin_website'], $subject);
+        $subject = str_replace('{admin_website}', $booking_data['admin_website'], $subject);
         $subject = str_replace('{email_admin}', $booking_data['admin_email'], $subject);
         $subject = str_replace('{current_datetime}', $booking_data['current_datetime'], $subject);
 
@@ -2105,6 +2109,7 @@ class Booking_Admin {
             'status' => $status,
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
+            'admin_website' => admin_url(),
             'admin_email' => get_option('admin_email'),
             'current_date' => date('Y-m-d'),
             'current_time' => date('H:i:s'),
@@ -2139,6 +2144,8 @@ class Booking_Admin {
         $message = str_replace('{slot_waktu}', $booking_data['time_slot'], $message);
         $message = str_replace('{nama_perusahaan}', $booking_data['company_name'], $message);
         $message = str_replace('{url_perusahaan}', $booking_data['company_url'], $message);
+        $message = str_replace('{url_admin}', $booking_data['admin_website'], $message);
+        $message = str_replace('{admin_website}', $booking_data['admin_website'], $message);
         $message = str_replace('{email_admin}', $booking_data['admin_email'], $message);
         $message = str_replace('{current_datetime}', $booking_data['current_datetime'], $message);
 

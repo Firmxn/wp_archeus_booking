@@ -26,6 +26,24 @@ class Booking_Public {
     // Note: auto-translation of labels to field keys removed by request.
 
     /**
+     * Get email content with proper logic - no defaults if custom content exists or empty
+     */
+    private function get_email_content($email_settings, $content_key) {
+        // Check if content exists and is not empty
+        if (isset($email_settings[$content_key])) {
+            $content = $email_settings[$content_key];
+            // Trim and check if it's not empty (not just whitespace)
+            if (trim($content) !== '') {
+                return $content;
+            }
+        }
+
+        // If no content exists or it's empty, return empty string
+        // Don't use default templates unless explicitly requested
+        return '';
+    }
+
+    /**
      * Enqueue public scripts
      */
     public function enqueue_public_scripts() {
@@ -153,49 +171,27 @@ class Booking_Public {
      * Send confirmation email to customer
      */
     private function send_confirmation_email($booking_data) {
-        // Get email settings - use centralized defaults from admin
-        $email_settings = get_option('booking_email_settings', array(
-            'enable_customer_confirmation' => 1,
-            'customer_confirmation_subject' => __('Konfirmasi Reservasi #{booking_id} - {service_type}', 'archeus-booking'),
-            'customer_confirmation_body' => __('<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #54b335;">Konfirmasi Reservasi Anda</h2>
-        <p>{greeting}</p>
-        <p>Terima kasih telah melakukan reservasi dengan kami. Berikut adalah detail reservasi Anda:</p>
+        // Get email settings - don't use hardcoded defaults
+        $email_settings = get_option('booking_email_settings', array());
 
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
-            <p><strong>ID Reservasi:</strong> {booking_id}</p>
-            <p><strong>Layanan:</strong> {service_type}</p>
-            <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
-            <p><strong>Email:</strong> {customer_email}</p>
-        </div>
-
-        <p>Kami akan menghubungi Anda segera untuk mengkonfirmasi reservasi ini.</p>
-
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
-            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                Email ini dikirim pada {current_date} pukul {current_time}
-            </p>
-        </div>
-    </div>
-</body>
-</html>', 'archeus-booking')
-        ));
-        
         // Check if customer confirmation is enabled
-        if (!$email_settings['enable_customer_confirmation']) {
+        if (empty($email_settings['enable_customer_confirmation'])) {
             return;
         }
-        
+
+        // Get email content using helper function (no defaults)
+        $email_body = $this->get_email_content($email_settings, 'customer_confirmation_body');
+
+        // Check if email body is empty - if so, don't send email
+        if (empty(trim($email_body))) {
+            return;
+        }
+
         $to = isset($booking_data['customer_email']) ? $booking_data['customer_email'] : '';
-        $subject = $this->build_email_subject($booking_data, $email_settings['customer_confirmation_subject']);
-        $message = $this->build_custom_email_content($booking_data, $email_settings['customer_confirmation_body'], 'customer');
+        $subject = $this->build_email_subject($booking_data, isset($email_settings['customer_confirmation_subject']) ? $email_settings['customer_confirmation_subject'] : __('Konfirmasi Reservasi #{booking_id} - {service_type}', 'archeus-booking'));
+        $message = $this->build_custom_email_content($booking_data, $email_body, 'customer');
         $headers = array('Content-Type: text/html; charset=UTF-8');
-        
+
         wp_mail($to, $subject, $message, $headers);
     }
     
@@ -203,49 +199,26 @@ class Booking_Public {
      * Send notification email to admin
      */
     private function send_admin_notification($booking_data) {
-        // Get email settings
-        $email_settings = get_option('booking_email_settings', array(
-            'enable_admin_notification' => 1,
-            'admin_email_address' => get_option('admin_email'),
-            'admin_notification_subject' => __('Reservasi Baru #{booking_id} - {service_type}', 'archeus-booking'),
-            'admin_notification_body' => __('<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #54b335;">Reservasi Baru Diterima</h2>
-        <p>{greeting}</p>
-        <p>Reservasi baru telah masuk dan membutuhkan perhatian Anda. Berikut adalah detail reservasi:</p>
+        // Get email settings - don't use hardcoded defaults
+        $email_settings = get_option('booking_email_settings', array());
 
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
-            <p><strong>ID Reservasi:</strong> {booking_id}</p>
-            <p><strong>Layanan:</strong> {service_type}</p>
-            <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
-            <p><strong>Email Pelanggan:</strong> {customer_email}</p>
-        </div>
-
-        <p>Segera hubungi pelanggan untuk mengkonfirmasi reservasi ini.</p>
-
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666;">Salam admin,<br>{company_name}</p>
-            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                Email ini dikirim pada {current_date} pukul {current_time}
-            </p>
-        </div>
-    </div>
-</body>
-</html>', 'archeus-booking')
-        ));
-        
         // Check if admin notification is enabled
-        if (!$email_settings['enable_admin_notification']) {
+        if (empty($email_settings['enable_admin_notification'])) {
             return;
         }
-        
+
+        // Get email content using helper function (no defaults)
+        $email_body = $this->get_email_content($email_settings, 'admin_notification_body');
+
+        // Check if email body is empty - if so, don't send email
+        if (empty(trim($email_body))) {
+            return;
+        }
+
         // Use custom admin email if set, otherwise use default
         $admin_email = !empty($email_settings['admin_email_address']) ? $email_settings['admin_email_address'] : get_option('admin_email');
-        $subject = $this->build_email_subject($booking_data, $email_settings['admin_notification_subject']);
-        $message = $this->build_custom_email_content($booking_data, $email_settings['admin_notification_body'], 'admin');
+        $subject = $this->build_email_subject($booking_data, isset($email_settings['admin_notification_subject']) ? $email_settings['admin_notification_subject'] : __('Reservasi Baru #{booking_id} - {service_type}', 'archeus-booking'));
+        $message = $this->build_custom_email_content($booking_data, $email_body, 'admin');
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
         wp_mail($admin_email, $subject, $message, $headers);
@@ -269,6 +242,8 @@ class Booking_Public {
         $time_slot = isset($booking_data['time_slot']) ? $booking_data['time_slot'] : '';
 
         // Replace basic tags
+        $booking_id = isset($booking_data['booking_id']) ? $booking_data['booking_id'] : '';
+        $message = str_replace('{booking_id}', $booking_id, $message);
         $message = str_replace('{customer_name}', $display_name, $message);
         $message = str_replace('{customer_email}', $customer_email, $message);
         $message = str_replace('{booking_date}', $booking_date, $message);
@@ -287,9 +262,16 @@ class Booking_Public {
         $message = str_replace('{jenis_layanan}', $service_type, $message);
         $message = str_replace('{slot_waktu}', $time_slot, $message);
 
-        // Additional common Indonesian tags
+        // Company information
+        $message = str_replace('{company_name}', get_bloginfo('name'), $message);
+        $message = str_replace('{company_url}', get_bloginfo('url'), $message);
+        $message = str_replace('{admin_website}', admin_url(), $message);
+        $message = str_replace('{admin_email}', get_option('admin_email'), $message);
+
+        // Indonesian language tags (aliases)
         $message = str_replace('{nama_perusahaan}', get_bloginfo('name'), $message);
         $message = str_replace('{url_perusahaan}', get_bloginfo('url'), $message);
+        $message = str_replace('{url_admin}', admin_url(), $message);
         $message = str_replace('{email_admin}', get_option('admin_email'), $message);
 
         // Status change specific tags (for consistency, though primarily used in admin)
@@ -299,11 +281,6 @@ class Booking_Public {
         if (isset($booking_data['status'])) {
             $message = str_replace('{status}', $booking_data['status'], $message);
         }
-
-        // Company information
-        $message = str_replace('{company_name}', get_bloginfo('name'), $message);
-        $message = str_replace('{company_url}', get_bloginfo('url'), $message);
-        $message = str_replace('{admin_email}', get_option('admin_email'), $message);
 
         // Recipient-specific tags
         if ($recipient_type === 'customer') {
@@ -924,6 +901,7 @@ class Booking_Public {
             'time_slot' => isset($booking_data['booking_time']) ? $booking_data['booking_time'] : '',
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
+            'admin_website' => admin_url(),
             'admin_email' => get_option('admin_email'),
             'current_date' => date('Y-m-d'),
             'current_time' => date('H:i:s'),
@@ -950,6 +928,8 @@ class Booking_Public {
         $subject = str_replace('{slot_waktu}', $data['time_slot'], $subject);
         $subject = str_replace('{nama_perusahaan}', $data['company_name'], $subject);
         $subject = str_replace('{url_perusahaan}', $data['company_url'], $subject);
+        $subject = str_replace('{url_admin}', $data['admin_website'], $subject);
+        $subject = str_replace('{admin_website}', $data['admin_website'], $subject);
         $subject = str_replace('{email_admin}', $data['admin_email'], $subject);
         $subject = str_replace('{current_datetime}', $data['current_datetime'], $subject);
 
