@@ -24,6 +24,8 @@ class Booking_Admin {
         add_action('wp_ajax_delete_service', array($this, 'handle_service_deletion'));
         add_action('wp_ajax_delete_time_slot', array($this, 'handle_time_slot_deletion'));
         add_action('wp_ajax_delete_flow', array($this, 'handle_flow_deletion'));
+        add_action('wp_ajax_create_flow', array($this, 'handle_flow_creation'));
+        add_action('wp_ajax_update_flow', array($this, 'handle_flow_update'));
         add_action('wp_ajax_create_service', array($this, 'handle_service_creation'));
         add_action('wp_ajax_update_service', array($this, 'handle_service_update'));
         add_action('wp_ajax_create_time_slot', array($this, 'handle_time_slot_creation'));
@@ -1362,6 +1364,80 @@ class Booking_Admin {
                     // Show toast notification for time slot deletion
                     if (typeof window.showToast === 'function') {
                         window.showToast('<?php echo esc_js(__('Slot waktu berhasil dihapus!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        // Add inline script for service operations toast notifications
+        if ($current_page === 'archeus-booking-services' && isset($_GET['service_created']) && $_GET['service_created'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Layanan berhasil dibuat!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        if ($current_page === 'archeus-booking-services' && isset($_GET['service_updated']) && $_GET['service_updated'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Layanan berhasil diperbarui!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        if ($current_page === 'archeus-booking-services' && isset($_GET['service_deleted']) && $_GET['service_deleted'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Layanan berhasil dihapus!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        // Add inline script for booking flow operations toast notifications
+        if ($current_page === 'archeus-booking-flow' && isset($_GET['flow_created']) && $_GET['flow_created'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Alur pemesanan berhasil dibuat!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        if ($current_page === 'archeus-booking-flow' && isset($_GET['flow_updated']) && $_GET['flow_updated'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Alur pemesanan berhasil diperbarui!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
+        }
+
+        if ($current_page === 'archeus-booking-flow' && isset($_GET['flow_deleted']) && $_GET['flow_deleted'] === '1') {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Alur pemesanan berhasil dihapus!', 'archeus-booking')); ?>', 'success');
                     }
                 });
             </script>
@@ -2745,6 +2821,127 @@ class Booking_Admin {
     }
 
     /**
+     * Handle flow creation via AJAX
+     */
+    public function handle_flow_creation() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $flow_name = sanitize_text_field($_POST['flow_name']);
+        $flow_description = sanitize_textarea_field($_POST['flow_description']);
+
+        // Process sections
+        $sections = array();
+        $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
+        $names_arr = isset($_POST['section_names']) ? $_POST['section_names'] : (isset($_POST['step_names']) ? $_POST['step_names'] : array());
+        $req_arr   = isset($_POST['section_required']) ? $_POST['section_required'] : (isset($_POST['step_required']) ? $_POST['step_required'] : array());
+        $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
+        $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
+
+        if (is_array($types_arr)) {
+            foreach ($types_arr as $index => $type) {
+                if (!empty($type)) {
+                    $section = array(
+                        'type' => sanitize_text_field($type),
+                        'name' => sanitize_text_field($names_arr[$index] ?? ''),
+                        'required' => isset($req_arr[$index]) ? 1 : 0
+                    );
+                    if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
+                    if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
+                    $section['section_name'] = $section['name'];
+                    $sections[] = $section;
+                }
+            }
+        }
+
+        // Create new flow
+        $booking_db = new Booking_Database();
+        $result = $booking_db->create_booking_flow($flow_name, $flow_description, $sections);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Booking flow created successfully.', 'archeus-booking'),
+                'redirect_url' => admin_url('admin.php?page=archeus-booking-flow')
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Error creating booking flow.', 'archeus-booking')
+            ));
+        }
+    }
+
+    /**
+     * Handle flow update via AJAX
+     */
+    public function handle_flow_update() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $flow_id = intval($_POST['flow_id']);
+        $flow_name = sanitize_text_field($_POST['flow_name']);
+        $flow_description = sanitize_textarea_field($_POST['flow_description']);
+
+        // Process sections
+        $sections = array();
+        $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
+        $names_arr = isset($_POST['section_names']) ? $_POST['section_names'] : (isset($_POST['step_names']) ? $_POST['step_names'] : array());
+        $req_arr   = isset($_POST['section_required']) ? $_POST['section_required'] : (isset($_POST['step_required']) ? $_POST['step_required'] : array());
+        $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
+        $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
+
+        if (is_array($types_arr)) {
+            foreach ($types_arr as $index => $type) {
+                if (!empty($type)) {
+                    $section = array(
+                        'type' => sanitize_text_field($type),
+                        'name' => sanitize_text_field($names_arr[$index] ?? ''),
+                        'required' => isset($req_arr[$index]) ? 1 : 0
+                    );
+                    if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
+                    if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
+                    $section['section_name'] = $section['name'];
+                    $sections[] = $section;
+                }
+            }
+        }
+
+        // Update existing flow
+        $booking_db = new Booking_Database();
+        $result = $booking_db->update_booking_flow($flow_id, $flow_name, $flow_description, $sections);
+
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => __('Booking flow updated successfully.', 'archeus-booking'),
+                'redirect_url' => admin_url('admin.php?page=archeus-booking-flow')
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Error updating booking flow.', 'archeus-booking')
+            ));
+        }
+    }
+
+    /**
      * Handle form creation via AJAX
      */
     public function handle_form_creation() {
@@ -3853,6 +4050,21 @@ class Booking_Admin {
      */
     public function services_page() {
         $booking_db = new Booking_Database();
+
+        // Show success message if service was created
+        if (isset($_GET['service_created']) && $_GET['service_created'] === '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Layanan berhasil dibuat!', 'archeus-booking') . '</p></div>';
+        }
+
+        // Show success message if service was updated
+        if (isset($_GET['service_updated']) && $_GET['service_updated'] === '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Layanan berhasil diperbarui!', 'archeus-booking') . '</p></div>';
+        }
+
+        // Show success message if service was deleted
+        if (isset($_GET['service_deleted']) && $_GET['service_deleted'] === '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Layanan berhasil dihapus!', 'archeus-booking') . '</p></div>';
+        }
         
         // Handle form submission for adding/updating services
         if (isset($_POST['save_service']) && wp_verify_nonce($_POST['service_nonce'], 'save_service_action')) {
@@ -3872,9 +4084,17 @@ class Booking_Admin {
                 $result = $booking_db->create_service($name, $description, $price, $duration, $is_active);
                 $message = $result ? __('Service created successfully.', 'archeus-booking') : __('Error creating service.', 'archeus-booking');
             }
-            
+
             if ($result) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
+                // Redirect to empty form after successful creation/update
+                $redirect_url = admin_url('admin.php?page=archeus-booking-services');
+                if ($service_id > 0) {
+                    $redirect_url = add_query_arg('service_updated', '1', $redirect_url);
+                } else {
+                    $redirect_url = add_query_arg('service_created', '1', $redirect_url);
+                }
+                wp_redirect($redirect_url);
+                exit;
             } else {
                 echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
             }
@@ -3884,13 +4104,15 @@ class Booking_Admin {
         if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['service_id'])) {
             $service_id = intval($_GET['service_id']);
             $result = $booking_db->delete_service($service_id);
-            $message = $result ? __('Service deleted successfully.', 'archeus-booking') : __('Error deleting service.', 'archeus-booking');
-            
+
+            // Redirect to empty form after deletion
+            $redirect_url = admin_url('admin.php?page=archeus-booking-services');
             if ($result) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
-            } else {
-                echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
+                $redirect_url = add_query_arg('service_deleted', '1', $redirect_url);
             }
+
+            wp_redirect($redirect_url);
+            exit;
         }
         
         // Get service data for editing
@@ -4412,67 +4634,6 @@ class Booking_Admin {
     public function booking_flow_page() {
         $booking_db = new Booking_Database();
         
-        // Handle form submission for adding/updating booking flows
-        if (isset($_POST['save_booking_flow']) && wp_verify_nonce($_POST['booking_flow_nonce'], 'save_booking_flow_action')) {
-            $flow_id = isset($_POST['flow_id']) ? intval($_POST['flow_id']) : 0;
-            $flow_name = sanitize_text_field($_POST['flow_name']);
-            $flow_description = sanitize_textarea_field($_POST['flow_description']);
-            
-            // Process sections (replaces legacy steps)
-            $sections = array();
-            $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
-            $names_arr = isset($_POST['section_names']) ? $_POST['section_names'] : (isset($_POST['step_names']) ? $_POST['step_names'] : array());
-            $req_arr   = isset($_POST['section_required']) ? $_POST['section_required'] : (isset($_POST['step_required']) ? $_POST['step_required'] : array());
-            $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
-            $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
-
-            if (is_array($types_arr)) {
-                foreach ($types_arr as $index => $type) {
-                    if (!empty($type)) {
-                        $section = array(
-                            'type' => sanitize_text_field($type),
-                            'name' => sanitize_text_field($names_arr[$index] ?? ''),
-                            'required' => isset($req_arr[$index]) ? 1 : 0
-                        );
-                        if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
-                        if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
-                        $section['section_name'] = $section['name'];
-                        $sections[] = $section;
-                    }
-                }
-            }
-            
-            // Save to database
-            if ($flow_id > 0) {
-                // Update existing flow
-                $result = $booking_db->update_booking_flow($flow_id, $flow_name, $flow_description, $sections);
-                $message = $result ? __('Booking flow updated successfully.', 'archeus-booking') : __('Error updating booking flow.', 'archeus-booking');
-            } else {
-                // Create new flow
-                $result = $booking_db->create_booking_flow($flow_name, $flow_description, $sections);
-                $message = $result ? __('Booking flow created successfully.', 'archeus-booking') : __('Error creating booking flow.', 'archeus-booking');
-            }
-            
-            if ($result) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
-            } else {
-                echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
-            }
-        }
-        
-        // Handle flow deletion
-        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['flow_id'])) {
-            $flow_id = intval($_GET['flow_id']);
-            $result = $booking_db->delete_booking_flow($flow_id);
-            $message = $result ? __('Booking flow deleted successfully.', 'archeus-booking') : __('Error deleting booking flow.', 'archeus-booking');
-            
-            if ($result) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
-            } else {
-                echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
-            }
-        }
-        
         // Get flow data for editing
         $edit_flow = null;
         if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['flow_id'])) {
@@ -4533,9 +4694,10 @@ class Booking_Admin {
                 <div class="booking-flow-form admin-card">
                     <h2><?php echo $edit_flow ? __('Ubah Booking Flow', 'archeus-booking') : __('Tambah Booking Flow', 'archeus-booking'); ?></h2>
                     
-                    <form method="post" action="" class="settings-form">
+                    <form method="post" action="" class="settings-form" id="booking-flow-form">
                         <?php wp_nonce_field('save_booking_flow_action', 'booking_flow_nonce'); ?>
                         <input type="hidden" name="flow_id" value="<?php echo $edit_flow ? esc_attr($edit_flow->id) : ''; ?>">
+                        <input type="hidden" name="action" value="<?php echo $edit_flow ? 'update_flow' : 'create_flow'; ?>">
                         
                         <table class="form-table">
                             <tr>
@@ -4586,12 +4748,98 @@ class Booking_Admin {
                             <button type="button" id="add-section-btn" class="button button-secondary add-section"><span class="dashicons dashicons-plus"></span><?php _e('Tambah Bagian', 'archeus-booking'); ?></button>
                         </div>
                         
-                        <?php submit_button($edit_flow ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_booking_flow'); ?>
+                        <button type="button" id="save-booking-flow" class="button button-primary"><?php echo $edit_flow ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'); ?></button>
                     </form>
-                    
+
                     <script>
+                        jQuery(document).ready(function($) {
+                            var sectionIndex = <?php echo $section_count; ?>;
+
+                            // Handle form submission via AJAX
+                            $('#save-booking-flow').on('click', function(e) {
+                                e.preventDefault();
+
+                                var form = $('#booking-flow-form');
+                                var submitBtn = $(this);
+                                var originalText = submitBtn.text();
+
+                                // Disable button and show loading state
+                                submitBtn.prop('disabled', true).text('<?php _e('Menyimpan...', 'archeus-booking'); ?>');
+
+                                // Collect form data
+                                var formData = new FormData(form[0]);
+                                formData.append('nonce', '<?php echo wp_create_nonce('archeus_booking_admin_nonce'); ?>');
+
+                                // Determine AJAX action
+                                var action = form.find('input[name="action"]').val();
+
+                                $.ajax({
+                                    type: 'POST',
+                                    url: ajaxurl,
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function(response) {
+                                        if (response.success) {
+                                            showToast(response.data.message, 'success');
+                                            // Redirect to empty form after successful save
+                                            setTimeout(function() {
+                                                window.location.href = response.data.redirect_url;
+                                            }, 1500);
+                                        } else {
+                                            showToast(response.data.message, 'error');
+                                            submitBtn.prop('disabled', false).text(originalText);
+                                        }
+                                    },
+                                    error: function() {
+                                        showToast('<?php _e('Terjadi kesalahan. Silakan coba lagi.', 'archeus-booking'); ?>', 'error');
+                                        submitBtn.prop('disabled', false).text(originalText);
+                                    }
+                                });
+                            });
+
+                            // Note: Flow deletion is handled by admin.js event delegation
+                            // The showDeleteConfirm function in admin.js will handle the confirmation dialog
+                            // We just need to ensure the button has proper data attributes
+                        });
+
+                        // Define flow delete handler function for the dialog system
+                        window.handleFlowDelete = function(deleteBtn, flowId) {
+                            console.log('handleFlowDelete called with:', { flowId });
+
+                            // Show loading overlay
+                            var $overlay = $('<div class="ab-loading-overlay" style="position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;"><div class="ab-loading-spinner" style="width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;"></div><div class="ab-loading-text" style="margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;">Menghapus flow...</div></div>').appendTo('body');
+
+                            jQuery.ajax({
+                                type: 'POST',
+                                url: ajaxurl,
+                                data: {
+                                    action: 'delete_flow',
+                                    flow_id: flowId,
+                                    nonce: '<?php echo wp_create_nonce('archeus_booking_admin_nonce'); ?>'
+                                },
+                                success: function(response) {
+                                    $overlay.remove();
+                                    if (response.success) {
+                                        showToast(response.data.message, 'success');
+                                        // Redirect to empty form after successful deletion
+                                        setTimeout(function() {
+                                            window.location.href = '<?php echo admin_url('admin.php?page=archeus-booking-flow'); ?>';
+                                        }, 1000);
+                                    } else {
+                                        showToast(response.data.message, 'error');
+                                    }
+                                },
+                                error: function() {
+                                    $overlay.remove();
+                                    showToast('<?php _e('Terjadi kesalahan. Silakan coba lagi.', 'archeus-booking'); ?>', 'error');
+                                }
+                            });
+                        };
+
+                        // Define functions in global scope
                         var sectionIndex = <?php echo $section_count; ?>;
-                        
+
                         function updateSectionNumbers() {
                             jQuery('.section-item').each(function(index) {
                                 jQuery(this).find('h4').html(
@@ -4603,7 +4851,7 @@ class Booking_Admin {
                                 );
                             });
                         }
-                        
+
                         function attachRemoveEvents() {
                             // Use event delegation for dynamically added elements
                             jQuery(document).on('click', '.remove-step', function() {
@@ -4616,7 +4864,30 @@ class Booking_Admin {
                                 }
                             });
                         }
-                        
+
+                        function attachSectionTypeEvents() {
+                            // Use event delegation for dynamically added elements
+                            jQuery(document).on('change', '.section-type-select', function() {
+                                var selectedType = jQuery(this).val();
+                                var stepContainer = jQuery(this).closest('.section-item');
+
+                                // Hide all conditional rows
+                                stepContainer.find('.form-id-row').hide();
+
+                                // Show relevant rows based on selection
+                                if (selectedType === 'form') {
+                                    stepContainer.find('.form-id-row').show();
+                                }
+                            });
+
+                            // Trigger change event to show correct rows for existing selections
+                            jQuery('.section-type-select').each(function() {
+                                if (jQuery(this).val()) {
+                                    jQuery(this).trigger('change');
+                                }
+                            });
+                        }
+
                         jQuery(document).ready(function($) {
                             // Add section button functionality
                             $('#add-section-btn').click(function() {
@@ -4673,7 +4944,9 @@ class Booking_Admin {
                                 $('#sections-container').append(sectionHtml);
 
                                 // Initialize custom dropdowns for the newly added section
-                                enhanceAbDropdowns($('#sections-container').find('.section-item').last());
+                                if (typeof enhanceAbDropdowns === 'function') {
+                                    enhanceAbDropdowns($('#sections-container').find('.section-item').last());
+                                }
 
                                 // Event delegation handles all elements (existing and new), no need to attach events individually
                                 // Update section numbers to ensure proper numbering
@@ -4683,35 +4956,14 @@ class Booking_Admin {
                             });
                             
                             // Initialize custom dropdowns for existing sections
-                            enhanceAbDropdowns();
+                            if (typeof enhanceAbDropdowns === 'function') {
+                                enhanceAbDropdowns();
+                            }
 
                             // Attach events for existing sections
                             attachRemoveEvents();
                             attachSectionTypeEvents();
                         });
-                        
-                        function attachSectionTypeEvents() {
-                            // Use event delegation for dynamically added elements
-                            jQuery(document).on('change', '.section-type-select', function() {
-                                var selectedType = jQuery(this).val();
-                                var stepContainer = jQuery(this).closest('.section-item');
-
-                                // Hide all conditional rows
-                                stepContainer.find('.form-id-row').hide();
-
-                                // Show relevant rows based on selection
-                                if (selectedType === 'form') {
-                                    stepContainer.find('.form-id-row').show();
-                                }
-                            });
-
-                            // Trigger change event to show correct rows for existing selections
-                            jQuery('.section-type-select').each(function() {
-                                if (jQuery(this).val()) {
-                                    jQuery(this).trigger('change');
-                                }
-                            });
-                        }
                     </script>
                 </div>
                 
@@ -4764,11 +5016,12 @@ class Booking_Admin {
                     <?php endif; ?>
                 </div>
             </div>
-            
+
         </div>
+
         <?php
     }
-    
+
     /**
      * Helper function to render individual section form
      */

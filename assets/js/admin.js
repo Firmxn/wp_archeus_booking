@@ -2166,11 +2166,11 @@ jQuery(document).ready(function ($) {
           $button.removeAttr('data-delete-handled');
           $button.removeAttr('data-delete-pending');
 
-          // Remove the row with animation
-          $row.fadeOut(300, function() {
-            $(this).remove();
-            showToast(response.data.message, 'success');
-          });
+          // Show success message and redirect to empty form
+          showToast(response.data.message, 'success');
+          setTimeout(function() {
+            window.location.href = window.location.pathname + '?page=archeus-booking-services';
+          }, 1000);
         } else {
           showToast(response.data.message, 'error');
           $button.prop('disabled', false);
@@ -2276,11 +2276,11 @@ jQuery(document).ready(function ($) {
           $button.removeAttr('data-delete-handled');
           $button.removeAttr('data-delete-pending');
 
-          // Remove the row with animation
-          $row.fadeOut(300, function() {
-            $(this).remove();
-            showToast(response.data.message, 'success');
-          });
+          // Show success message and redirect to empty form
+          showToast(response.data.message, 'success');
+          setTimeout(function() {
+            window.location.href = window.location.pathname + '?page=archeus-booking-flow';
+          }, 1000);
         } else {
           showToast(response.data.message, 'error');
           $button.prop('disabled', false);
@@ -2526,18 +2526,10 @@ jQuery(document).ready(function ($) {
           // Show success toast
           showToast(response.data.message, 'success');
 
-          // If creating new service, redirect to edit page or refresh
-          if (!isUpdate && response.data.service_id) {
-            // Option 1: Redirect to edit page
-            setTimeout(function() {
-              window.location.href = window.location.href + '&action=edit&service_id=' + response.data.service_id;
-            }, 1500);
-          } else {
-            // Option 2: Just refresh the page for updates
-            setTimeout(function() {
-              window.location.reload();
-            }, 1500);
-          }
+          // Redirect to empty form after creation/update
+          setTimeout(function() {
+            window.location.href = window.location.pathname + '?page=archeus-booking-services';
+          }, 1500);
         } else {
           showToast(response.data.message, 'error');
           $submitBtn.prop('disabled', false);
