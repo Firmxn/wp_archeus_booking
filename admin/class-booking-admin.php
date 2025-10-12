@@ -1956,6 +1956,32 @@ class Booking_Admin {
      * Find customer email from booking data
      */
     private function find_customer_email($booking) {
+        // First check if customer_email is already available
+        if (!empty($booking->customer_email) && is_email($booking->customer_email)) {
+            return $booking->customer_email;
+        }
+
+        // Check payload data
+        if (!empty($booking->payload)) {
+            $payload_data = json_decode($booking->payload, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($payload_data)) {
+                // Check common email field names
+                $email_fields = array('customer_email', 'email', 'email_address', 'alamat_email', 'e-mail');
+                foreach ($email_fields as $field) {
+                    if (isset($payload_data[$field]) && !empty($payload_data[$field]) && is_email($payload_data[$field])) {
+                        return $payload_data[$field];
+                    }
+                }
+
+                // Also check all values in payload for email pattern
+                foreach ($payload_data as $key => $value) {
+                    if (is_string($value) && is_email($value)) {
+                        return $value;
+                    }
+                }
+            }
+        }
+
         // Check additional fields if available
         if (!empty($booking->additional_fields)) {
             $additional_fields = maybe_unserialize($booking->additional_fields);

@@ -101,6 +101,9 @@ class Booking_Plugin {
                 $db_instance->ensure_flow_id_column_all_flows();
             }
         }
+
+        // Ensure email settings are properly configured
+        self::ensure_email_settings();
         if (class_exists('Booking_Shortcodes')) {
             new Booking_Shortcodes();
         }
@@ -145,6 +148,38 @@ class Booking_Plugin {
     }
 
     /**
+     * Ensure email settings are properly configured
+     */
+    public static function ensure_email_settings() {
+        $email_settings = get_option('booking_email_settings');
+
+        // If email settings don't exist or are incomplete, set defaults
+        if (!$email_settings || !isset($email_settings['enable_status_change_emails'])) {
+            $default_settings = array(
+                'enable_customer_confirmation' => 1,
+                'enable_admin_notification' => 1,
+                'enable_status_change_emails' => 1,
+                'admin_email_address' => get_option('admin_email'),
+                'customer_confirmation_subject' => 'Booking Confirmation - #{booking_id}',
+                'customer_confirmation_body' => '<p>Dear {customer_name},</p><p>Thank you for your booking. Here are your booking details:</p><p><strong>Booking ID:</strong> #{booking_id}<br><strong>Service:</strong> {service_type}<br><strong>Date:</strong> {booking_date}<br><strong>Time:</strong> {booking_time}</p><p>We will confirm your booking shortly.</p>',
+                'admin_notification_subject' => 'New Booking Received - #{booking_id}',
+                'admin_notification_body' => '<p>A new booking has been received:</p><p><strong>Booking ID:</strong> #{booking_id}<br><strong>Customer:</strong> {customer_name}<br><strong>Email:</strong> {customer_email}<br><strong>Service:</strong> {service_type}<br><strong>Date:</strong> {booking_date}<br><strong>Time:</strong> {booking_time}</p>',
+                'status_change_subject' => 'Booking Status Update - #{booking_id}',
+                'status_change_body' => '<p>Dear {customer_name},</p><p>Your booking status has been updated to: <strong>{new_status}</strong></p><p><strong>Booking ID:</strong> #{booking_id}<br><strong>Service:</strong> {service_type}<br><strong>Date:</strong> {booking_date}<br><strong>Time:</strong> {booking_time}</p>'
+            );
+
+            // Merge with existing settings if any
+            if ($email_settings && is_array($email_settings)) {
+                $email_settings = array_merge($default_settings, $email_settings);
+            } else {
+                $email_settings = $default_settings;
+            }
+
+            update_option('booking_email_settings', $email_settings);
+        }
+    }
+
+    /**
      * Run on plugin activation
      */
     public static function activate() {
@@ -160,6 +195,25 @@ class Booking_Plugin {
             $time_slots_manager = new Time_Slots_Manager();
             $time_slots_manager->create_tables();
         }
+
+        // Set default email settings if not already set
+        $email_settings = get_option('booking_email_settings');
+        if (!$email_settings) {
+            $default_email_settings = array(
+                'enable_customer_confirmation' => 1,
+                'enable_admin_notification' => 1,
+                'enable_status_change_emails' => 1,
+                'admin_email_address' => get_option('admin_email'),
+                'customer_confirmation_subject' => 'Booking Confirmation - #{booking_id}',
+                'customer_confirmation_body' => '<p>Dear {customer_name},</p><p>Thank you for your booking. Here are your booking details:</p><p><strong>Booking ID:</strong> #{booking_id}<br><strong>Service:</strong> {service_type}<br><strong>Date:</strong> {booking_date}<br><strong>Time:</strong> {booking_time}</p><p>We will confirm your booking shortly.</p>',
+                'admin_notification_subject' => 'New Booking Received - #{booking_id}',
+                'admin_notification_body' => '<p>A new booking has been received:</p><p><strong>Booking ID:</strong> #{booking_id}<br><strong>Customer:</strong> {customer_name}<br><strong>Email:</strong> {customer_email}<br><strong>Service:</strong> {service_type}<br><strong>Date:</strong> {booking_date}<br><strong>Time:</strong> {booking_time}</p>',
+                'status_change_subject' => 'Booking Status Update - #{booking_id}',
+                'status_change_body' => '<p>Dear {customer_name},</p><p>Your booking status has been updated to: <strong>{new_status}</strong></p><p><strong>Booking ID:</strong> #{booking_id}<br><strong>Service:</strong> {service_type}<br><strong>Date:</strong> {booking_date}<br><strong>Time:</strong> {booking_time}</p>'
+            );
+            update_option('booking_email_settings', $default_email_settings);
+        }
+
         flush_rewrite_rules();
     }
 
