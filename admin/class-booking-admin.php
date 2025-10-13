@@ -567,7 +567,7 @@ class Booking_Admin {
         }
         ?>
         <div class="wrap booking-admin-page">
-            <h1 class="title-page"><?php _e('Booking Form (Formulir Reservasi)', 'archeus-booking'); ?></h1>
+            <h1 class="title-page"><?php _e('Form Builder (Pembuatan Formulir)', 'archeus-booking'); ?></h1>
             <?php
             $flows = method_exists($booking_db, 'get_booking_flows') ? (array) $booking_db->get_booking_flows() : array();
             $first_id = 1;

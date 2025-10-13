@@ -228,9 +228,9 @@ class Booking_Shortcodes {
                                 ?>
                                 <div class="booking-calendar-container">
                                     <div class="booking-calendar-header">
-                                        <button class="calendar-nav-btn prev-month" data-month="<?php echo esc_attr($month-1); ?>" data-year="<?php echo esc_attr($month == 1 ? $year-1 : $year); ?>">&laquo; <?php echo esc_html__('Sebelumnya', 'archeus-booking'); ?></button>
+                                        <button class="calendar-nav-btn prev-month" data-month="<?php echo esc_attr($month-1); ?>" data-year="<?php echo esc_attr($month == 1 ? $year-1 : $year); ?>">&laquo; <?php echo esc_html__('', 'archeus-booking'); ?></button>
                                         <h3 class="current-month"><?php $names = array('Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'); echo esc_html($names[$month-1] . ' ' . $year); ?></h3>
-                                        <button class="calendar-nav-btn next-month" data-month="<?php echo esc_attr($month+1); ?>" data-year="<?php echo esc_attr($month == 12 ? $year+1 : $year); ?>"><?php echo esc_html__('Berikutnya', 'archeus-booking'); ?> &raquo;</button>
+                                        <button class="calendar-nav-btn next-month" data-month="<?php echo esc_attr($month+1); ?>" data-year="<?php echo esc_attr($month == 12 ? $year+1 : $year); ?>"><?php echo esc_html__('', 'archeus-booking'); ?> &raquo;</button>
                                     </div>
                                     <div class="booking-calendar">
                                         <div class="calendar-weekdays">

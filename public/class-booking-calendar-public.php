@@ -93,9 +93,9 @@ class Booking_Calendar_Public {
         ?>
         <div class="booking-calendar-container">
             <div class="booking-calendar-header">
-                <button class="calendar-nav-btn prev-month" data-month="<?php echo $month-1; ?>" data-year="<?php echo $month == 1 ? $year-1 : $year; ?>">&laquo; <?php echo esc_html__('Sebelumnya', 'archeus-booking'); ?></button>
+                <button class="calendar-nav-btn prev-month" data-month="<?php echo $month-1; ?>" data-year="<?php echo $month == 1 ? $year-1 : $year; ?>">&laquo; <?php echo esc_html__('', 'archeus-booking'); ?></button>
                 <h3 class="current-month"><?php echo date_i18n('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></h3>
-                <button class="calendar-nav-btn next-month" data-month="<?php echo $month+1; ?>" data-year="<?php echo $month == 12 ? $year+1 : $year; ?>"><?php echo esc_html__('Berikutnya', 'archeus-booking'); ?> &raquo;</button>
+                <button class="calendar-nav-btn next-month" data-month="<?php echo $month+1; ?>" data-year="<?php echo $month == 12 ? $year+1 : $year; ?>"><?php echo esc_html__('', 'archeus-booking'); ?> &raquo;</button>
             </div>
 
             <div class="booking-calendar">

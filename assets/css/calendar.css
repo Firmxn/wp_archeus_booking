@@ -35,19 +35,19 @@
 }
 
 .booking-calendar.loading {
-  opacity: 0.6 ;
+  opacity: 0.6;
   pointer-events: none;
 }
 
 .calendar-nav-btn {
   background-color: var(--primary-color) !important;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-weight: 500;
-  transition: var(--transition);
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  transition: var(--transition) !important;
 }
 
 .calendar-nav-btn:hover {
@@ -77,7 +77,6 @@
   text-align: center;
   font-weight: 600;
   padding: 10px 0;
-  /* background-color: var(--primary-color); */
   background-color: #54b335;
   color: white;
   margin-bottom: 16px;
@@ -122,13 +121,9 @@
 }
 
 .calendar-day.available:hover {
-  background-color: #629e40; /* Lighter green for hover */
+  background-color: #629e40;
   transform: scale(1.05);
   color: white;
-}
-
-.calendar-day.selected-date:hover {
-  background-color: #629e40; /* Warna lebih gelap untuk hover */
 }
 
 .calendar-day.unavailable {
@@ -159,7 +154,7 @@
 }
 
 .calendar-day.selected-date {
-  background-color: #54b335;
+  background-color: var(--primary-color);
   color: #ffffff !important;
 }
 
@@ -175,7 +170,7 @@
 }
 
 .calendar-legend {
-    margin: 20px;
+  margin: 20px;
 }
 
 .calendar-legend h4 {
@@ -232,3 +227,8 @@
 .legend-color.selected-date {
   background-color: #54b335 !important;
 }
+
+
+
+
+
