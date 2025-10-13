@@ -1765,12 +1765,15 @@ select.ab-hidden-select {
 }
 
 /* Special handling for dropdown menu in form-fields-builder to escape overflow */
-.form-fields-builder .ab-dd .ab-dd-menu {
+.form-fields-builder .ab-dd .ab-dd-menu,
+.table-overflow .ab-dd .ab-dd-menu,
+.widefat .ab-dd .ab-dd-menu {
   position: absolute !important;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   background: white !important;
   border: 1px solid #e5e7eb !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  min-width: 200px !important;
 }
 
 /* Ensure all dropdown items are visible and properly sized */
@@ -2615,6 +2618,8 @@ select.ab-hidden-select {
   clip: none !important;
   clip-path: none !important;
   overflow: visible !important;
+  position: fixed !important;
+  z-index: 999999 !important;
 }
 
 /* Additional override for any parent container constraints */

@@ -1151,18 +1151,16 @@ jQuery(document).ready(function ($) {
         $wrap.addClass("open");
         $btn.attr("aria-expanded", "true");
 
-        // Handle positioning for dropdown in overflow container
+        // Always check for positioning to escape overflow containers
         setTimeout(function() {
-          if ($wrap.closest('.form-fields-builder.table-overflow').length > 0) {
-            positionDropdown($menu, $btn);
-          }
+          positionDropdown($menu, $btn);
         }, 10);
       }
 
       // Smart dropdown positioning to escape overflow containers
       function positionDropdown($menu, $btn) {
         try {
-          var $formBuilder = $wrap.closest('.form-fields-builder');
+          var $formBuilder = $wrap.closest('.form-fields-builder, .table-overflow, .widefat, .admin-card-body');
           var isInOverflow = $formBuilder.length > 0;
 
           if (isInOverflow) {
@@ -1189,25 +1187,36 @@ jQuery(document).ready(function ($) {
               }
             }
 
+            // Ensure the dropdown is visible and properly positioned
             $menu.css({
               position: 'fixed',
               left: left + 'px',
               top: top + 'px',
               width: '200px',
-              maxHeight: (viewportHeight - top - 10) + 'px'
+              maxHeight: (viewportHeight - top - 10) + 'px',
+              zIndex: 999999
             });
           } else {
             // Use normal absolute positioning for non-overflow containers
             $menu.css({
+              position: 'absolute',
+              left: '0',
+              top: 'calc(100% + 6px)',
               width: 'auto',
-              minWidth: '200px'
+              minWidth: '200px',
+              zIndex: 99999
             });
           }
         } catch (e) {
+          console.error('Dropdown positioning error:', e);
           // Fallback to simple positioning
           $menu.css({
+            position: 'absolute',
+            left: '0',
+            top: 'calc(100% + 6px)',
             width: 'auto',
-            minWidth: '200px'
+            minWidth: '200px',
+            zIndex: 99999
           });
         }
       }
