@@ -24,7 +24,7 @@ if (!headers_sent() && !ob_get_level()) {
 
 // Define plugin constants using __FILE__ directly instead of functions that might not be available yet
 if (!defined('ARCHEUS_BOOKING_VERSION')) {
-    define('ARCHEUS_BOOKING_VERSION', '1.0.0.' . time());
+    define('ARCHEUS_BOOKING_VERSION', '1.0.0');
 }
 
 // Define paths early so other files can use them
