@@ -3249,17 +3249,26 @@ class Booking_Admin {
             error_log('Form Update Debug - field_keys (old): ' . (isset($_POST['field_keys']) ? print_r($_POST['field_keys'], true) : 'NOT SET'));
             error_log('Form Update Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
 
-            foreach ($_POST['field_keys_input'] as $key => $new_key) {
+            foreach ($_POST['field_keys_input'] as $old_key => $new_key) {
                 if (empty($new_key)) continue;
 
-                // Use the new key for all field data lookups
-                $label = isset($_POST['field_labels'][$new_key]) ? sanitize_text_field($_POST['field_labels'][$new_key]) : $new_key;
-                $type = isset($_POST['field_types'][$new_key]) ? sanitize_text_field($_POST['field_types'][$new_key]) : 'text';
+                error_log('Form Update Debug - Processing: old_key=' . $old_key . ', new_key=' . $new_key);
 
-                // Strict validation for required field - use new key for required lookup
-                if (isset($_POST['field_required'][$new_key])) {
-                    $raw_value = $_POST['field_required'][$new_key];
-                    error_log('Form Update Debug - Field ' . $new_key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
+                // Process the new key (sanitization)
+                $new_key = strtolower($new_key);
+                $new_key = preg_replace('/[^a-z0-9]+/u', '_', $new_key);
+                $new_key = trim($new_key, '_');
+                if ($new_key === '') { $new_key = $old_key; }
+                if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
+
+                // Use the OLD key for data lookups (data is still indexed by old key)
+                $label = isset($_POST['field_labels'][$old_key]) ? sanitize_text_field($_POST['field_labels'][$old_key]) : $new_key;
+                $type = isset($_POST['field_types'][$old_key]) ? sanitize_text_field($_POST['field_types'][$old_key]) : 'text';
+
+                // Strict validation for required field - use OLD key for required lookup
+                if (isset($_POST['field_required'][$old_key])) {
+                    $raw_value = $_POST['field_required'][$old_key];
+                    error_log('Form Update Debug - Field ' . $old_key . ' -> ' . $new_key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
 
                     $str_value = (string)$raw_value;
                     if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
@@ -3267,17 +3276,17 @@ class Booking_Admin {
                     } else {
                         $required = 0;
                     }
-                    error_log('Form Update Debug - Field ' . $new_key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
+                    error_log('Form Update Debug - Field ' . $old_key . ' -> ' . $new_key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
                 } else {
                     $required = 0;
-                    error_log('Form Update Debug - Field ' . $new_key . ' not found in field_required array, setting to 0');
+                    error_log('Form Update Debug - Field ' . $old_key . ' -> ' . $new_key . ' not found in field_required array, setting to 0');
                 }
 
-                $placeholder = isset($_POST['field_placeholders'][$new_key]) ? sanitize_text_field($_POST['field_placeholders'][$new_key]) : '';
+                $placeholder = isset($_POST['field_placeholders'][$old_key]) ? sanitize_text_field($_POST['field_placeholders'][$old_key]) : '';
 
                 $options = array();
-                if ($type === 'select' && isset($_POST['field_options'][$new_key])) {
-                    $raw = wp_unslash($_POST['field_options'][$new_key]);
+                if ($type === 'select' && isset($_POST['field_options'][$old_key])) {
+                    $raw = wp_unslash($_POST['field_options'][$old_key]);
                     $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
                     foreach ($lines as $line) {
                         $opt = trim($line);
