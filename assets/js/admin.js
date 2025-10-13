@@ -2085,18 +2085,16 @@ jQuery(document).ready(function ($) {
   function autoDetectFieldKey(label) {
     var labelLower = label.toLowerCase();
 
-    // Primary name detection patterns (must be more specific to avoid false positives)
-    var primaryNamePatterns = [
+    // Name detection patterns
+    var namePatterns = [
       'nama lengkap', 'full name', 'complete name', 'customer name',
       'nama lengkap anda', 'your full name', 'nama customer', 'nama pelanggan',
       'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name',
-      'nama pemesan', 'pemesan nama', 'nama pembeli', 'nama klien'
+      'nama pemesan', 'pemesan nama', 'nama pembeli', 'nama klien',
+      'nama', 'name'
     ];
 
-    // Exact match patterns for single words (only if the entire label matches exactly)
-    var exactNamePatterns = []; // Removed single words to prevent false positives
-
-    // Email detection patterns (more specific to avoid false positives)
+    // Email detection patterns
     var emailPatterns = [
       'email address', 'e-mail address', 'email anda', 'your email',
       'alamat email', 'email customer', 'email pelanggan',
@@ -2104,21 +2102,27 @@ jQuery(document).ready(function ($) {
       'alamat email anda', 'your email address'
     ];
 
-    // Check primary name patterns first (these are phrases that should always be detected)
-    for (var i = 0; i < primaryNamePatterns.length; i++) {
-      if (labelLower.indexOf(primaryNamePatterns[i]) !== -1) {
-        return 'customer_name';
+    // Check name patterns
+    for (var i = 0; i < namePatterns.length; i++) {
+      var pattern = namePatterns[i];
+      if (pattern === 'nama' || pattern === 'name') {
+        // Only exact match for single words
+        if (labelLower === pattern) {
+          return 'customer_name';
+        }
+      } else {
+        // For phrases, use indexOf
+        if (labelLower.indexOf(pattern) !== -1) {
+          return 'customer_name';
+        }
       }
     }
 
-    // Check exact match for single words (more restrictive)
-    for (var i = 0; i < exactNamePatterns.length; i++) {
-      if (labelLower === exactNamePatterns[i]) {
-        return 'customer_name';
-      }
+    // Check email patterns - single word "email" handled separately
+    if (labelLower === 'email') {
+      return 'customer_email';
     }
 
-    // Check email patterns
     for (var i = 0; i < emailPatterns.length; i++) {
       if (labelLower.indexOf(emailPatterns[i]) !== -1) {
         return 'customer_email';
@@ -2175,6 +2179,9 @@ jQuery(document).ready(function ($) {
     var $hiddenKey = $row.find('input[name^="field_keys["]');
     var currentKey = $keyInput.val();
     var label = $labelInput.val().trim();
+
+    // Allow auto-detect for all fields, including custom fields
+    // This ensures that auto-detection works for new fields and existing fields
 
     // Simple detection - only match specific patterns
     var detectedKey = autoDetectFieldKey(label);

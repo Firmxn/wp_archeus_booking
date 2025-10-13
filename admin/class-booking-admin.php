@@ -241,7 +241,9 @@ class Booking_Admin {
      * @return string The detected/appropriate field key
      */
     private function auto_detect_field_key($label, $current_key, &$used_keys) {
+        error_log('Auto-detect Debug - Processing label: "' . $label . '", current_key: "' . $current_key . '"');
         $label_lower = strtolower($label);
+        error_log('Auto-detect Debug - Label lower: "' . $label_lower . '"');
 
         // Primary name detection patterns (must match exactly or contain specific full phrases)
         $primary_name_patterns = array(
@@ -262,13 +264,17 @@ class Booking_Admin {
 
         // Check primary name patterns first (these are phrases that should always be detected)
         foreach ($primary_name_patterns as $pattern) {
+            error_log('Auto-detect Debug - Checking primary name pattern: "' . $pattern . '"');
             if (strpos($label_lower, $pattern) !== false) {
+                error_log('Auto-detect Debug - Primary name pattern MATCHED: "' . $pattern . '"');
                 // If customer_name is not used, use it
                 if (!isset($used_keys['customer_name'])) {
+                    error_log('Auto-detect Debug - customer_name not used, returning customer_name');
                     return 'customer_name';
                 }
                 // If customer_name is used but this is not the current key, don't change
                 if ($current_key !== 'customer_name') {
+                    error_log('Auto-detect Debug - customer_name used but not current key, returning current_key: ' . $current_key);
                     return $current_key;
                 }
                 break;
@@ -277,21 +283,40 @@ class Booking_Admin {
 
         // Check exact match for single words (more restrictive)
         foreach ($exact_name_patterns as $pattern) {
+            error_log('Auto-detect Debug - Checking exact name pattern: "' . $pattern . '", comparing with: "' . $label_lower . '"');
             if ($label_lower === $pattern) {
+                error_log('Auto-detect Debug - Exact name pattern MATCHED: "' . $pattern . '"');
                 // If customer_name is not used, use it
                 if (!isset($used_keys['customer_name'])) {
+                    error_log('Auto-detect Debug - customer_name not used, returning customer_name');
                     return 'customer_name';
                 }
                 // If customer_name is used but this is not the current key, don't change
                 if ($current_key !== 'customer_name') {
+                    error_log('Auto-detect Debug - customer_name used but not current key, returning current_key: ' . $current_key);
                     return $current_key;
                 }
                 break;
             }
         }
 
-        // Check email patterns
+        // Check email patterns - single word "email" handled separately
+        if ($label_lower === 'email') {
+            // If customer_email is not used, use it
+            if (!isset($used_keys['customer_email'])) {
+                return 'customer_email';
+            }
+            // If customer_email is used but this is not the current key, don't change
+            if ($current_key !== 'customer_email') {
+                return $current_key;
+            }
+        }
+
+        // Check other email patterns (phrases)
         foreach ($email_patterns as $pattern) {
+            if ($pattern === 'email') {
+                continue; // Skip single word "email" as it's handled above
+            }
             if (strpos($label_lower, $pattern) !== false) {
                 // If customer_email is not used, use it
                 if (!isset($used_keys['customer_email'])) {
@@ -353,40 +378,52 @@ class Booking_Admin {
 
             $fields = array();
             $rename_map = array();
-            if (isset($_POST['field_keys'])) {
-                $used_keys = array();
-                foreach ($_POST['field_keys'] as $index => $field_key) {
-                    $label = sanitize_text_field($_POST['field_labels'][$field_key]);
 
-                    // First, process the user-provided key as before
-                    $new_key_raw = isset($_POST['field_keys_input'][$field_key]) ? $_POST['field_keys_input'][$field_key] : $field_key;
+            // Use field_keys_input as the source of truth for new/updated keys
+            if (isset($_POST['field_keys_input']) && is_array($_POST['field_keys_input'])) {
+                error_log('=== FALLBACK HANDLER DEBUG START ===');
+                error_log('field_keys_input array: ' . print_r($_POST['field_keys_input'], true));
+                error_log('field_keys array: ' . (isset($_POST['field_keys']) ? print_r($_POST['field_keys'], true) : 'NOT SET'));
+                error_log('field_labels array: ' . (isset($_POST['field_labels']) ? print_r($_POST['field_labels'], true) : 'NOT SET'));
+
+                $used_keys = array();
+
+                foreach ($_POST['field_keys_input'] as $old_key => $new_key_raw) {
+                    if (empty($new_key_raw)) continue;
+                    error_log('Processing field_keys_input entry: old_key=' . $old_key . ', new_key_raw=' . $new_key_raw);
+
+                    // Get label using the old key (since labels are still indexed by old key)
+                    $label = isset($_POST['field_labels'][$old_key]) ? sanitize_text_field($_POST['field_labels'][$old_key]) : $new_key_raw;
+
+                    // Process the new key
                     $new_key = strtolower($new_key_raw);
                     $new_key = preg_replace('/[^a-z0-9]+/u', '_', $new_key);
                     $new_key = trim($new_key, '_');
-                    if ($new_key === '') { $new_key = $field_key; }
+                    if ($new_key === '') { $new_key = $old_key; }
                     if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
 
-                    // Apply auto-detection based on label
-                    $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
+                    // TEMPORARY: DISABLE AUTO-DETECTION TO TEST
+                    error_log('TEMP DEBUG - Skipping auto-detection for label: "' . $label . '", keeping key: "' . $new_key . '"');
+                    // $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
 
                     // Handle key conflicts
                     $base = $new_key; $i = 2; while (isset($used_keys[$new_key])) { $new_key = $base . '_' . $i++; }
                     $used_keys[$new_key] = true;
 
-                    if ($new_key !== $field_key) {
-                        $rename_map[$field_key] = $new_key;
+                    if ($new_key !== $old_key) {
+                        $rename_map[$old_key] = $new_key;
                     }
 
-                    $type = sanitize_text_field($_POST['field_types'][$field_key]);
+                    $type = isset($_POST['field_types'][$old_key]) ? sanitize_text_field($_POST['field_types'][$old_key]) : 'text';
 
                     // Debug required field processing in fallback
-                    $received_required = isset($_POST['field_required'][$field_key]) ? $_POST['field_required'][$field_key] : 'NOT_SET';
-                    error_log('Fallback Handler Debug - Processing Field: ' . $field_key . ', Received required: ' . $received_required);
+                    $received_required = isset($_POST['field_required'][$old_key]) ? $_POST['field_required'][$old_key] : 'NOT_SET';
+                    error_log('Fallback Handler Debug - Processing Field: ' . $old_key . ' -> ' . $new_key . ', Label: ' . $label . ', Received required: ' . $received_required);
 
                     // Gunakan validasi ketat yang sama seperti AJAX handler
-                    if (isset($_POST['field_required'][$field_key])) {
-                        $raw_value = $_POST['field_required'][$field_key];
-                        error_log('Fallback Handler Debug - Field ' . $field_key . ' raw value: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
+                    if (isset($_POST['field_required'][$old_key])) {
+                        $raw_value = $_POST['field_required'][$old_key];
+                        error_log('Fallback Handler Debug - Field ' . $old_key . ' raw value: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
 
                         $str_value = (string)$raw_value;
                         if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
@@ -397,13 +434,13 @@ class Booking_Admin {
                     } else {
                         $required = 0;
                     }
-                    error_log('Fallback Handler Debug - Field ' . $field_key . ' set to: ' . $required);
+                    error_log('Fallback Handler Debug - Field ' . $old_key . ' set to: ' . $required);
 
-                    $placeholder = isset($_POST['field_placeholders'][$field_key]) ? sanitize_text_field($_POST['field_placeholders'][$field_key]) : '';
+                    $placeholder = isset($_POST['field_placeholders'][$old_key]) ? sanitize_text_field($_POST['field_placeholders'][$old_key]) : '';
 
                     $options = array();
-                    if ($type === 'select' && isset($_POST['field_options'][$field_key])) {
-                        $raw = wp_unslash($_POST['field_options'][$field_key]);
+                    if ($type === 'select' && isset($_POST['field_options'][$old_key])) {
+                        $raw = wp_unslash($_POST['field_options'][$old_key]);
                         $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
                         foreach ($lines as $line) {
                             $opt = trim($line);
@@ -420,10 +457,64 @@ class Booking_Admin {
                     );
 
                     // Debug final field data
-                    error_log('Fallback Handler Debug - Final field ' . $new_key . ': ' . print_r($fields[$new_key], true));
+                    error_log('Final field ' . $new_key . ': ' . print_r($fields[$new_key], true));
+                }
+                error_log('=== FINAL FIELDS ARRAY ===');
+                error_log('Final fields: ' . print_r($fields, true));
+                error_log('=== FALLBACK HANDLER DEBUG END ===');
+            } else {
+                // Fallback to old method if field_keys_input is not available
+                error_log('Fallback Handler Debug - field_keys_input not available, using old method');
+                if (isset($_POST['field_keys'])) {
+                    $used_keys = array();
+                    foreach ($_POST['field_keys'] as $index => $field_key) {
+                        $label = sanitize_text_field($_POST['field_labels'][$field_key]);
+
+                        // First, process the user-provided key as before
+                        $new_key_raw = isset($_POST['field_keys_input'][$field_key]) ? $_POST['field_keys_input'][$field_key] : $field_key;
+                        $new_key = strtolower($new_key_raw);
+                        $new_key = preg_replace('/[^a-z0-9]+/u', '_', $new_key);
+                        $new_key = trim($new_key, '_');
+                        if ($new_key === '') { $new_key = $field_key; }
+                        if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
+
+                        // TEMPORARY: DISABLE AUTO-DETECTION TO TEST
+                        error_log('TEMP DEBUG OLD METHOD - Skipping auto-detection for label: "' . $label . '", keeping key: "' . $new_key . '"');
+                        // $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
+
+                        // Handle key conflicts
+                        $base = $new_key; $i = 2; while (isset($used_keys[$new_key])) { $new_key = $base . '_' . $i++; }
+                        $used_keys[$new_key] = true;
+
+                        if ($new_key !== $field_key) {
+                            $rename_map[$field_key] = $new_key;
+                        }
+
+                        $type = sanitize_text_field($_POST['field_types'][$field_key]);
+                        $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
+                        $placeholder = isset($_POST['field_placeholders'][$field_key]) ? sanitize_text_field($_POST['field_placeholders'][$field_key]) : '';
+
+                        $options = array();
+                        if ($type === 'select' && isset($_POST['field_options'][$field_key])) {
+                            $raw = wp_unslash($_POST['field_options'][$field_key]);
+                            $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
+                            foreach ($lines as $line) {
+                                $opt = trim($line);
+                                if ($opt !== '') { $options[] = $opt; }
+                            }
+                        }
+
+                        $fields[$new_key] = array(
+                            'label' => $label,
+                            'type' => $type,
+                            'required' => $required,
+                            'placeholder' => $placeholder,
+                            'options' => $options
+                        );
+                    }
                 }
             }
-            
+
             if (isset($_POST['form_id']) && !empty($_POST['form_id'])) {
                 $form_id = intval($_POST['form_id']);
                 $existing = $booking_db->get_form($form_id);
@@ -566,16 +657,22 @@ class Booking_Admin {
                                 </thead>
                                 <tbody id="form-fields-container">
                                     <?php 
-                                    $form_fields = $edit_form ? ($edit_form->fields ? maybe_unserialize($edit_form->fields) : array()) : array(
-                                        'customer_name' => array('label' => 'Nama Lengkap', 'type' => 'text', 'required' => 1, 'placeholder' => ''),
-                                        'customer_email' => array('label' => 'Email', 'type' => 'email', 'required' => 1, 'placeholder' => ''),
-                                    );
+                                    $form_fields = $edit_form ? ($edit_form->fields ? maybe_unserialize($edit_form->fields) : array()) : array();
                                     foreach ($form_fields as $field_key => $field_data):
-                                        // Check if this is an auto-detected field
-                                        $is_auto_detected = ($field_key === 'customer_name' || $field_key === 'customer_email');
+                                        // Check if this is an auto-detected field based on label, not key
+                                        $is_auto_detected = false;
                                         $auto_type = '';
-                                        if ($field_key === 'customer_name') $auto_type = 'name';
-                                        if ($field_key === 'customer_email') $auto_type = 'email';
+
+                                        // Only auto-detect if the label indicates name/email, not based on key
+                                        $label_lower = strtolower($field_data['label']);
+                                        if (strpos($label_lower, 'nama lengkap') !== false || strpos($label_lower, 'full name') !== false ||
+                                            strpos($label_lower, 'nama') !== false || strpos($label_lower, 'name') !== false) {
+                                            $is_auto_detected = true;
+                                            $auto_type = 'name';
+                                        } elseif (strpos($label_lower, 'email') !== false) {
+                                            $is_auto_detected = true;
+                                            $auto_type = 'email';
+                                        }
                                         ?>
                                         <tr class="form-field-row" data-auto-detected="<?php echo $is_auto_detected ? 'true' : 'false'; ?>" data-auto-type="<?php echo esc_attr($auto_type); ?>">
                                             <td>
@@ -2989,24 +3086,37 @@ class Booking_Admin {
         error_log('Form Creation Debug - POST data: ' . print_r($_POST, true));
         error_log('Form Creation Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
 
-        // Process fields
+        // Process fields - use field_keys_input for the new/updated keys
         $fields = array();
-        if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
-            foreach ($_POST['field_keys'] as $index => $key) {
-                if (empty($key)) continue;
+        if (isset($_POST['field_keys_input']) && is_array($_POST['field_keys_input'])) {
+            error_log('Form Creation Debug - Using field_keys_input approach');
+            error_log('Form Creation Debug - field_keys_input: ' . print_r($_POST['field_keys_input'], true));
 
-                $label = isset($_POST['field_labels'][$key]) ? sanitize_text_field($_POST['field_labels'][$key]) : $key;
-                $type = isset($_POST['field_types'][$key]) ? sanitize_text_field($_POST['field_types'][$key]) : 'text';
+            foreach ($_POST['field_keys_input'] as $old_key => $new_key_raw) {
+                if (empty($new_key_raw)) continue;
+
+                error_log('Form Creation Debug - Processing: old_key=' . $old_key . ', new_key_raw=' . $new_key_raw);
+
+                // Process the new key
+                $new_key = strtolower($new_key_raw);
+                $new_key = preg_replace('/[^a-z0-9]+/u', '_', $new_key);
+                $new_key = trim($new_key, '_');
+                if ($new_key === '') { $new_key = $old_key; }
+                if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
+
+                // Get label using the old key (since labels are still indexed by old key)
+                $label = isset($_POST['field_labels'][$old_key]) ? sanitize_text_field($_POST['field_labels'][$old_key]) : $new_key;
+                $type = isset($_POST['field_types'][$old_key]) ? sanitize_text_field($_POST['field_types'][$old_key]) : 'text';
 
                 // Debug: log detailed required field data
-                $received_required = isset($_POST['field_required'][$key]) ? $_POST['field_required'][$key] : 'NOT_SET';
-                $isset_check = isset($_POST['field_required'][$key]) ? 'TRUE' : 'FALSE';
-                error_log('Form Creation Debug - Field: ' . $key . ', Required isset: ' . $isset_check . ', Value: ' . $received_required);
+                $received_required = isset($_POST['field_required'][$old_key]) ? $_POST['field_required'][$old_key] : 'NOT_SET';
+                $isset_check = isset($_POST['field_required'][$old_key]) ? 'TRUE' : 'FALSE';
+                error_log('Form Creation Debug - Field: ' . $old_key . ' -> ' . $new_key . ', Required isset: ' . $isset_check . ', Value: ' . $received_required);
 
                 // Tambahkan pengecekan lebih detail dengan validasi ketat
-                if (isset($_POST['field_required'][$key])) {
-                    $raw_value = $_POST['field_required'][$key];
-                    error_log('Form Creation Debug - Field ' . $key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
+                if (isset($_POST['field_required'][$old_key])) {
+                    $raw_value = $_POST['field_required'][$old_key];
+                    error_log('Form Creation Debug - Field ' . $old_key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
 
                     // Konversi ke string untuk memastikan perbandingan yang benar
                     $str_value = (string)$raw_value;
@@ -3015,16 +3125,16 @@ class Booking_Admin {
                     } else {
                         $required = 0;
                     }
-                    error_log('Form Creation Debug - Field ' . $key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
+                    error_log('Form Creation Debug - Field ' . $old_key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
                 } else {
                     $required = 0;
-                    error_log('Form Creation Debug - Field ' . $key . ' set to 0 (not in POST)');
+                    error_log('Form Creation Debug - Field ' . $old_key . ' set to 0 (not in POST)');
                 }
-                $placeholder = isset($_POST['field_placeholders'][$key]) ? sanitize_text_field($_POST['field_placeholders'][$key]) : '';
+                $placeholder = isset($_POST['field_placeholders'][$old_key]) ? sanitize_text_field($_POST['field_placeholders'][$old_key]) : '';
 
                 $options = array();
-                if ($type === 'select' && isset($_POST['field_options'][$key])) {
-                    $raw = wp_unslash($_POST['field_options'][$key]);
+                if ($type === 'select' && isset($_POST['field_options'][$old_key])) {
+                    $raw = wp_unslash($_POST['field_options'][$old_key]);
                     $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
                     foreach ($lines as $line) {
                         $opt = trim($line);
@@ -3032,7 +3142,7 @@ class Booking_Admin {
                     }
                 }
 
-                $fields[$key] = array(
+                $fields[$new_key] = array(
                     'label' => $label,
                     'type' => $type,
                     'required' => $required,
@@ -3041,7 +3151,38 @@ class Booking_Admin {
                 );
 
                 // Debug: log final field data being saved
-                error_log('Form Creation Debug - Final field data for ' . $key . ': ' . print_r($fields[$key], true));
+                error_log('Form Creation Debug - Final field data for ' . $new_key . ': ' . print_r($fields[$new_key], true));
+            }
+        } else {
+            // Fallback to old method if field_keys_input is not available
+            error_log('Form Creation Debug - field_keys_input not available, using old method');
+            if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
+                foreach ($_POST['field_keys'] as $index => $key) {
+                    if (empty($key)) continue;
+
+                    $label = isset($_POST['field_labels'][$key]) ? sanitize_text_field($_POST['field_labels'][$key]) : $key;
+                    $type = isset($_POST['field_types'][$key]) ? sanitize_text_field($_POST['field_types'][$key]) : 'text';
+                    $required = isset($_POST['field_required'][$key]) ? 1 : 0;
+                    $placeholder = isset($_POST['field_placeholders'][$key]) ? sanitize_text_field($_POST['field_placeholders'][$key]) : '';
+
+                    $options = array();
+                    if ($type === 'select' && isset($_POST['field_options'][$key])) {
+                        $raw = wp_unslash($_POST['field_options'][$key]);
+                        $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
+                        foreach ($lines as $line) {
+                            $opt = trim($line);
+                            if ($opt !== '') { $options[] = $opt; }
+                        }
+                    }
+
+                    $fields[$key] = array(
+                        'label' => $label,
+                        'type' => $type,
+                        'required' => $required,
+                        'placeholder' => $placeholder,
+                        'options' => $options
+                    );
+                }
             }
         }
 
@@ -3069,8 +3210,10 @@ class Booking_Admin {
      */
     public function handle_form_update() {
         // Debug log incoming data
-        error_log('Form Update Handler Called');
+        error_log('=== AJAX FORM UPDATE HANDLER CALLED ===');
         error_log('POST data: ' . print_r($_POST, true));
+        error_log('field_keys_input: ' . (isset($_POST['field_keys_input']) ? print_r($_POST['field_keys_input'], true) : 'NOT SET'));
+        error_log('field_keys: ' . (isset($_POST['field_keys']) ? print_r($_POST['field_keys'], true) : 'NOT SET'));
 
         // Verify nonce - try both nonces
         $nonce_valid = false;
@@ -3098,23 +3241,25 @@ class Booking_Admin {
         $slug = isset($_POST['form_slug']) ? sanitize_title($_POST['form_slug']) : '';
         $description = sanitize_textarea_field($_POST['form_description']);
 
-        // Process fields
+        // Process fields - use field_keys_input for the new/updated keys
         $fields = array();
-        if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
+        if (isset($_POST['field_keys_input']) && is_array($_POST['field_keys_input'])) {
             error_log('Form Update Debug - Processing fields array');
-            error_log('Form Update Debug - field_keys: ' . print_r($_POST['field_keys'], true));
+            error_log('Form Update Debug - field_keys_input: ' . print_r($_POST['field_keys_input'], true));
+            error_log('Form Update Debug - field_keys (old): ' . (isset($_POST['field_keys']) ? print_r($_POST['field_keys'], true) : 'NOT SET'));
             error_log('Form Update Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
 
-            foreach ($_POST['field_keys'] as $index => $key) {
-                if (empty($key)) continue;
+            foreach ($_POST['field_keys_input'] as $key => $new_key) {
+                if (empty($new_key)) continue;
 
-                $label = isset($_POST['field_labels'][$key]) ? sanitize_text_field($_POST['field_labels'][$key]) : $key;
-                $type = isset($_POST['field_types'][$key]) ? sanitize_text_field($_POST['field_types'][$key]) : 'text';
+                // Use the new key for all field data lookups
+                $label = isset($_POST['field_labels'][$new_key]) ? sanitize_text_field($_POST['field_labels'][$new_key]) : $new_key;
+                $type = isset($_POST['field_types'][$new_key]) ? sanitize_text_field($_POST['field_types'][$new_key]) : 'text';
 
-                // Strict validation for required field - same as other handlers
-                if (isset($_POST['field_required'][$key])) {
-                    $raw_value = $_POST['field_required'][$key];
-                    error_log('Form Update Debug - Field ' . $key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
+                // Strict validation for required field - use new key for required lookup
+                if (isset($_POST['field_required'][$new_key])) {
+                    $raw_value = $_POST['field_required'][$new_key];
+                    error_log('Form Update Debug - Field ' . $new_key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
 
                     $str_value = (string)$raw_value;
                     if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
@@ -3122,17 +3267,17 @@ class Booking_Admin {
                     } else {
                         $required = 0;
                     }
-                    error_log('Form Update Debug - Field ' . $key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
+                    error_log('Form Update Debug - Field ' . $new_key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
                 } else {
                     $required = 0;
-                    error_log('Form Update Debug - Field ' . $key . ' not found in field_required array, setting to 0');
+                    error_log('Form Update Debug - Field ' . $new_key . ' not found in field_required array, setting to 0');
                 }
 
-                $placeholder = isset($_POST['field_placeholders'][$key]) ? sanitize_text_field($_POST['field_placeholders'][$key]) : '';
+                $placeholder = isset($_POST['field_placeholders'][$new_key]) ? sanitize_text_field($_POST['field_placeholders'][$new_key]) : '';
 
                 $options = array();
-                if ($type === 'select' && isset($_POST['field_options'][$key])) {
-                    $raw = wp_unslash($_POST['field_options'][$key]);
+                if ($type === 'select' && isset($_POST['field_options'][$new_key])) {
+                    $raw = wp_unslash($_POST['field_options'][$new_key]);
                     $lines = preg_split('/\r\n|\r|\n/', (string)$raw);
                     foreach ($lines as $line) {
                         $opt = trim($line);
@@ -3140,7 +3285,7 @@ class Booking_Admin {
                     }
                 }
 
-                $fields[$key] = array(
+                $fields[$new_key] = array(
                     'label' => $label,
                     'type' => $type,
                     'required' => $required,
@@ -3152,13 +3297,17 @@ class Booking_Admin {
 
         $booking_db = new Booking_Database();
         $slug_to_use = !empty($slug) ? $slug : 'form-' . uniqid();
+        error_log('AJAX Handler - About to update form with fields: ' . print_r($fields, true));
         $result = $booking_db->update_form($form_id, $name, $slug_to_use, $description, $fields);
+        error_log('AJAX Handler - update_form result: ' . ($result ? 'SUCCESS' : 'FAILED'));
 
         if ($result) {
+            error_log('AJAX Handler - Sending success response');
             wp_send_json_success(array(
                 'message' => __('Formulir berhasil diperbarui.', 'archeus-booking')
             ));
         } else {
+            error_log('AJAX Handler - Sending error response');
             wp_send_json_error(array(
                 'message' => __('Gagal memperbarui formulir.', 'archeus-booking')
             ));
