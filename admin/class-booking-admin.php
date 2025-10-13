@@ -315,14 +315,30 @@ class Booking_Admin {
         $booking_db = new Booking_Database();
         $forms = $booking_db->get_forms();
 
-        // Show success message if form was saved
-        if (isset($_GET['form_saved']) && $_GET['form_saved'] === 'true') {
-            echo '<div class="notice notice-success is-dismissible"><p>' . __('Formulir berhasil disimpan!', 'archeus-booking') . '</p></div>';
+        // Show success message if form was saved - using toast instead of notice
+        if (isset($_GET['form_saved']) && ($_GET['form_saved'] === 'true' || $_GET['form_saved'] === '1')) {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Formulir berhasil disimpan!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
         }
 
-        // Show success message if form was deleted
+        // Show success message if form was deleted - using toast instead of notice
         if (isset($_GET['form_deleted']) && $_GET['form_deleted'] === '1') {
-            echo '<div class="notice notice-success is-dismissible"><p>' . __('Formulir berhasil dihapus!', 'archeus-booking') . '</p></div>';
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('<?php echo esc_js(__('Formulir berhasil dihapus!', 'archeus-booking')); ?>', 'success');
+                    }
+                });
+            </script>
+            <?php
         }
 
         // Handle form creation/update (fallback for non-AJAX requests)
@@ -421,7 +437,15 @@ class Booking_Admin {
             }
             
             if (isset($message)) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
+                ?>
+                <script type="text/javascript">
+                    jQuery(document).ready(function($) {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('<?php echo esc_js($message); ?>', '<?php echo strpos($message, 'Gagal') !== false ? 'error' : 'success'; ?>');
+                        }
+                    });
+                </script>
+                <?php
             }
             
             try {

@@ -1120,9 +1120,6 @@ jQuery(document).ready(function ($) {
         var optValue = $opt.attr("value");
         var optText = $opt.text();
 
-        // Debug: log semua options yang ditemukan
-        console.log('Dropdown option found:', optValue, '=', optText);
-
         var $item = $(
           '<div class="ab-dd-item" role="option" tabindex="-1"></div>'
         ).text(optText);
@@ -1131,9 +1128,6 @@ jQuery(document).ready(function ($) {
         $menu.append($item);
       });
 
-      // Debug: log total options yang ditemukan
-      console.log('Total options in dropdown:', $sel.find("option").length);
-      console.log('Custom dropdown items created:', $menu.find('.ab-dd-item').length);
       $sel.addClass("ab-hidden-select").hide().after($wrap);
       $wrap.append($btn).append($menu);
       $sel.appendTo($wrap); // keep in wrap to trigger change
@@ -1142,8 +1136,8 @@ jQuery(document).ready(function ($) {
         $wrap.removeClass("open");
         $btn.attr("aria-expanded", "false");
 
-        // Reset positioning when closing
-        if ($wrap.closest('.form-fields-builder.table-overflow').length > 0) {
+        // Reset positioning when closing dropdown
+        if ($wrap.closest('.form-fields-builder').length > 0) {
           $menu.css({
             position: '',
             left: '',
@@ -1158,45 +1152,64 @@ jQuery(document).ready(function ($) {
         $btn.attr("aria-expanded", "true");
 
         // Handle positioning for dropdown in overflow container
-        if ($wrap.closest('.form-fields-builder.table-overflow').length > 0) {
-          positionDropdownFixed($menu, $btn);
-        }
+        setTimeout(function() {
+          if ($wrap.closest('.form-fields-builder.table-overflow').length > 0) {
+            positionDropdown($menu, $btn);
+          }
+        }, 10);
       }
 
-      // Position dropdown using fixed positioning to escape overflow
-      function positionDropdownFixed($menu, $btn) {
-        var btnRect = $btn[0].getBoundingClientRect();
-        var menuWidth = 200; // Default menu width
-        var viewportWidth = window.innerWidth;
-        var viewportHeight = window.innerHeight;
+      // Smart dropdown positioning to escape overflow containers
+      function positionDropdown($menu, $btn) {
+        try {
+          var $formBuilder = $wrap.closest('.form-fields-builder');
+          var isInOverflow = $formBuilder.length > 0;
 
-        // Calculate position
-        var left = btnRect.left;
-        var top = btnRect.bottom + 2; // 2px gap
+          if (isInOverflow) {
+            // Use fixed positioning to escape overflow container
+            var btnRect = $btn[0].getBoundingClientRect();
+            var viewportHeight = window.innerHeight;
+            var menuHeight = Math.min(300, $menu.find('.ab-dd-item').length * 40);
 
-        // Adjust if menu would go off right edge
-        if (left + menuWidth > viewportWidth) {
-          left = Math.max(10, viewportWidth - menuWidth - 10);
-        }
+            // Calculate position
+            var left = btnRect.left;
+            var top = btnRect.bottom + 2; // Show below button first
 
-        // Adjust if menu would go off bottom edge
-        var menuHeight = Math.min(300, $menu.find('.ab-dd-item').length * 40); // Estimate height
-        if (top + menuHeight > viewportHeight) {
-          // Position above button instead
-          top = btnRect.top - menuHeight - 2;
-          if (top < 10) {
-            top = 10; // Minimum top position
+            // Adjust if menu would go off right edge
+            if (left + 200 > window.innerWidth) {
+              left = Math.max(10, window.innerWidth - 210);
+            }
+
+            // If menu would go off bottom, position above button
+            if (top + menuHeight > viewportHeight - 20) {
+              top = btnRect.top - menuHeight - 2;
+              // If still would go off top, position below anyway
+              if (top < 10) {
+                top = btnRect.bottom + 2;
+              }
+            }
+
+            $menu.css({
+              position: 'fixed',
+              left: left + 'px',
+              top: top + 'px',
+              width: '200px',
+              maxHeight: (viewportHeight - top - 10) + 'px'
+            });
+          } else {
+            // Use normal absolute positioning for non-overflow containers
+            $menu.css({
+              width: 'auto',
+              minWidth: '200px'
+            });
           }
+        } catch (e) {
+          // Fallback to simple positioning
+          $menu.css({
+            width: 'auto',
+            minWidth: '200px'
+          });
         }
-
-        // Apply positioning
-        $menu.css({
-          position: 'fixed',
-          left: left + 'px',
-          top: top + 'px',
-          width: menuWidth + 'px',
-          maxHeight: (viewportHeight - top - 10) + 'px'
-        });
       }
 
       $btn.on("click", function (e) {
@@ -1209,6 +1222,15 @@ jQuery(document).ready(function ($) {
         if (!$.contains($wrap[0], e.target)) closeMenu();
       });
 
+      // Handle window scroll/resize to reposition dropdown
+      var scrollResizeHandler = function() {
+        if ($wrap.hasClass("open") && $wrap.closest('.form-fields-builder').length > 0) {
+          positionDropdown($menu, $btn);
+        }
+      };
+      $(window).on('scroll', scrollResizeHandler);
+      $(window).on('resize', scrollResizeHandler);
+
       $menu.on("click", ".ab-dd-item", function () {
         var val = $(this).attr("data-value");
         $sel.val(val).trigger("change");
@@ -1216,13 +1238,6 @@ jQuery(document).ready(function ($) {
         $(this).addClass("is-selected");
         $label.text($(this).text());
         closeMenu();
-      });
-
-      // Handle window scroll/resize to reposition dropdown
-      $(window).on('scroll resize', function() {
-        if ($wrap.hasClass("open") && $wrap.closest('.form-fields-builder.table-overflow').length > 0) {
-          positionDropdownFixed($menu, $btn);
-        }
       });
 
       $sel.on("change", function () {
@@ -1846,7 +1861,7 @@ jQuery(document).ready(function ($) {
         $(sel).removeClass('is-placeholder');
       }
     } catch(e) {
-      console.error('Error updating select state:', e);
+      // Silently handle errors
     }
   }
 

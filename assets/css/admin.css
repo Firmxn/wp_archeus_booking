@@ -705,7 +705,7 @@
 /* Responsive table for form fields builder */
 .admin-card-body .form-fields-builder,
 .form-fields-builder {
-  overflow-x: hidden;
+  overflow: visible;
   -webkit-overflow-scrolling: touch;
   margin: 0 -1px;
   padding: 0 1px;
@@ -713,24 +713,10 @@
   min-width: 0;
 }
 
-/* Add scroll when columns don't fit */
+/* Remove horizontal scroll - allow table to be full width */
 .form-fields-builder.table-overflow {
-  overflow-x: auto !important;
-  /* Ensure dropdown positioning context */
-  position: relative !important;
-}
-
-/* Special rule for dropdown to escape overflow container */
-.form-fields-builder.table-overflow .ab-dd {
-  /* Allow dropdown to break out of overflow constraint */
-  position: relative !important;
-}
-
-/* Use fixed positioning for dropdown menu to escape overflow */
-.form-fields-builder.table-overflow .ab-dd .ab-dd-menu {
-  position: fixed !important;
-  /* Calculate position based on trigger element */
-  /* This will be handled by JavaScript */
+  overflow: visible;
+  position: relative;
 }
 
 /* Add scroll indicator for overflow */
@@ -770,7 +756,15 @@
     border-radius: var(--border-radius);
     margin: 0;
     width: 100%;
-    overflow-x: auto !important;
+    /* Remove overflow constraints to allow dropdowns to escape */
+    overflow: visible !important;
+    position: relative;
+  }
+
+  /* Ensure dropdowns can escape the overflow container */
+  .form-fields-builder .ab-dd {
+    position: relative !important;
+    z-index: 99999 !important;
   }
 
   .form-fields-builder.table-overflow table {
@@ -1759,27 +1753,24 @@ select.ab-hidden-select {
   appearance: none;
 }
 
-/* Ensure form-fields-builder dropdowns appear above other elements */
-.form-fields-builder .ab-dd {
+/* Ensure form-fields-builder has positioning context for dropdowns */
+.form-fields-builder {
   position: relative !important;
-  /* Create stacking context for dropdown */
-  z-index: 1 !important;
 }
 
-/* Special rule for dropdown menu when opened */
-.form-fields-builder .ab-dd.ab-dd-open .ab-dd-menu {
-  /* Ensure dropdown appears above everything */
-  z-index: 999999 !important;
-  position: absolute !important;
-  /* Add shadow for better visibility */
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+/* Ensure dropdown positioning works in form-fields-builder */
+.form-fields-builder .ab-dd {
+  position: relative;
+  z-index: 1;
 }
+
+/* Special handling for dropdown menu in form-fields-builder to escape overflow */
 .form-fields-builder .ab-dd .ab-dd-menu {
-  z-index: 999999 !important;
   position: absolute !important;
-  min-width: 200px;
-  max-height: 300px;
-  overflow-y: auto;
+  z-index: 99999 !important;
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Ensure all dropdown items are visible and properly sized */
