@@ -74,6 +74,51 @@ jQuery(document).ready(function($) {
             e.preventDefault();
             console.log('Submit button clicked');
 
+            // Additional validation: Check HTML5 form validity
+            var $bookingForm = $('.booking-form-fields');
+            if ($bookingForm.length > 0) {
+              console.log('Checking HTML5 form validity...');
+
+              // Log all fields and their required status
+              $bookingForm.find('input, select, textarea').each(function() {
+                var $field = $(this);
+                console.log('Field:', $field.attr('name'), 'type:', $field.attr('type'), 'required:', $field.attr('required'), 'value:', $field.val());
+              });
+
+              // Create a temporary form element to validate all fields
+              var $tempForm = $('<form>').append($bookingForm.find('input, select, textarea').clone());
+              var isValid = $tempForm[0].checkValidity();
+              console.log('HTML5 validation result:', isValid);
+
+              if (!isValid) {
+                console.log('HTML5 validation failed, showing validation errors');
+
+                // Add validation styling to actual fields
+                $bookingForm.find('input, select, textarea').each(function() {
+                  var $field = $(this);
+                  var $tempField = $tempForm.find('[name="' + $field.attr('name') + '"]');
+                  if ($tempField.length > 0 && !$tempField[0].checkValidity()) {
+                    $field.addClass('error');
+                    console.log('Field failed validation:', $field.attr('name'), 'value:', $field.val());
+                  } else {
+                    $field.removeClass('error');
+                  }
+                });
+
+                // Show validation message and scroll to first error
+                var $firstError = $bookingForm.find('.error').first();
+                if ($firstError.length > 0) {
+                  console.log('Scrolling to first error:', $firstError.attr('name'));
+                  $('html, body').animate({
+                    scrollTop: $firstError.offset().top - 100
+                  }, 500);
+                }
+
+                alert('Mohon lengkapi semua field yang diperlukan.');
+                return false;
+              }
+            }
+
             // Validation: date, time slot, and service must be selected
             var selectedDate = sessionStorage.getItem('archeus_selected_date');
             var selectedTime = sessionStorage.getItem('archeus_selected_time_slot');
@@ -130,7 +175,7 @@ jQuery(document).ready(function($) {
             $('.booking-form-fields').find('input[required], select[required], textarea[required]').each(function() {
                 var $field = $(this);
                 var isEmpty = false;
-                console.log('Direct validation - checking field:', $field.attr('name'), $field.attr('type'));
+                console.log('Direct validation - checking field:', $field.attr('name'), 'type:', $field.attr('type'), 'required:', $field.attr('required'));
 
                 // Handle different field types
                 if ($field.attr('type') === 'file') {
@@ -284,6 +329,9 @@ jQuery(document).ready(function($) {
                 var firstError = null;
                 var requiredFields = sectionElement.find('input[required], select[required], textarea[required]');
                 console.log('Found required fields:', requiredFields.length);
+                requiredFields.each(function() {
+                    console.log('Required field:', $(this).attr('name'), 'type:', $(this).attr('type'), 'required:', $(this).attr('required'));
+                });
 
                 requiredFields.each(function() {
                     var $field = $(this);
