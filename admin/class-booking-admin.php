@@ -241,9 +241,7 @@ class Booking_Admin {
      * @return string The detected/appropriate field key
      */
     private function auto_detect_field_key($label, $current_key, &$used_keys) {
-        error_log('Auto-detect Debug - Processing label: "' . $label . '", current_key: "' . $current_key . '"');
         $label_lower = strtolower($label);
-        error_log('Auto-detect Debug - Label lower: "' . $label_lower . '"');
 
         // Primary name detection patterns (must match exactly or contain specific full phrases)
         $primary_name_patterns = array(
@@ -264,17 +262,13 @@ class Booking_Admin {
 
         // Check primary name patterns first (these are phrases that should always be detected)
         foreach ($primary_name_patterns as $pattern) {
-            error_log('Auto-detect Debug - Checking primary name pattern: "' . $pattern . '"');
             if (strpos($label_lower, $pattern) !== false) {
-                error_log('Auto-detect Debug - Primary name pattern MATCHED: "' . $pattern . '"');
                 // If customer_name is not used, use it
                 if (!isset($used_keys['customer_name'])) {
-                    error_log('Auto-detect Debug - customer_name not used, returning customer_name');
                     return 'customer_name';
                 }
                 // If customer_name is used but this is not the current key, don't change
                 if ($current_key !== 'customer_name') {
-                    error_log('Auto-detect Debug - customer_name used but not current key, returning current_key: ' . $current_key);
                     return $current_key;
                 }
                 break;
@@ -283,17 +277,13 @@ class Booking_Admin {
 
         // Check exact match for single words (more restrictive)
         foreach ($exact_name_patterns as $pattern) {
-            error_log('Auto-detect Debug - Checking exact name pattern: "' . $pattern . '", comparing with: "' . $label_lower . '"');
             if ($label_lower === $pattern) {
-                error_log('Auto-detect Debug - Exact name pattern MATCHED: "' . $pattern . '"');
                 // If customer_name is not used, use it
                 if (!isset($used_keys['customer_name'])) {
-                    error_log('Auto-detect Debug - customer_name not used, returning customer_name');
                     return 'customer_name';
                 }
                 // If customer_name is used but this is not the current key, don't change
                 if ($current_key !== 'customer_name') {
-                    error_log('Auto-detect Debug - customer_name used but not current key, returning current_key: ' . $current_key);
                     return $current_key;
                 }
                 break;
@@ -381,16 +371,12 @@ class Booking_Admin {
 
             // Use field_keys_input as the source of truth for new/updated keys
             if (isset($_POST['field_keys_input']) && is_array($_POST['field_keys_input'])) {
-                error_log('=== FALLBACK HANDLER DEBUG START ===');
-                error_log('field_keys_input array: ' . print_r($_POST['field_keys_input'], true));
-                error_log('field_keys array: ' . (isset($_POST['field_keys']) ? print_r($_POST['field_keys'], true) : 'NOT SET'));
-                error_log('field_labels array: ' . (isset($_POST['field_labels']) ? print_r($_POST['field_labels'], true) : 'NOT SET'));
+                error_log('Fallback Handler: Using field_keys_input approach');
 
                 $used_keys = array();
 
                 foreach ($_POST['field_keys_input'] as $old_key => $new_key_raw) {
                     if (empty($new_key_raw)) continue;
-                    error_log('Processing field_keys_input entry: old_key=' . $old_key . ', new_key_raw=' . $new_key_raw);
 
                     // Get label using the old key (since labels are still indexed by old key)
                     $label = isset($_POST['field_labels'][$old_key]) ? sanitize_text_field($_POST['field_labels'][$old_key]) : $new_key_raw;
@@ -402,9 +388,8 @@ class Booking_Admin {
                     if ($new_key === '') { $new_key = $old_key; }
                     if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
 
-                    // TEMPORARY: DISABLE AUTO-DETECTION TO TEST
-                    error_log('TEMP DEBUG - Skipping auto-detection for label: "' . $label . '", keeping key: "' . $new_key . '"');
-                    // $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
+                    // Apply auto-detection based on label using the correct logic
+                    $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
 
                     // Handle key conflicts
                     $base = $new_key; $i = 2; while (isset($used_keys[$new_key])) { $new_key = $base . '_' . $i++; }
@@ -416,9 +401,8 @@ class Booking_Admin {
 
                     $type = isset($_POST['field_types'][$old_key]) ? sanitize_text_field($_POST['field_types'][$old_key]) : 'text';
 
-                    // Debug required field processing in fallback
+                    // Required field processing in fallback
                     $received_required = isset($_POST['field_required'][$old_key]) ? $_POST['field_required'][$old_key] : 'NOT_SET';
-                    error_log('Fallback Handler Debug - Processing Field: ' . $old_key . ' -> ' . $new_key . ', Label: ' . $label . ', Received required: ' . $received_required);
 
                     // Gunakan validasi ketat yang sama seperti AJAX handler
                     if (isset($_POST['field_required'][$old_key])) {
@@ -456,12 +440,10 @@ class Booking_Admin {
                         'options' => $options
                     );
 
-                    // Debug final field data
-                    error_log('Final field ' . $new_key . ': ' . print_r($fields[$new_key], true));
+                    // Final field data
+                    error_log('Fallback Handler: Processed field ' . $new_key);
                 }
-                error_log('=== FINAL FIELDS ARRAY ===');
-                error_log('Final fields: ' . print_r($fields, true));
-                error_log('=== FALLBACK HANDLER DEBUG END ===');
+                error_log('Fallback Handler: Total fields processed: ' . count($fields));
             } else {
                 // Fallback to old method if field_keys_input is not available
                 error_log('Fallback Handler Debug - field_keys_input not available, using old method');
@@ -478,9 +460,8 @@ class Booking_Admin {
                         if ($new_key === '') { $new_key = $field_key; }
                         if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
 
-                        // TEMPORARY: DISABLE AUTO-DETECTION TO TEST
-                        error_log('TEMP DEBUG OLD METHOD - Skipping auto-detection for label: "' . $label . '", keeping key: "' . $new_key . '"');
-                        // $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
+                        // Apply auto-detection based on label using the correct logic
+                        $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
 
                         // Handle key conflicts
                         $base = $new_key; $i = 2; while (isset($used_keys[$new_key])) { $new_key = $base . '_' . $i++; }
@@ -3082,20 +3063,17 @@ class Booking_Admin {
         $name = sanitize_text_field($_POST['form_name']);
         $description = sanitize_textarea_field($_POST['form_description']);
 
-        // Debug: log all received POST data for form creation
-        error_log('Form Creation Debug - POST data: ' . print_r($_POST, true));
-        error_log('Form Creation Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
+        // Debug: log form creation
+        error_log('Form Creation: Creating new form');
 
         // Process fields - use field_keys_input for the new/updated keys
         $fields = array();
         if (isset($_POST['field_keys_input']) && is_array($_POST['field_keys_input'])) {
-            error_log('Form Creation Debug - Using field_keys_input approach');
-            error_log('Form Creation Debug - field_keys_input: ' . print_r($_POST['field_keys_input'], true));
+            error_log('Form Creation: Using field_keys_input approach');
+            $used_keys = array();
 
             foreach ($_POST['field_keys_input'] as $old_key => $new_key_raw) {
                 if (empty($new_key_raw)) continue;
-
-                error_log('Form Creation Debug - Processing: old_key=' . $old_key . ', new_key_raw=' . $new_key_raw);
 
                 // Process the new key
                 $new_key = strtolower($new_key_raw);
@@ -3103,6 +3081,13 @@ class Booking_Admin {
                 $new_key = trim($new_key, '_');
                 if ($new_key === '') { $new_key = $old_key; }
                 if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
+
+                // Apply auto-detection based on label using the correct logic
+                $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
+
+                // Handle key conflicts
+                $base = $new_key; $i = 2; while (isset($used_keys[$new_key])) { $new_key = $base . '_' . $i++; }
+                $used_keys[$new_key] = true;
 
                 // Get label using the old key (since labels are still indexed by old key)
                 $label = isset($_POST['field_labels'][$old_key]) ? sanitize_text_field($_POST['field_labels'][$old_key]) : $new_key;
@@ -3210,10 +3195,7 @@ class Booking_Admin {
      */
     public function handle_form_update() {
         // Debug log incoming data
-        error_log('=== AJAX FORM UPDATE HANDLER CALLED ===');
-        error_log('POST data: ' . print_r($_POST, true));
-        error_log('field_keys_input: ' . (isset($_POST['field_keys_input']) ? print_r($_POST['field_keys_input'], true) : 'NOT SET'));
-        error_log('field_keys: ' . (isset($_POST['field_keys']) ? print_r($_POST['field_keys'], true) : 'NOT SET'));
+        error_log('AJAX Form Update: Processing form update');
 
         // Verify nonce - try both nonces
         $nonce_valid = false;
@@ -3306,17 +3288,13 @@ class Booking_Admin {
 
         $booking_db = new Booking_Database();
         $slug_to_use = !empty($slug) ? $slug : 'form-' . uniqid();
-        error_log('AJAX Handler - About to update form with fields: ' . print_r($fields, true));
         $result = $booking_db->update_form($form_id, $name, $slug_to_use, $description, $fields);
-        error_log('AJAX Handler - update_form result: ' . ($result ? 'SUCCESS' : 'FAILED'));
 
         if ($result) {
-            error_log('AJAX Handler - Sending success response');
             wp_send_json_success(array(
                 'message' => __('Formulir berhasil diperbarui.', 'archeus-booking')
             ));
         } else {
-            error_log('AJAX Handler - Sending error response');
             wp_send_json_error(array(
                 'message' => __('Gagal memperbarui formulir.', 'archeus-booking')
             ));
