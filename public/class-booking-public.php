@@ -459,9 +459,15 @@ class Booking_Public {
 
         $flow_id = intval($_POST['flow_id']);
         $form_data = isset($_POST['form_data']) ? $_POST['form_data'] : array();
+        // Debug: Log received form data
+        error_log('Booking Flow Debug - Received form_data: ' . print_r($form_data, true));
+
         if (is_string($form_data)) {
             $decoded = json_decode(stripslashes($form_data), true);
-            if (is_array($decoded)) { $form_data = $decoded; }
+            if (is_array($decoded)) {
+                $form_data = $decoded;
+                error_log('Booking Flow Debug - Decoded form_data: ' . print_r($form_data, true));
+            }
         }
         
         if (!$flow_id) {
@@ -484,9 +490,12 @@ class Booking_Public {
         $date = '';
         $time_slot = '';
         $service_type = '';
-        
+
+        error_log('Booking Flow Debug - Processing form_data steps: ' . print_r($form_data, true));
+
         foreach ($form_data as $step_key => $step_data) {
             if (is_array($step_data)) {
+                error_log('Booking Flow Debug - Processing step: ' . $step_key . ' with data: ' . print_r($step_data, true));
                 foreach ($step_data as $field => $value) {
                     // Extract date, time slot and service from various possible field names
                     if (strpos($field, 'booking_date') !== false || $field === 'booking_date') {
@@ -506,32 +515,31 @@ class Booking_Public {
             }
         }
 
+        error_log('Booking Flow Debug - Combined data before processing: ' . print_r($combined_data, true));
+
         // Determine which service was selected (if any)
         $service_type = isset($combined_data['service_type']) ? $combined_data['service_type'] : '';
         $booking_date = isset($combined_data['booking_date']) ? $combined_data['booking_date'] : '';
         $time_slot = isset($combined_data['time_slot']) ? $combined_data['time_slot'] : '';
 
-        // Auto-detect customer_name and customer_email from form data
-        // This ensures that fields detected as name/email are stored in standardized keys
-
+        // Only use customer_name and customer_email if they exist as actual field keys
+        // This removes aggressive auto-detection and only uses explicitly defined fields
         $detected_customer_name = '';
         $detected_customer_email = '';
 
-        // Look for fields that should be mapped to customer_name
-        $name_fields = array('nama_lengkap', 'nama', 'name', 'full_name', 'customer_name', 'nama lengkap', 'full name');
-        foreach ($name_fields as $name_field) {
-            if (isset($combined_data[$name_field]) && !empty($combined_data[$name_field])) {
-                $detected_customer_name = sanitize_text_field($combined_data[$name_field]);
-                break;
-            }
+        // Only use customer_name if it exists as a field key in the form
+        if (isset($combined_data['customer_name']) && !empty($combined_data['customer_name'])) {
+            $value = $combined_data['customer_name'];
+            $detected_customer_name = sanitize_text_field($value);
+            error_log('Booking Flow Debug - Using explicit customer_name field: ' . $detected_customer_name);
         }
 
-        // Look for fields that should be mapped to customer_email
-        $email_fields = array('email', 'customer_email', 'email_address', 'alamat_email', 'e-mail');
-        foreach ($email_fields as $email_field) {
-            if (isset($combined_data[$email_field]) && !empty($combined_data[$email_field])) {
-                $detected_customer_email = sanitize_email($combined_data[$email_field]);
-                break;
+        // Only use customer_email if it exists as a field key in the form
+        if (isset($combined_data['customer_email']) && !empty($combined_data['customer_email'])) {
+            $value = $combined_data['customer_email'];
+            if (is_email($value)) {
+                $detected_customer_email = sanitize_email($value);
+                error_log('Booking Flow Debug - Using explicit customer_email field: ' . $detected_customer_email);
             }
         }
 
@@ -544,12 +552,17 @@ class Booking_Public {
             'service_type' => $service_type,
         );
 
-        // Also update combined_data to ensure consistency
+        // Only update combined_data with auto-detected values if they are valid
+        // This preserves original field data while also providing standardized customer_name/customer_email
         if (!empty($detected_customer_name)) {
+            // Keep the original field data and add customer_name as a separate field
             $combined_data['customer_name'] = $detected_customer_name;
+            error_log('Booking Flow Debug - Added customer_name to combined_data: ' . $detected_customer_name);
         }
         if (!empty($detected_customer_email)) {
+            // Keep the original field data and add customer_email as a separate field
             $combined_data['customer_email'] = $detected_customer_email;
+            error_log('Booking Flow Debug - Added customer_email to combined_data: ' . $detected_customer_email);
         }
 
         // Keep time_slot for validation but will be removed before database storage
@@ -711,7 +724,12 @@ class Booking_Public {
                     $flow_payload['time_slot'] = $time_slot_for_validation;
                     $flow_payload['flow_id'] = $flow_id;
                     $flow_payload['flow_name'] = $flow->name;
+
+                    error_log('Booking Flow Debug - Final flow_payload (with time slot): ' . print_r($flow_payload, true));
+                    error_log('Booking Flow Debug - Flow name (with time slot): ' . $flow->name);
+
                     $insert_id = $booking_db->insert_flow_submission($flow->name, $flow_payload);
+                    error_log('Booking Flow Debug - Insert result (with time slot): ' . ($insert_id !== false ? 'Success ID: ' . $insert_id : 'Failed'));
 
                     if ($insert_id !== false) {
                         // Do not increment capacity on pending; will increment when approved by admin
@@ -770,12 +788,16 @@ class Booking_Public {
             if (method_exists($booking_db, 'ensure_columns_for_flow')) {
                 $all_spec = array();
                 foreach ($combined_data as $kk => $_vv) {
-                    if (!in_array($kk, array('customer_name','customer_email','booking_date','booking_time','service_type'))) {
+                    // Only exclude core booking fields, allow custom fields with any name including customer_name/customer_email
+                    if (!in_array($kk, array('booking_date','booking_time','service_type'))) {
                         $all_spec[$kk] = 'LONGTEXT';
                     }
                 }
                 foreach ($file_columns as $fk => $type) { $all_spec[$fk] = $type; }
-                if (!empty($all_spec)) { $booking_db->ensure_columns_for_flow($flow->name, $all_spec); }
+                if (!empty($all_spec)) {
+                    error_log('Booking Flow Debug - Creating columns for flow: ' . print_r($all_spec, true));
+                    $booking_db->ensure_columns_for_flow($flow->name, $all_spec);
+                }
             }
 
             // Build payload with all inputs as flat columns (no additional_fields)
@@ -787,7 +809,12 @@ class Booking_Public {
             $flow_payload['time_slot'] = $time_slot;
             $flow_payload['flow_id'] = $flow_id;
             $flow_payload['flow_name'] = $flow->name;
+
+            error_log('Booking Flow Debug - Final flow_payload (no time slot): ' . print_r($flow_payload, true));
+            error_log('Booking Flow Debug - Flow name: ' . $flow->name);
+
             $insert_id = $booking_db->insert_flow_submission($flow->name, $flow_payload);
+            error_log('Booking Flow Debug - Insert result (no time slot): ' . ($insert_id !== false ? 'Success ID: ' . $insert_id : 'Failed'));
 
             if ($insert_id !== false) {
                 // Send email notifications

@@ -513,23 +513,45 @@ jQuery(document).ready(function($) {
 
     function collectFormFields() {
         var data = {};
+        console.log('Collecting form fields...');
+
         $('.booking-form-fields').find('input:not([type="file"]), select, textarea').each(function() {
             var name = $(this).attr('name');
-            if (!name) return;
+            if (!name) {
+                console.log('Field without name attribute:', this);
+                return;
+            }
+
+            var value = $(this).val();
+
+            // Handle different field types
             if ($(this).attr('type') === 'checkbox') {
-                if ($(this).is(':checked')) { data[name] = $(this).val(); }
+                if ($(this).is(':checked')) {
+                    data[name] = value;
+                    console.log('Checkbox collected:', name, '=', value);
+                }
             } else if ($(this).attr('type') === 'radio') {
-                if ($(this).is(':checked')) { data[name] = $(this).val(); }
+                if ($(this).is(':checked')) {
+                    data[name] = value;
+                    console.log('Radio collected:', name, '=', value);
+                }
             } else {
-                data[name] = $(this).val();
+                data[name] = value;
+                console.log('Field collected:', name, '=', value);
             }
         });
+
         // Multiple selects
         $('.booking-form-fields').find('select[multiple]').each(function(){
             var name = $(this).attr('name');
             var values = $(this).val();
-            if (name && values) { data[name] = values; }
+            if (name && values) {
+                data[name] = values;
+                console.log('Multiple select collected:', name, '=', values);
+            }
         });
+
+        console.log('Final collected form data:', data);
         return data;
     }
     

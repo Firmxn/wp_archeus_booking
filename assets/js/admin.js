@@ -2085,21 +2085,23 @@ jQuery(document).ready(function ($) {
   function autoDetectFieldKey(label) {
     var labelLower = label.toLowerCase();
 
-    // Primary name detection patterns (must match exactly or contain specific full phrases)
+    // Primary name detection patterns (must be more specific to avoid false positives)
     var primaryNamePatterns = [
       'nama lengkap', 'full name', 'complete name', 'customer name',
       'nama lengkap anda', 'your full name', 'nama customer', 'nama pelanggan',
-      'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name'
+      'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name',
+      'nama pemesan', 'pemesan nama', 'nama pembeli', 'nama klien'
     ];
 
-    // Exact match patterns for single words (only if the entire label matches)
-    var exactNamePatterns = ['nama', 'name'];
+    // Exact match patterns for single words (only if the entire label matches exactly)
+    var exactNamePatterns = []; // Removed single words to prevent false positives
 
-    // Email detection patterns
+    // Email detection patterns (more specific to avoid false positives)
     var emailPatterns = [
-      'email', 'email address', 'e-mail', 'email anda', 'your email',
+      'email address', 'e-mail address', 'email anda', 'your email',
       'alamat email', 'email customer', 'email pelanggan',
-      'surat elektronik', 'electronic mail'
+      'email pemesan', 'email pembeli', 'email klien',
+      'alamat email anda', 'your email address'
     ];
 
     // Check primary name patterns first (these are phrases that should always be detected)
