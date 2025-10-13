@@ -644,15 +644,51 @@ class Booking_Admin {
                                         $is_auto_detected = false;
                                         $auto_type = '';
 
-                                        // Only auto-detect if the label indicates name/email, not based on key
+                                        // Only auto-detect if the label indicates name/email with the same logic as auto-detection function
                                         $label_lower = strtolower($field_data['label']);
-                                        if (strpos($label_lower, 'nama lengkap') !== false || strpos($label_lower, 'full name') !== false ||
-                                            strpos($label_lower, 'nama') !== false || strpos($label_lower, 'name') !== false) {
+
+                                        // Check name patterns (phrases with strpos)
+                                        $name_phrases = array('nama lengkap', 'full name', 'complete name', 'customer name',
+                                                             'nama lengkap anda', 'your full name', 'nama customer', 'nama pelanggan',
+                                                             'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name',
+                                                             'nama pemesan', 'pemesan nama', 'nama pembeli', 'nama klien');
+
+                                        $name_detected = false;
+                                        foreach ($name_phrases as $phrase) {
+                                            if (strpos($label_lower, $phrase) !== false) {
+                                                $name_detected = true;
+                                                break;
+                                            }
+                                        }
+
+                                        // Check exact match for single words
+                                        if (!$name_detected && ($label_lower === 'nama' || $label_lower === 'name')) {
+                                            $name_detected = true;
+                                        }
+
+                                        if ($name_detected) {
                                             $is_auto_detected = true;
                                             $auto_type = 'name';
-                                        } elseif (strpos($label_lower, 'email') !== false) {
+                                        }
+                                        // Check email patterns (single word "email" handled separately)
+                                        elseif ($label_lower === 'email') {
                                             $is_auto_detected = true;
                                             $auto_type = 'email';
+                                        } else {
+                                            // Check email phrases
+                                            $email_phrases = array('email address', 'e-mail address', 'email anda', 'your email',
+                                                                  'alamat email', 'email customer', 'email pelanggan',
+                                                                  'email pemesan', 'email pembeli', 'email klien',
+                                                                  'alamat email anda', 'your email address',
+                                                                  'surat elektronik', 'electronic mail');
+
+                                            foreach ($email_phrases as $phrase) {
+                                                if (strpos($label_lower, $phrase) !== false) {
+                                                    $is_auto_detected = true;
+                                                    $auto_type = 'email';
+                                                    break;
+                                                }
+                                            }
                                         }
                                         ?>
                                         <tr class="form-field-row" data-auto-detected="<?php echo $is_auto_detected ? 'true' : 'false'; ?>" data-auto-type="<?php echo esc_attr($auto_type); ?>">
