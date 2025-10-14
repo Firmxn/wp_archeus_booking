@@ -226,7 +226,8 @@ class Booking_Shortcodes {
                                         $calendar_days_html .= '</div>';
                                     }
                                 ?>
-                                <div class="booking-calendar-container">
+                                <!-- <div class="booking-calendar-container"> -->
+                                    <div>
                                     <div class="booking-calendar-header">
                                         <button class="calendar-nav-btn prev-month" data-month="<?php echo esc_attr($month-1); ?>" data-year="<?php echo esc_attr($month == 1 ? $year-1 : $year); ?>">&laquo; <?php echo esc_html__('', 'archeus-booking'); ?></button>
                                         <h3 class="current-month"><?php $names = array('Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'); echo esc_html($names[$month-1] . ' ' . $year); ?></h3>

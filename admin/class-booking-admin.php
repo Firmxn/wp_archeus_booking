@@ -3741,6 +3741,7 @@ class Booking_Admin {
                     
                     <!-- Admin Calendar View - now using same structure as public calendar -->
                     <div class="booking-calendar-container">
+                        <!-- <div> -->
                         <div class="booking-calendar-header">
                             <button class="calendar-nav-btn prev-month" data-month="<?php echo date('n')-1; ?>" data-year="<?php echo date('Y'); ?>">&laquo; <?php echo esc_html__('Sebelumnya', 'archeus-booking'); ?></button>
                             <h3 class="current-month"><?php $__m = intval(date('n')); $__y = date('Y'); $__names = array('Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'); echo esc_html($__names[$__m-1] . ' ' . $__y); ?></h3>
