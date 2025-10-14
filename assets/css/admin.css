@@ -568,7 +568,8 @@
 /* Stronger select styling to override WP admin */
 .ab-select,
 .booking-admin-page .ab-select,
-.booking-admin-page select.ab-select {
+.booking-admin-page select.ab-select,
+.field-type-select {
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
   appearance: none !important;
@@ -586,7 +587,8 @@
 
 .ab-select:focus,
 .booking-admin-page .ab-select:focus,
-.booking-admin-page select.ab-select:focus {
+.booking-admin-page select.ab-select:focus,
+.field-type-select:focus {
   border-color: var(--primary-color) !important;
   box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3) !important;
   outline: none !important;

@@ -1116,8 +1116,8 @@ jQuery(document).ready(function ($) {
   function enhanceAbDropdowns(root) {
     console.log('enhanceAbDropdowns called with root:', root);
     var $root = root && root.jquery ? root : $(document);
-    var $dropdowns = $root.find("select.ab-dropdown");
-    console.log('Found select.ab-dropdown elements:', $dropdowns.length);
+    var $dropdowns = $root.find("select.ab-dropdown").not('.field-type-select');
+    console.log('Found select.ab-dropdown elements (excluding field-type-select):', $dropdowns.length);
     $dropdowns.each(function () {
       var $sel = $(this);
       console.log('Processing dropdown:', $sel.attr('id'), 'or', $sel.attr('class'));
@@ -1984,14 +1984,14 @@ jQuery(document).ready(function ($) {
 
       // Hint removed - no longer needed
 
-      // Update select styling and enhance dropdown
-      var $newSelect = $newRow.find('select.ab-select');
+      // Update select styling and enhance dropdown (exclude field-type-select from complex enhancement)
+      var $newSelect = $newRow.find('select.ab-select').not('.field-type-select');
 
       // Update select state
       if ($newSelect.length > 0) {
         updateAbSelectState($newSelect[0]);
 
-        // Initialize custom dropdown for the new select
+        // Initialize custom dropdown for the new select (only for non field-type-select)
         if (typeof enhanceAbDropdowns === 'function') {
           // Small delay to ensure DOM is ready
           setTimeout(function() {
@@ -2115,7 +2115,7 @@ jQuery(document).ready(function ($) {
         '<input type="text" name="field_labels[custom_' + fieldNumber + ']" value="Custom ' + fieldNumber + '" placeholder="Label field" class="field-label-input">' +
       '</td>' +
       '<td>' +
-        '<select class="ab-select ab-dropdown field-type-select" name="field_types[custom_' + index + ']">' +
+        '<select class="ab-select field-type-select" name="field_types[custom_' + fieldNumber + ']">' +
           '<option value="text">Text</option>' +
           '<option value="email">Email</option>' +
           '<option value="number">Number</option>' +
@@ -2939,15 +2939,20 @@ jQuery(document).ready(function ($) {
       formData.append(name, value);
     });
 
+    // Debug log untuk field collection
+    console.log('Collecting field data...');
+
     $form.find('input[name^="field_labels["]').each(function() {
       var name = $(this).attr('name');
       var value = $(this).val();
+      console.log('Field label:', name, '=', value);
       formData.append(name, value);
     });
 
     $form.find('select[name^="field_types["]').each(function() {
       var name = $(this).attr('name');
       var value = $(this).val();
+      console.log('Field type:', name, '=', value);
       formData.append(name, value);
     });
 

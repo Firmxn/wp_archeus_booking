@@ -702,7 +702,7 @@ class Booking_Admin {
                                             </td>
                                             <td><input type="text" name="field_labels[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_data['label']); ?>"></td>
                                             <td>
-                                                <select name="field_types[<?php echo esc_attr($field_key); ?>]" class="ab-select ab-dropdown field-type-select">
+                                                <select name="field_types[<?php echo esc_attr($field_key); ?>]" class="ab-select field-type-select">
                                                     <option value="text" <?php selected($field_data['type'], 'text'); ?>>Text</option>
                                                     <option value="email" <?php selected($field_data['type'], 'email'); ?>>Email</option>
                                                     <option value="number" <?php selected($field_data['type'], 'number'); ?>>Number</option>
