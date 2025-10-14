@@ -87,6 +87,21 @@ jQuery(document).ready(function($) {
 
               // Create a temporary form element to validate all fields
               var $tempForm = $('<form>').append($bookingForm.find('input, select, textarea').clone());
+
+              // Fix undefined type for enhanced dropdowns
+              $tempForm.find('[type="undefined"]').attr('type', 'text');
+
+              // Fix enhanced dropdown values in temp form
+              $bookingForm.find('.ab-dd').each(function() {
+                var $originalField = $(this);
+                var $select = $originalField.find('select');
+                var $tempField = $tempForm.find('[name="' + $select.attr('name') + '"]');
+
+                if ($tempField.length > 0 && $select.val()) {
+                  $tempField.val($select.val());
+                }
+              });
+
               var isValid = $tempForm[0].checkValidity();
               console.log('HTML5 validation result:', isValid);
 
@@ -97,10 +112,43 @@ jQuery(document).ready(function($) {
                 $bookingForm.find('input, select, textarea').each(function() {
                   var $field = $(this);
                   var $tempField = $tempForm.find('[name="' + $field.attr('name') + '"]');
+
+                  // Handle enhanced dropdown validation
+                  if ($field.hasClass('ab-dd') || $field.closest('.ab-dd').length > 0) {
+                    var $abDropdown = $field.hasClass('ab-dd') ? $field : $field.closest('.ab-dd');
+                    var $select = $abDropdown.find('select');
+                    var selectedValue = $select.val();
+                    var hasValue = selectedValue && selectedValue !== '' && selectedValue !== null;
+
+                    if (hasValue) {
+                      // Valid - remove error classes
+                      $abDropdown.removeClass('error');
+                      $select.removeClass('error');
+                      $field.removeClass('error');
+                      return; // Skip this field - it's valid
+                    } else {
+                      // Invalid - add error classes
+                      $abDropdown.addClass('error');
+                      $select.addClass('error');
+                      $field.addClass('error');
+                      console.log('Enhanced dropdown failed validation:', $field.attr('name'), 'value:', selectedValue);
+                      return;
+                    }
+                  }
+
+                  // Handle regular field validation
                   if ($tempField.length > 0 && !$tempField[0].checkValidity()) {
+                    // For enhanced dropdowns, add error to the container
+                    if ($field.hasClass('ab-hidden-select')) {
+                      $field.closest('.ab-dd').addClass('error');
+                    }
                     $field.addClass('error');
                     console.log('Field failed validation:', $field.attr('name'), 'value:', $field.val());
                   } else {
+                    // For enhanced dropdowns, remove error from container
+                    if ($field.hasClass('ab-hidden-select')) {
+                      $field.closest('.ab-dd').removeClass('error');
+                    }
                     $field.removeClass('error');
                   }
                 });
@@ -756,6 +804,8 @@ jQuery(document).ready(function($) {
                     if ($opt.is(':selected')) $item.addClass('is-selected');
                     $menu.append($item);
                 });
+                // Fix type attribute for validation
+                $sel.attr('type', 'select');
                 $sel.addClass('ab-hidden-select').hide().after($wrap);
                 $wrap.append($btn).append($menu);
                 $sel.appendTo($wrap); // keep in wrap to trigger change
@@ -785,6 +835,13 @@ jQuery(document).ready(function($) {
                     $menu.find('.ab-dd-item').removeClass('is-selected');
                     $(this).addClass('is-selected');
                     $label.text($(this).text());
+
+                    // Remove error styling when value is selected
+                    if (val && val !== '') {
+                      $wrap.removeClass('error');
+                      $sel.removeClass('error');
+                    }
+
                     closeMenu();
                 });
 
@@ -796,6 +853,12 @@ jQuery(document).ready(function($) {
                         var $i = $(this);
                         $i.toggleClass('is-selected', $i.attr('data-value') == val);
                     });
+
+                    // Remove error styling when value is selected
+                    if (val && val !== '') {
+                      $wrap.removeClass('error');
+                      $sel.removeClass('error');
+                    }
                 });
             });
         }

@@ -687,7 +687,7 @@
 
 @media (max-width: 480px) {
   .section-calendar .booking-calendar {
-    margin: 0 auto  !important;
+    margin: 0 auto !important;
     border-radius: 4px;
   }
 }
@@ -1213,9 +1213,10 @@
 
 /* Custom File Upload */
 .file-upload {
-  position: relative;
+  /* position: relative; */
   display: flex;
-  align-items: center;
+  flex-direction: row;
+  align-items: stretch;
   gap: 8px;
   padding: 12px;
   border: 2px dashed #e2e8f0;
@@ -1244,51 +1245,53 @@
   height: 100%;
   cursor: pointer;
   z-index: 2;
+  font-size: 14px;
 }
 
 .bf-file-btn {
-  display: inline-flex;
+  background: var(--primary-color) !important;
+  cursor: pointer !important;
+  border: none;
+  border-radius: 6px;
+  color: white !important;
+  width: 20%;
+  padding: 0 !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  margin: 0 !important;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 4px;
-  margin-right: 8px;
-  padding: 8px 16px;
-  background: #54b335;
-  color: white !important;
-  border: none;
-  border-radius: 8px;
+  text-align: center;
+  align-self: center !important;
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  white-space: nowrap;
-  user-select: none;
-  height: 40px;
-  line-height: 1.4;
-  align-self: center !important;
 }
 
 .bf-file-btn:hover {
-  background: var();
+  background: var(--button-primary-hover) !important;
 }
 
 .bf-file-name {
-  flex: 1;
-  font-size: 14px;
-  color: #111827;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  min-width: 0;
+  margin-top: 0px;
+  width: 70%;
+  font-size: 13px;
+  padding: 12px;
   height: 40px;
-  line-height: 1.4;
+  margin: 0 !important;
   display: flex;
   align-items: center;
+  /* justify-content: center; */
+  text-align: left !important;
+  align-self: center !important;
+  cursor: pointer !important;
+  border: none;
+  border-radius: 6px;
+  color: black;
+  background: white;
+
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .file-upload.has-file .bf-file-name {
@@ -1298,23 +1301,25 @@
 }
 
 .bf-file-clear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 40px;
+  width: 10% !important;
+  padding: 0 !important;
   background: #9ca3af;
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  flex-shrink: 0;
-  margin-left: 8px;
-  position: relative;
-  z-index: 10;
-  pointer-events: auto;
+  font-size: 12px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  align-self: center !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  cursor: pointer !important;
+  border: none !important;
+  border-radius: 6px !important;
 }
 
 .bf-file-clear:hover {
@@ -1369,20 +1374,103 @@
   /* Calendar legend styles handled by main responsive rules */
 
   .file-upload {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .bf-file-btn {
+    width: 20%;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    align-self: center !important;
   }
 
   .bf-file-name {
+    margin-top: 0px;
+    width: 60%;
+    font-size: 13px;
+    padding: 12px;
+    height: 40px;
+    text-align: left;
+  }
+
+  .bf-file-clear {
+    width: 14% !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: 0.75rem;
+    align-self: center !important;
   }
 }
 
 /* Additional responsive styles for smaller screens */
 @media (max-width: 480px) {
+  /* File Upload responsive styles for mobile */
+  .file-upload {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .bf-file-btn {
+    width: 20%;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    align-self: center !important;
+  }
+
+  .bf-file-name {
+    margin-top: 0px;
+    width: 60%;
+    font-size: 13px;
+    padding: 12px;
+    height: 40px;
+    text-align: left;
+  }
+
+  .bf-file-clear {
+    width: 14% !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    align-self: center !important;
+  }
+
+  .file-upload.has-file .bf-file-name {
+    padding-right: 48px;
+  }
+
   .section-calendar .booking-calendar-container {
     margin: 8px 4px;
     padding: 14px !important;
@@ -1396,18 +1484,57 @@
   /* Calendar header and navigation styles handled by main responsive rules */
 
   /* All calendar styles handled by main responsive rules */
+}
 
-  @media (max-width: 320px) {
-    .section-calendar .booking-calendar-container {
-      margin: 6px 3px;
-      padding: 8px;
-    }
-
-    /* Add spacing between container and inner elements for smallest mobile */
-    .section-calendar .booking-calendar-container > * {
-      margin-bottom: 6px;
-    }
-
-    /* All calendar styles handled by main responsive rules */
+/* Ultra compact styles for smallest mobile screens */
+@media (max-width: 320px) {
+  /* File Upload responsive styles for ultra small mobile */
+  .file-upload {
+    padding: 12px;
+    gap: 0.5rem;
   }
+
+  .bf-file-btn {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    text-align: center !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .bf-file-name {
+    font-size: 12px;
+    padding: 10px;
+    height: 40px;
+  }
+
+  .bf-file-clear {
+    width: 32px;
+    height: 32px;
+    top: 6px;
+    right: 6px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    line-height: 32px !important;
+  }
+
+  .file-upload.has-file .bf-file-name {
+    padding-right: 42px;
+  }
+
+  .section-calendar .booking-calendar-container {
+    margin: 6px 3px;
+    padding: 8px;
+  }
+
+  /* Add spacing between container and inner elements for smallest mobile */
+  .section-calendar .booking-calendar-container > * {
+    margin-bottom: 6px;
+  }
+
+  /* All calendar styles handled by main responsive rules */
 }
