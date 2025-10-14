@@ -572,7 +572,9 @@ class Booking_Public {
         foreach ($combined_data as $key => $value) {
             if (!in_array($key, ['customer_name', 'customer_email', 'booking_date', 'booking_time', 'service_type'])) {
                 if (isset($_FILES[$key])) {
-                    $file = $this->handle_file_upload($_FILES[$key]);
+                    $customer_name = isset($combined_data['customer_name']) ? $combined_data['customer_name'] : '';
+                    $service_type = isset($combined_data['service_type']) ? $combined_data['service_type'] : '';
+                    $file = $this->handle_file_upload($_FILES[$key], $customer_name, $service_type);
                     if ($file) { $combined_data[$key] = $file; }
                     else { $combined_data[$key] = sanitize_text_field($value); }
                 } else {
@@ -583,7 +585,9 @@ class Booking_Public {
         // Ensure file-only fields (not present in combined_data) are captured as well by scanning $_FILES
         foreach (array_keys($_FILES ?: array()) as $k) {
             if (!isset($combined_data[$k])) {
-                $file = $this->handle_file_upload($_FILES[$k]);
+                $customer_name = isset($combined_data['customer_name']) ? $combined_data['customer_name'] : '';
+                $service_type = isset($combined_data['service_type']) ? $combined_data['service_type'] : '';
+                $file = $this->handle_file_upload($_FILES[$k], $customer_name, $service_type);
                 if ($file) { $combined_data[$k] = $file; }
             }
         }
@@ -836,7 +840,7 @@ class Booking_Public {
     /**
      * Handle file upload
      */
-    private function handle_file_upload($file) {
+    private function handle_file_upload($file, $customer_name = '', $service_type = '') {
         if (!isset($file['name']) || $file['name'] == '') {
             return false;
         }
@@ -859,11 +863,36 @@ class Booking_Public {
             return false;
         }
         
-        // Generate unique filename
+        // Generate filename based on customer name, service type, and current date
         $upload_dir = wp_upload_dir();
         $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $file_name = uniqid() . '_' . sanitize_file_name($file['name']);
+        $original_filename = pathinfo($file['name'], PATHINFO_FILENAME);
+
+        // Clean and prepare components for filename
+        $customer_name_clean = !empty($customer_name) ? sanitize_title($customer_name) : '';
+        $service_type_clean = !empty($service_type) ? sanitize_title($service_type) : '';
+        $current_date = date('Y-m-d_H-i-s');
+
+        // Build filename based on available data
+        if (!empty($customer_name_clean) && !empty($service_type_clean)) {
+            // Format: customer_name_service_type_date.ext
+            $file_base = $customer_name_clean . '_' . $service_type_clean . '_' . $current_date;
+        } else {
+            // Fallback format: original_filename_date.ext
+            $file_base = $original_filename . '_' . $current_date;
+        }
+
+        // Sanitize and ensure unique filename
+        $file_name = sanitize_file_name($file_base . '.' . $file_extension);
         $file_path = $upload_dir['path'] . '/' . $file_name;
+
+        // Ensure filename is unique (add counter if file exists)
+        $counter = 1;
+        while (file_exists($file_path)) {
+            $file_name = sanitize_file_name($file_base . '_' . $counter . '.' . $file_extension);
+            $file_path = $upload_dir['path'] . '/' . $file_name;
+            $counter++;
+        }
         
         // Move uploaded file to WordPress uploads directory
         if (move_uploaded_file($file['tmp_name'], $file_path)) {

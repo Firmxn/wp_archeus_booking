@@ -3086,9 +3086,9 @@ select.ab-hidden-select {
 
 /* tombol open file dashboard */
 .booking-admin-page .bv-actions .bv-open.button {
-  background: var(--button-primary);
-  border-color: var(--button-primary);
-  color: var(--button-primary-hover);
+  background: var(--success-background) !important;
+  border-color: var(--success-background);
+  color: var(--primary-color);
   transition: var(--transition);
   font-size: 14px;
   font-weight: 600 !important;
@@ -3096,8 +3096,8 @@ select.ab-hidden-select {
   box-shadow: var(--button-shadow);
 }
 .booking-admin-page .bv-actions .bv-open.button:hover {
-  background: var(--button-primary-hover);
-  border-color: var(--button-primary-hover);
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
   color: white;
   box-shadow: var(--button-shadow-hover);
 }
