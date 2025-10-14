@@ -919,6 +919,77 @@
   border-radius: var(--border-radius);
   border: 1px solid #e5e7eb;
 }
+
+/* Custom dropdown untuk filter dashboard */
+.booking-filters .ab-dd {
+  display: inline-block !important;
+  min-width: 220px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.booking-filters .ab-dd .ab-dd-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 8px 12px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+}
+
+.booking-filters .ab-dd .ab-dd-toggle:focus {
+  outline: none !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3) !important;
+}
+
+.booking-filters .ab-dd .ab-dd-menu {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: calc(100% + 4px) !important;
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--box-shadow) !important;
+  max-height: 260px !important;
+  overflow: auto !important;
+  z-index: 999999 !important;
+  display: none !important;
+  min-width: 220px !important;
+  transform: none !important;
+  clip: none !important;
+  clip-path: none !important;
+}
+
+.booking-filters .ab-dd.open .ab-dd-menu {
+  display: block !important;
+}
+
+/* Ensure dropdown items are visible */
+.booking-filters .ab-dd .ab-dd-item {
+  display: block !important;
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  color: #111827 !important;
+}
+
+.booking-filters .ab-dd .ab-dd-item:hover,
+.booking-filters .ab-dd .ab-dd-item:focus {
+  background: rgba(84, 179, 53, 0.12) !important;
+  color: #111827 !important;
+}
+
+.booking-filters .ab-dd .ab-dd-item.is-selected {
+  background: #54b335 !important;
+  color: #ffffff !important;
+}
 .booking-details-row {
   background-color: #f9fafb;
 }
@@ -1294,7 +1365,7 @@
 }
 
 /* filter dashboard */
-/* .booking-filters .filter-dashboard {
+.booking-filters .filter-dashboard {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -1302,17 +1373,17 @@
   height: 40px !important;
   min-height: 40px !important;
   padding: 8px 12px !important;
-  background: red !important;
+  background: #ffffff !important;
   color: #111827 !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius) !important;
   cursor: pointer !important;
-} */
-/* .booking-filters .filter-dashboard :focus {
+}
+.booking-filters .filter-dashboard:focus {
   outline: none;
-  border-color: red !important;
+  border-color: var(--primary-color) !important;
   box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3);
-} */
+}
 .ab-dd .ab-dd-caret {
   margin-left: 8px;
   width: 0;
@@ -2627,6 +2698,30 @@ select.ab-hidden-select {
 .admin-card-body:not(.form-fields-builder-container),
 .widefat {
   overflow: visible !important;
+}
+
+/* Special override for booking-filters to ensure dropdown works */
+.booking-filters {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Ensure booking-filters dropdown escapes any container constraints */
+.booking-filters .ab-dd .ab-dd-menu {
+  position: absolute !important;
+  left: 0 !important;
+  right: auto !important;
+  top: calc(100% + 4px) !important;
+}
+
+/* Ensure shortcode row dropdown positioning */
+.ab-shortcode-row .ab-dd .ab-dd-menu {
+  position: absolute !important;
+  left: 0 !important;
+  right: auto !important;
+  top: calc(100% + 4px) !important;
+  z-index: 999999 !important;
 }
 
 .booking-admin-page .section-item .form-table {

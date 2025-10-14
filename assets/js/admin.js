@@ -1,5 +1,7 @@
 // Debug: Check if functions are loaded
+console.log('ARCHAEUS ADMIN JS LOADED!');
 jQuery(document).ready(function ($) {
+  console.log('ARCHAEUS ADMIN JS DOCUMENT READY!');
   // Check for table overflow and add visual indicator
   function checkTableOverflow() {
     $('.form-fields-builder').each(function() {
@@ -1099,11 +1101,16 @@ jQuery(document).ready(function ($) {
 
   // Progressive enhancement: custom dropdown for .ab-dropdown (copied from booking-flow)
   function enhanceAbDropdowns(root) {
+    console.log('enhanceAbDropdowns called with root:', root);
     var $root = root && root.jquery ? root : $(document);
-    $root.find("select.ab-dropdown").each(function () {
+    var $dropdowns = $root.find("select.ab-dropdown");
+    console.log('Found select.ab-dropdown elements:', $dropdowns.length);
+    $dropdowns.each(function () {
       var $sel = $(this);
+      console.log('Processing dropdown:', $sel.attr('id'), 'or', $sel.attr('class'));
       if ($sel.data("ab-dd")) return; // already enhanced
       $sel.data("ab-dd", true);
+      console.log('Enhancing dropdown:', $sel.attr('id'));
 
       var selectedText = $sel.find("option:selected").text() || "";
       var $wrap = $('<div class="ab-dd"></div>');
@@ -1133,8 +1140,10 @@ jQuery(document).ready(function ($) {
       $sel.appendTo($wrap); // keep in wrap to trigger change
 
       function closeMenu() {
+        console.log('closeMenu called for:', $sel.attr('id'));
         $wrap.removeClass("open");
         $btn.attr("aria-expanded", "false");
+        console.log('Menu closed, .open class removed');
 
         // Reset positioning when closing dropdown
         if ($wrap.closest('.form-fields-builder').length > 0) {
@@ -1148,11 +1157,32 @@ jQuery(document).ready(function ($) {
         }
       }
       function openMenu() {
+        console.log('openMenu called for:', $sel.attr('id'));
         $wrap.addClass("open");
         $btn.attr("aria-expanded", "true");
+        console.log('Menu opened, .open class added');
 
-        // Always check for positioning to escape overflow containers
+        // Debug positioning before positioning function
         setTimeout(function() {
+          console.log('=== POSITIONING DEBUG ===');
+          console.log('Button position:', $btn.offset());
+          console.log('Button dimensions:', $btn.outerWidth(), 'x', $btn.outerHeight());
+          console.log('Menu position:', $menu.offset());
+          console.log('Menu dimensions:', $menu.outerWidth(), 'x', $menu.outerHeight());
+          console.log('Menu CSS position:', $menu.css('position'));
+          console.log('Menu CSS top:', $menu.css('top'));
+          console.log('Menu CSS left:', $menu.css('left'));
+          console.log('Menu CSS right:', $menu.css('right'));
+          console.log('Menu CSS bottom:', $menu.css('bottom'));
+          console.log('Menu CSS transform:', $menu.css('transform'));
+          console.log('Menu CSS display:', $menu.css('display'));
+          console.log('Menu CSS visibility:', $menu.css('visibility'));
+          console.log('Menu CSS opacity:', $menu.css('opacity'));
+          console.log('Menu z-index:', $menu.css('z-index'));
+          console.log('Menu classes:', $menu.attr('class'));
+          console.log('Parent container:', $wrap.parent());
+          console.log('=== END POSITIONING DEBUG ===');
+
           positionDropdown($menu, $btn);
         }, 10);
       }
@@ -1161,9 +1191,24 @@ jQuery(document).ready(function ($) {
       function positionDropdown($menu, $btn) {
         try {
           var $formBuilder = $wrap.closest('.form-fields-builder, .table-overflow, .widefat, .admin-card-body');
+          var $bookingFilters = $wrap.closest('.booking-filters');
           var isInOverflow = $formBuilder.length > 0;
+          var isInBookingFilters = $bookingFilters.length > 0;
 
-          if (isInOverflow) {
+          console.log('Positioning debug - isInOverflow:', isInOverflow, 'isInBookingFilters:', isInBookingFilters);
+
+          if (isInBookingFilters) {
+            // Use simple absolute positioning for booking-filters
+            console.log('Using booking-filters positioning');
+            $menu.css({
+              position: 'absolute',
+              left: '0',
+              top: 'calc(100% + 4px)',
+              width: '100%',
+              minWidth: '220px',
+              zIndex: 999999
+            });
+          } else if (isInOverflow) {
             // Use fixed positioning to escape overflow container
             var btnRect = $btn[0].getBoundingClientRect();
             var viewportHeight = window.innerHeight;
@@ -1213,18 +1258,24 @@ jQuery(document).ready(function ($) {
           $menu.css({
             position: 'absolute',
             left: '0',
-            top: 'calc(100% + 6px)',
-            width: 'auto',
-            minWidth: '200px',
-            zIndex: 99999
+            top: 'calc(100% + 4px)',
+            width: '100%',
+            minWidth: '220px',
+            zIndex: 999999
           });
         }
       }
 
       $btn.on("click", function (e) {
+        console.log('Dropdown button clicked:', $sel.attr('id'));
         e.preventDefault();
-        if ($wrap.hasClass("open")) closeMenu();
-        else openMenu();
+        if ($wrap.hasClass("open")) {
+          console.log('Closing dropdown');
+          closeMenu();
+        } else {
+          console.log('Opening dropdown');
+          openMenu();
+        }
       });
 
       $(document).on("click", function (e) {
@@ -1261,8 +1312,13 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  // Initialize dropdowns
-  enhanceAbDropdowns($(document));
+  // Initialize dropdowns with proper timing
+  $(document).ready(function() {
+    console.log('Document ready, initializing dropdowns...');
+    setTimeout(function() {
+      enhanceAbDropdowns($(document));
+    }, 100);
+  });
 
   // Observe DOM changes to enhance future selects
   if (window.MutationObserver) {
@@ -2718,6 +2774,19 @@ jQuery(document).ready(function ($) {
     updateBookingStatus: typeof window.updateBookingStatus,
     jQuery: typeof jQuery,
   });
+
+  // Debug: Check for dropdowns
+  console.log('Looking for dropdown elements...');
+  console.log('Found select.ab-dropdown:', $('select.ab-dropdown').length);
+  console.log('Found #booking-status-filter:', $('#booking-status-filter').length);
+
+  // Try to initialize dropdowns
+  if (typeof enhanceAbDropdowns === 'function') {
+    console.log('enhanceAbDropdowns function found, initializing...');
+    enhanceAbDropdowns($(document));
+  } else {
+    console.log('enhanceAbDropdowns function NOT found!');
+  }
 
   // Initial data is already loaded via PHP, no need for additional refresh
   console.log(
