@@ -791,6 +791,7 @@ jQuery(document).ready(function ($) {
             "flowname",
             "flow_name",
             "id",
+            "time_slot",
           ];
 
           // Function to get user-friendly field labels
@@ -813,6 +814,8 @@ jQuery(document).ready(function ($) {
               'booking_time': 'Waktu Reservasi',
               'service_type': 'Layanan',
               'jenis_layanan': 'Layanan',
+              'bukti_reservasi': 'Bukti Reservasi',
+              'bukti_vaksin': 'Bukti Vaksin',
               'status': 'Status',
               'created_at': 'Tanggal Dibuat',
               'updated_at': 'Tanggal Diperbarui'
@@ -855,67 +858,70 @@ jQuery(document).ready(function ($) {
             return exclude.indexOf(k) === -1 && processedFields.indexOf(k) === -1;
           });
 
+          // Function to check if a value is a file URL
+          function isFileUrl(value) {
+            if (!value || typeof value !== 'string') return false;
+            // Check for WordPress upload patterns
+            return value.includes('/wp-content/uploads/') ||
+                   value.match(/\.(pdf|jpg|jpeg|png|gif|bmp|doc|docx|xls|xlsx|ppt|pptx|txt|zip|rar)$/i);
+          }
+
+          // Function to extract filename from URL
+          function extractFileName(url) {
+            try {
+              var p = url.split("?")[0];
+              return decodeURIComponent(p.substring(p.lastIndexOf("/") + 1));
+            } catch (e) {
+              return url;
+            }
+          }
+
+          // Function to generate file action buttons
+          function generateFileActions(url, previewId) {
+            return '<div class="bv-actions">' +
+                   '  <button type="button" class="button bv-preview" data-url="' + url + '" data-target="#' + previewId + '" aria-label="Lihat pratinjau">' +
+                   '    <span class="dashicons dashicons-visibility" aria-hidden="true"></span>' +
+                   '  </button>' +
+                   '  <a class="button bv-open" href="' + url + '" target="_blank" rel="noopener" aria-label="Buka di tab baru">' +
+                   '    <span class="dashicons dashicons-external" aria-hidden="true"></span>' +
+                   '  </a>' +
+                   '  <a class="button bv-download" href="' + url + '" download aria-label="Unduh berkas">' +
+                   '    <span class="dashicons dashicons-download" aria-hidden="true"></span>' +
+                   '  </a>' +
+                   '</div>';
+          }
+
           // Process remaining keys in pairs, except for address and file fields
           for (var i = 0; i < filteredKeys.length; i++) {
             var k = filteredKeys[i];
             var v = data[k];
 
-            // Handle special fields (address and file) as full-width rows
-            if (k === "alamat" || k === "bukti_vaksin") {
-              if (k === "bukti_vaksin" && v) {
-                var fileName = (function (u) {
-                  try {
-                    var p = u.split("?")[0];
-                    return decodeURIComponent(
-                      p.substring(p.lastIndexOf("/") + 1)
-                    );
-                  } catch (e) {
-                    return u;
-                  }
-                })(v);
-                var actions =
-                  "" +
-                  '<div class="bv-actions">' +
-                  '  <button type="button" class="button bv-preview" data-url="' +
-                  v +
-                  '" data-target="#' +
-                  previewId +
-                  '" aria-label="Lihat pratinjau">' +
-                  '    <span class="dashicons dashicons-visibility" aria-hidden="true"></span>' +
-                  "  </button>" +
-                  '  <a class="button bv-open" href="' +
-                  v +
-                  '" target="_blank" rel="noopener" aria-label="Buka di tab baru">' +
-                  '    <span class="dashicons dashicons-external" aria-hidden="true"></span>' +
-                  "  </a>" +
-                  '  <a class="button bv-download" href="' +
-                  v +
-                  '" download aria-label="Unduh berkas">' +
-                  '    <span class="dashicons dashicons-download" aria-hidden="true"></span>' +
-                  "  </a>" +
-                  "</div>";
-                html +=
-                  '<tr><td colspan="2"><div class="bv-container" style="display: flex; justify-content: space-between; align-items: center;"><div><strong>' +
-                  getFieldLabel(k) +
-                  ":</strong> " +
-                  fileName +
-                  '</div><div>' +
-                  actions +
-                  '</div></div></td></tr>';
-              } else {
-                html +=
-                  '<tr><td colspan="2"><strong>' +
-                  getFieldLabel(k) +
-                  ":</strong> " +
-                  (v == null ? "" : v) +
-                  "</td></tr>";
-              }
-            } else {
+            // Handle special fields as full-width rows
+            if (k === "alamat") {
+              html += '<tr><td colspan="2"><strong>' + getFieldLabel(k) + ':</strong> ' + (v || '-') + '</td></tr>';
+            }
+            // Handle file fields dynamically based on content
+            else if (isFileUrl(v)) {
+              var fileName = extractFileName(v);
+              var actions = generateFileActions(v, previewId);
+              html += '<tr><td colspan="2"><div class="bv-container" style="display: flex; justify-content: space-between; align-items: center;"><div><strong>' +
+                     getFieldLabel(k) + ':</strong> ' + fileName +
+                     '</div><div>' + actions +
+                     '</div></div></td></tr>';
+            }
+            // Handle other fields (not file URLs) in pairs or single
+            else {
               // Check if we can pair with the next field
+              // Don't pair if current or next field is address or a file URL
+              var nextField = i + 1 < filteredKeys.length ? filteredKeys[i + 1] : null;
+              var nextFieldValue = nextField ? data[nextField] : null;
+
               if (
-                i + 1 < filteredKeys.length &&
-                filteredKeys[i + 1] !== "alamat" &&
-                filteredKeys[i + 1] !== "bukti_vaksin"
+                nextField &&
+                k !== "alamat" &&
+                nextField !== "alamat" &&
+                !isFileUrl(v) &&
+                !isFileUrl(nextFieldValue)
               ) {
                 // Current field
                 var k2 = filteredKeys[i + 1];
