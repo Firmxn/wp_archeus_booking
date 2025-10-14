@@ -46,7 +46,7 @@ class Booking_Shortcodes {
                             case 'time': echo '<input type="time" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder']) . '">'; break;
                             case 'select':
                                 echo '<select id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . '>';
-                                echo '<option value="">' . esc_html(($field_data['placeholder'] ?? '') ?: '-- Select --') . '</option>';
+                                echo '<option value="">' . esc_html(($field_data['placeholder'] ?? '') ?: '-- Pilih --') . '</option>';
                                 if ($field_key === 'service_type') {
                                     $booking_db_inner = new Booking_Database();
                                     $services = $booking_db_inner->get_services();
@@ -322,7 +322,7 @@ class Booking_Shortcodes {
                                                     case 'time': echo '<input type="time" id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . ' placeholder="' . esc_attr($field_data['placeholder'] ?? '') . '">'; break;
                                                     case 'select':
                                                         echo '<select id="' . esc_attr($field_key) . '_' . esc_attr($form_id) . '" name="' . esc_attr($field_key) . '" class="ab-select ab-dropdown" ' . (!empty($field_data['required']) ? 'required' : '') . '>';
-                                                        echo '<option value="">' . esc_html(($field_data['placeholder'] ?? '') ?: '-- Select --') . '</option>';
+                                                        echo '<option value="">' . esc_html(($field_data['placeholder'] ?? '') ?: '-- Pilih --') . '</option>';
                                                         if ($field_key === 'service_type') {
                                                             $services_inner = $db->get_services();
                                                             foreach ($services_inner as $service) { if ($service->is_active) { echo '<option value="' . esc_attr($service->name) . '">' . esc_html($service->name) . '</option>'; } }

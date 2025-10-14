@@ -331,8 +331,8 @@ jQuery(document).ready(function ($) {
     });
   };
 
-  window.showDeleteConfirm = function (message, redirectUrl) {
-    console.log("showDeleteConfirm called with:", { message, redirectUrl });
+  window.showDeleteConfirm = function (message, redirectUrl, callback) {
+    console.log("showDeleteConfirm called with:", { message, redirectUrl, callback: typeof callback });
 
     // Check if this is service or form deletion (already handled by our event delegation)
     if (message.includes("layanan") || message.includes("formulir")) {
@@ -387,6 +387,13 @@ jQuery(document).ready(function ($) {
     $dialog.find(".ab-dialog-confirm").on("click", function () {
       console.log("Delete confirm dialog confirmed");
       $dialog.remove();
+
+      // Check if we have a callback function (for custom actions like clear email logs)
+      if (typeof callback === "function") {
+        console.log("Executing callback function");
+        callback();
+        return;
+      }
 
       if (isBookingDelete) {
         // For booking delete, we'll handle it differently since we don't have the booking ID here

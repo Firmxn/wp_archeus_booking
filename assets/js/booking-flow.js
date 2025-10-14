@@ -241,7 +241,7 @@ jQuery(document).ready(function($) {
                         var $selectedOption = $dropdownContainer.find('.ab-dd-item.is-selected');
                         var selectedText = $selectedOption.text() || '';
                         // Consider empty if value is empty or if it's the placeholder text
-                        isEmpty = !selectValue || selectValue === '' || selectedText === '-- Select --' || selectedText.trim() === '';
+                        isEmpty = !selectValue || selectValue === '' || selectedText === '-- Pilih --' || selectedText.trim() === '';
                         // Add error class to the dropdown container for better styling
                         var $errorTarget = $dropdownContainer;
                     } else {
@@ -404,7 +404,7 @@ jQuery(document).ready(function($) {
                             var $selectedOption = $dropdownContainer.find('.ab-dd-item.is-selected');
                             var selectedText = $selectedOption.text() || '';
                             // Consider empty if value is empty or if it's the placeholder text
-                            isEmpty = !selectValue || selectValue === '' || selectedText === '-- Select --' || selectedText.trim() === '';
+                            isEmpty = !selectValue || selectValue === '' || selectedText === '-- Pilih --' || selectedText.trim() === '';
                             // Add error class to the dropdown container for better styling
                             var $errorTarget = $dropdownContainer;
                         } else {
