@@ -13,9 +13,537 @@
   --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --transition: all 0.3s ease;
+  --tranform: scale(1.05);
+
+  --selected-color: #54b335;
+  --unavailable-color: rgba(239, 68, 68, 0.1);
+  --available-color: #edfbe2;
+  --holiday-color: rgba(245, 158, 11, 0.1);
+  --limited-color: rgba(59, 130, 246, 0.2);
+  --past-color: #e2e3e5;
 }
 
-.booking-calendar-container {
+/* admin */
+/* admin */
+/* admin */
+@media (max-width: 768px) {
+  .booking-admin-page .booking-calendar-container {
+    padding: 10px !important;
+    margin: 10px auto !important;
+  }
+
+  .booking-admin-page .booking-calendar-header {
+    padding: 8px !important;
+    margin-bottom: 18px !important;
+    gap: 4px !important;
+  }
+
+  .booking-admin-page .calendar-nav-btn {
+    width: 40px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    border-radius: 6px !important;
+    min-height: auto !important;
+  }
+
+  .booking-admin-page .current-month {
+    font-size: 1.1em !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+  }
+
+  .booking-admin-page .booking-calendar {
+    max-width: 60% !important;
+    border-radius: 6px !important;
+  }
+
+  .booking-admin-page .calendar-weekdays {
+    padding: 8px 0 !important;
+    margin-bottom: 10px !important;
+    font-size: 13px !important;
+  }
+
+  .booking-admin-page .calendar-days {
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .booking-admin-page .calendar-day {
+    min-height: 40px !important;
+    margin: 1px !important;
+    padding: 2px !important;
+  }
+
+  .booking-admin-page .calendar-day.available:hover {
+    transform: scale(1.02) !important;
+  }
+
+  .booking-admin-page .day-number {
+    font-size: 10px !important;
+  }
+
+  .booking-admin-page .booking-count {
+    font-size: 7px !important;
+  }
+
+  .booking-admin-page .calendar-legend {
+    margin: 20px 0 !important;
+    padding: 13px !important;
+    background-color: rgba(243, 244, 246, 0.5) !important;
+    border-radius: 6px !important;
+  }
+
+  .booking-admin-page .calendar-legend h4 {
+    font-size: 12px !important;
+  }
+
+  .booking-admin-page .calendar-legend li {
+    font-size: 10px !important;
+  }
+
+  .booking-admin-page .legend-color {
+    width: 12px !important;
+    height: 12px !important;
+    margin-right: 5px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-admin-page .booking-calendar-container {
+    padding: 8px !important;
+    margin: 8px auto !important;
+  }
+
+  .booking-admin-page .booking-calendar-header {
+    padding: 6px !important;
+    margin-bottom: 15px !important;
+    gap: 2px !important;
+  }
+
+  .booking-admin-page .calendar-nav-btn {
+    width: 40px !important;
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    border-radius: 4px !important;
+  }
+
+  .booking-admin-page .current-month {
+    font-size: 1em !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+    font-weight: 600 !important;
+  }
+
+  .booking-admin-page .booking-calendar {
+    margin: 0 auto !important;
+    border-radius: 4px !important;
+  }
+
+  .booking-admin-page .calendar-weekdays {
+    padding: 6px 0 !important;
+    margin-bottom: 8px !important;
+    font-size: 11px !important;
+  }
+
+  .booking-admin-page .calendar-days {
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: -1px 0 !important;
+  }
+
+  .booking-admin-page .calendar-day {
+    min-height: 32px !important;
+    margin: 1px !important;
+    padding: 1px !important;
+  }
+
+  .booking-admin-page .calendar-day.available:hover {
+    transform: scale(1.01) !important;
+  }
+
+  .booking-admin-page .day-number {
+    font-size: 9px !important;
+  }
+
+  .booking-admin-page .booking-count {
+    font-size: 6px !important;
+  }
+
+  .booking-admin-page .calendar-legend {
+    margin: 15px 0 !important;
+    padding: 10px !important;
+    background-color: rgba(243, 244, 246, 0.5) !important;
+    border-radius: 6px !important;
+  }
+
+  .booking-admin-page .calendar-legend h4 {
+    font-size: 11px !important;
+  }
+
+  .booking-admin-page .calendar-legend li {
+    font-size: 9px !important;
+  }
+
+  .booking-admin-page .legend-color {
+    width: 10px !important;
+    height: 10px !important;
+    margin-right: 4px !important;
+  }
+
+  .booking-admin-page .calendar-legend ul {
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .booking-admin-page .booking-calendar-container {
+    padding: 5px !important;
+    margin: 5px auto !important;
+  }
+
+  .booking-admin-page .booking-calendar-header {
+    padding: 4px !important;
+    margin-bottom: 12px !important;
+    gap: 1px !important;
+  }
+
+  .booking-admin-page .calendar-nav-btn {
+    width: 40px !important;
+    padding: 3px 6px !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+
+  .booking-admin-page .current-month {
+    font-size: 0.9em !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    font-weight: 600 !important;
+  }
+
+  .booking-admin-page .booking-calendar {
+    margin: 0 auto !important;
+    border-radius: 3px !important;
+  }
+
+  .booking-admin-page .calendar-weekdays {
+    padding: 4px 0 !important;
+    margin-bottom: 6px !important;
+    font-size: 10px !important;
+  }
+
+  .booking-admin-page .calendar-days {
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: -2px 0 !important;
+  }
+
+  .booking-admin-page .calendar-day {
+    min-height: 28px !important;
+    margin: 0 !important;
+    padding: 1px !important;
+  }
+
+  .booking-admin-page .calendar-day.available:hover {
+    transform: none !important;
+  }
+
+  .booking-admin-page .day-number {
+    font-size: 8px !important;
+  }
+
+  .booking-admin-page .booking-count {
+    font-size: 5px !important;
+  }
+
+  .booking-admin-page .calendar-legend h4 {
+    font-size: 10px !important;
+  }
+
+  .booking-admin-page .calendar-legend li {
+    font-size: 8px !important;
+  }
+
+  .booking-admin-page .legend-color {
+    width: 8px !important;
+    height: 8px !important;
+    margin-right: 3px !important;
+  }
+
+  .booking-admin-page .calendar-legend ul {
+    gap: 6px !important;
+  }
+}
+/* end admin */
+/* end admin */
+/* end admin */
+
+/* frontend  */
+/* frontend  */
+/* frontend  */
+/*screen 768 */
+@media (max-width: 768px) {
+  .section-calendar .booking-calendar-header {
+    padding: 8px;
+    margin-bottom: 18px;
+    gap: 4px;
+    border-radius: 4px;
+  }
+  .section-calendar .calendar-nav-btn {
+    width: 40px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    line-height: 1.2;
+    border-radius: 6px !important;
+    min-height: auto;
+  }
+  .section-calendar .current-month {
+    font-size: 1.1em;
+    margin: 0;
+    line-height: 1.2;
+    font-weight: 600;
+  }
+  .section-calendar .booking-calendar {
+    width: 100%;
+    border-radius: 4px;
+  }
+  .section-calendar .calendar-weekdays {
+    padding: 8px 0;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .section-calendar .calendar-days {
+    gap: 8px;
+    padding: 1rem !important;
+    margin: 0;
+  }
+  .section-calendar .calendar-day {
+    min-height: 40px;
+    margin: 1px;
+    padding: 2px;
+  }
+  .section-calendar .calendar-day.available:hover {
+    transform: scale(1.02);
+  }
+  .calendar-legend ul {
+    grid-template-columns: 1fr;
+  }
+
+  /* Responsive Calendar Styles for Mobile - Enhanced */
+  .section-calendar .booking-calendar-container {
+    margin: 10px 5px;
+    padding: 14px !important;
+  }
+
+  /* Add spacing between container and inner elements for mobile */
+  .section-calendar .booking-calendar-container > * {
+    margin-bottom: 10px;
+  }
+
+  .section-calendar .calendar-legend {
+    margin: 20px 0;
+    padding: 13px;
+    background-color: rgba(243, 244, 246, 0.5);
+    border-radius: 6px;
+  }
+  .section-calendar .day-number {
+    font-size: 10px;
+  }
+
+  .section-calendar .booking-count {
+    font-size: 7px;
+  }
+
+  .section-calendar .calendar-legend h4 {
+    font-size: 12px;
+  }
+
+  .section-calendar .calendar-legend li {
+    font-size: 10px;
+  }
+
+  .section-calendar .legend-color {
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+  }
+}
+
+/*screen 480 */
+@media (max-width: 480px) {
+  .section-calendar .calendar-legend ul {
+    gap: 8px;
+  }
+  .section-calendar .booking-calendar-header {
+    padding: 6px !important;
+    margin-bottom: 15px !important;
+    gap: 2px !important;
+  }
+  .section-calendar .calendar-nav-btn {
+    width: 40px !important;
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    line-height: 1.1;
+    border-radius: 4px !important;
+  }
+  .section-calendar .current-month {
+    font-size: 1em;
+    margin: 0;
+    line-height: 1.1;
+    font-weight: 600;
+  }
+  .section-calendar .booking-calendar {
+    margin: 0 auto !important;
+    border-radius: 4px;
+  }
+  .section-calendar .calendar-weekdays {
+    padding: 6px 0;
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+  .section-calendar .calendar-days {
+    gap: 4px;
+    padding: 0.7rem !important;
+    margin: -1px 0;
+  }
+  .section-calendar .calendar-day {
+    min-height: 32px;
+    margin: 1px;
+    padding: 1px;
+  }
+  .section-calendar .calendar-day.available:hover {
+    transform: scale(1.01);
+  }
+  .section-calendar .booking-calendar-container {
+    margin: 8px 4px;
+    padding: 14px !important;
+  }
+
+  /* Add spacing between container and inner elements for smaller mobile */
+  .section-calendar .booking-calendar-container > * {
+    margin-bottom: 8px;
+  }
+
+  .section-calendar .day-number {
+    font-size: 9px;
+  }
+
+  .section-calendar .booking-count {
+    font-size: 6px;
+  }
+
+  .section-calendar .calendar-legend {
+    margin: 15px 0 !important;
+    padding: 10px !important;
+    background-color: rgba(243, 244, 246, 0.5);
+    border-radius: 6px;
+  }
+
+  .section-calendar .calendar-legend h4 {
+    font-size: 11px;
+  }
+
+  .section-calendar .calendar-legend li {
+    font-size: 9px;
+  }
+
+  .section-calendar .legend-color {
+    width: 10px;
+    height: 10px;
+    margin-right: 4px;
+  }
+}
+
+/*screen 320 */
+@media (max-width: 320px) {
+  .section-calendar .calendar-legend ul {
+    gap: 6px;
+  }
+  .section-calendar .booking-calendar-header {
+    padding: 4px;
+    margin-bottom: 12px;
+    gap: 1px;
+  }
+  .section-calendar .calendar-nav-btn {
+    width: 40px !important;
+    padding: 3px 6px !important;
+    font-size: 8px !important;
+    line-height: 1;
+    border-radius: 3px !important;
+  }
+  .section-calendar .current-month {
+    font-size: 0.9em;
+    margin: 0;
+    line-height: 1;
+    font-weight: 600;
+  }
+  .section-calendar .booking-calendar {
+    margin: 0 auto !important;
+    border-radius: 3px;
+  }
+  .section-calendar .calendar-weekdays {
+    padding: 4px 0;
+    margin-bottom: 6px;
+    font-size: 10px;
+  }
+  .section-calendar .calendar-days {
+    gap: 2px;
+    padding: 0.5rem !important;
+    margin: -2px 0;
+  }
+  .section-calendar .calendar-day {
+    min-height: 28px;
+    margin: 0;
+    padding: 1px;
+  }
+  .section-calendar .calendar-day.available:hover {
+    transform: none;
+  }
+  .section-calendar .booking-calendar-container {
+    margin: 6px 3px;
+    padding: 8px;
+  }
+
+  /* Add spacing between container and inner elements for smallest mobile */
+  .section-calendar .booking-calendar-container > * {
+    margin-bottom: 6px;
+  }
+  .section-calendar .day-number {
+    font-size: 8px;
+  }
+
+  .section-calendar .booking-count {
+    font-size: 5px;
+  }
+
+  .section-calendar .calendar-legend h4 {
+    font-size: 10px;
+  }
+
+  .section-calendar .calendar-legend li {
+    font-size: 8px;
+  }
+
+  .section-calendar .legend-color {
+    width: 8px;
+    height: 8px;
+    margin-right: 3px;
+  }
+}
+/* end frontend  */
+/* end frontend  */
+/* end frontend  */
+
+/* merge */
+/* merge */
+/* merge */
+.booking-calendar-container,
+.section-calendar .booking-calendar-container {
   max-width: 100%;
   margin: 20px auto;
   padding: 20px;
@@ -24,77 +552,124 @@
   box-shadow: var(--box-shadow);
 }
 
-.booking-calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  padding: 16px;
-  background-color: var(--light-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-}
-
+.section-calendar .booking-calendar.loading,
 .booking-calendar.loading {
   opacity: 0.6;
   pointer-events: none;
 }
 
-.calendar-nav-btn {
+.section-calendar .booking-calendar-header,
+.booking-calendar-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 16px;
+  background-color: var(--light-color);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow) !important;
+}
+
+.calendar-nav-btn,
+.section-calendar .calendar-nav-btn {
   background-color: var(--primary-color) !important;
   color: white !important;
   border: none !important;
   padding: 8px 16px !important;
-  border-radius: var(--border-radius) !important;
+  border-radius: 8px !important;
   cursor: pointer !important;
   font-weight: 500 !important;
   transition: var(--transition) !important;
 }
 
+.section-calendar .calendar-nav-btn:hover,
 .calendar-nav-btn:hover {
   background-color: var(--button-primary-hover) !important;
   transform: translateY(-1px);
 }
 
-.current-month {
+.current-month,
+.section-calendar .current-month {
   margin: 0;
   font-size: 1.5em;
   color: var(--dark-color);
   font-weight: 600;
 }
 
-.booking-calendar {
-  width: 100%;
-  /* max-width: 700px; */
+.legend-color,
+.section-calendar .legend-color {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+
+.legend-color.available,
+.section-calendar .legend-color.available {
+  background-color: var(--available-color);
+}
+
+.legend-color.holiday,
+.section-calendar .legend-color.holiday {
+  background-color: var(--holiday-color);
+}
+
+.legend-color.limited,
+.section-calendar .legend-color.limited {
+  background-color: var(--limited-color);
+}
+
+.legend-color.unavailable,
+.section-calendar .legend-color.unavailable {
+  background-color: var(--unavailable-color);
+}
+
+.legend-color.selected-date,
+.section-calendar .legend-color.selected-date {
+  background-color: var(--selected-color) !important;
+}
+
+.legend-color.full,
+.section-calendar .legend-color.full {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.booking-calendar,
+.section-calendar .booking-calendar {
+  width: 60%;
   margin: 0 auto;
   border-radius: var(--border-radius);
   overflow: hidden;
   box-shadow: var(--box-shadow);
 }
 
-.calendar-weekdays {
+.calendar-weekdays,
+.section-calendar .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-weight: 600;
   padding: 10px 0;
-  background-color: #54b335;
+  background-color: var(--primary-color);
   color: white;
   margin-bottom: 16px;
 }
 
-.calendar-weekdays div {
+.calendar-weekdays div,
+.section-calendar .calendar-weekdays div {
   padding: 8px;
 }
-
-.calendar-days {
+.calendar-days,
+.section-calendar .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-  padding: 5px;
+  gap: 8px;
+  padding: 1rem !important;
 }
-
-.calendar-day {
+.calendar-day,
+.section-calendar .calendar-day {
   aspect-ratio: 1/1;
   display: flex;
   flex-direction: column;
@@ -102,7 +677,7 @@
   align-items: center;
   text-align: center;
   padding: 5px;
-  border-radius: var(--border-radius);
+  border-radius: 8px !important;
   min-height: 60px;
   position: relative;
   cursor: pointer;
@@ -110,78 +685,130 @@
   margin: 2px;
 }
 
-.calendar-day.empty {
+.calendar-day.empty,
+.section-calendar .calendar-day.empty {
   background-color: transparent;
   border: none;
   cursor: default;
 }
 
-.calendar-day.available {
-  background-color: #edfbe2;
-  color: var(--success-color);
+.calendar-day.past,
+.section-calendar .calendar-day.past {
+  background-color: var(--past-color);
+  color: var(--dark-color);
+  text-decoration: line-through;
+  cursor: not-allowed;
 }
 
-.calendar-day.available:hover {
-  background-color: #629e40;
+.calendar-day.available,
+.section-calendar .calendar-day.available {
+  background-color: #edfbe2;
+  color: var(--primary-color);
+}
+
+.calendar-day.available:hover,
+.section-calendar .calendar-day.available:hover {
+  background-color: var(--primary-color);
   transform: scale(1.05);
   color: white;
 }
 
-.calendar-day.unavailable {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: var(--danger-color);
-  text-decoration: line-through;
-}
-
-.calendar-day.holiday {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
-}
-
-.calendar-day.full {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: var(--danger-color);
-}
-
-.calendar-day.limited {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: var(--info-color);
-}
-
-.calendar-day.past {
-  background-color: var(--light-color);
-  color: var(--dark-color);
-  text-decoration: line-through;
-}
-
-.calendar-day.selected-date {
+.calendar-day.selected-date,
+.section-calendar .calendar-day.selected-date {
   background-color: var(--primary-color);
   color: #ffffff !important;
 }
 
-.day-number {
-  font-weight: bold;
-  font-size: 14px;
+.section-calendar .calendar-day.selected-date:hover {
+  background-color: var(--button-primary-hover);
+  transform: scale(1.05);
 }
 
-.booking-count {
-  font-size: 10px;
+.calendar-day.limited,
+.section-calendar .calendar-day.limited {
+  background-color: var(--limited-color);
+  color: var(--info-color);
+}
+
+.calendar-day.limited:hover,
+.section-calendar .calendar-day.limited:hover {
+  background-color: var(--info-color);
+  color: white;
+  transform: var(--tranform);
+}
+
+.calendar-day.limited.selected-date,
+.section-calendar .calendar-day.limited.selected-date {
+  background-color: var(--info-color);
+  color: var(--info-color);
+}
+
+.calendar-day.unavailable,
+.section-calendar .calendar-day.unavailable {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.calendar-day.holiday,
+.section-calendar .calendar-day.holiday {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+  cursor: not-allowed;
+}
+
+.calendar-day.full,
+.section-calendar .calendar-day.full {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--danger-color);
+}
+
+.calendar-day.full:hover,
+.section-calendar .calendar-day.full:hover {
+  cursor: not-allowed;
+}
+
+/* end merge */
+/* end merge */
+/* end merge */
+
+/* admin */
+
+.day-number,
+.section-calendar .day-number {
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.booking-count,
+.section-calendar .booking-count {
+  font-size: 8px;
   display: block;
   margin-top: 2px;
+  line-height: 1;
 }
 
-.calendar-legend {
-  margin: 20px;
+.calendar-legend,
+.section-calendar .calendar-legend {
+  margin: 25px 0;
+  padding: 15px;
+  background-color: rgba(243, 244, 246, 0.5);
+  border-radius: 4px;
+  box-shadow: var(--card-shadow);
 }
 
-.calendar-legend h4 {
+.calendar-legend h4,
+.section-calendar .calendar-legend h4 {
   margin-top: 0;
   margin-bottom: 10px;
-  font-size: 16px;
-  color: var(--dark-color);
+  font-size: 14px;
+  color: #1f2937;
 }
 
-.calendar-legend ul {
+.calendar-legend ul,
+.section-calendar .calendar-legend ul {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -190,46 +817,45 @@
   gap: 15px;
 }
 
-.calendar-legend li {
+.calendar-legend li,
+.section-calendar .calendar-legend li {
   display: flex;
   align-items: center;
-  font-size: 14px;
-  color: var(--dark-color);
-}
-
-.legend-color {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  margin-right: 8px;
-}
-
-.legend-color.available {
-  background-color: #edfbe2;
-}
-
-.legend-color.unavailable {
-  background-color: rgba(239, 68, 68, 0.1);
-}
-
-.legend-color.holiday {
-  background-color: rgba(245, 158, 11, 0.1);
-}
-
-.legend-color.full {
-  background-color: rgba(239, 68, 68, 0.2);
-}
-
-.legend-color.limited {
-  background-color: rgba(59, 130, 246, 0.1);
-}
-
-.legend-color.selected-date {
-  background-color: #54b335 !important;
+  font-size: 12px;
+  color: #1f2937;
 }
 
 
 
+
+
+
+
+
+
+
+
+
+
+/* pengguna */
+
+/* Add spacing between container and inner elements */
+.section-calendar .booking-calendar-container > * {
+  margin-bottom: 20px;
+}
+
+.section-calendar .booking-calendar-container > *:last-child {
+  margin-bottom: 0;
+}
+
+.section-calendar .booking-calendar-container {
+  margin: 6px 3px;
+  padding: 8px;
+}
+
+/* Add spacing between container and inner elements for smallest mobile */
+.section-calendar .booking-calendar-container > * {
+  margin-bottom: 6px;
+}
 
 

@@ -19,11 +19,8 @@
   box-shadow: var(--box-shadow);
 }
 
-/* Calendar Shortcode Styles */
-.booking-calendar-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
+
+
 
 /* Responsive Styles */
 @media (max-width: 768px) {
