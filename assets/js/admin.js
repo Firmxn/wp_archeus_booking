@@ -317,6 +317,8 @@ jQuery(document).ready(function ($) {
           xhr: xhr,
           status: status,
           error: error,
+          responseText: xhr.responseText,
+          statusCode: xhr.status,
         });
         showToast(
           "An error occurred while updating the booking status.",
@@ -573,25 +575,136 @@ jQuery(document).ready(function ($) {
     var newStatus = $sel.val();
     var prevStatus = $sel.data("prev");
 
-    console.log("Status change details:", { bookingId, newStatus, prevStatus });
+    console.log("Status change details:", { bookingId: bookingId, newStatus: newStatus, prevStatus: prevStatus });
 
+    // Check if status is being changed to rejected - show reason dialog
+    if (newStatus === 'rejected' && prevStatus !== 'rejected') {
+      showRejectionReasonDialog(bookingId, prevStatus, newStatus, $sel);
+      return;
+    }
+
+    proceedWithStatusUpdate(bookingId, newStatus, prevStatus, $sel);
+  });
+
+  // Function to show rejection reason dialog
+  function showRejectionReasonDialog(bookingId, prevStatus, newStatus, $selectElement) {
+    // Remove any existing dialogs
+    $(".ab-dialog-overlay").remove();
+
+    var dialogHtml =
+      '<div class="ab-dialog-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100000;">' +
+      '<div class="ab-dialog" style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 500px; width: 90%;">' +
+      '<h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;">Alasan Penolakan Booking</h3>' +
+      '<p style="margin: 0 0 20px 0; color: #4b5563; line-height: 1.5;">Silakan masukkan alasan kenapa booking ini ditolak. Alasan ini akan dikirimkan ke customer.</p>' +
+      '<textarea id="rejection-reason" rows="4" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical; margin-bottom: 20px;" placeholder="Contoh: Jadwal sudah penuh, persyaratan tidak terpenuhi, dll."></textarea>' +
+      '<div style="display: flex; gap: 8px; justify-content: flex-end;">' +
+      '<button type="button" class="ab-dialog-cancel button button-secondary" style="padding: 8px 16px; font-size: 14px;">Batal</button>' +
+      '<button type="button" class="ab-dialog-confirm button button-primary" style="background: #dc2626; border-color: #dc2626; padding: 8px 16px; font-size: 14px;">Tolak dengan Alasan</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+
+    var $dialog = $(dialogHtml).appendTo("body");
+
+    // Handle cancel button
+    $dialog.find(".ab-dialog-cancel").on("click", function () {
+      console.log("Rejection dialog cancelled");
+      $dialog.remove();
+      // Reset select to previous status
+      $selectElement.val(prevStatus);
+      // Also update the custom dropdown display
+      if ($selectElement.hasClass('ab-hidden-select')) {
+        var $wrapper = $selectElement.closest('.ab-dd');
+        var $label = $wrapper.find('.ab-dd-label');
+        var $menu = $wrapper.find('.ab-dd-menu');
+        $label.text($selectElement.find('option:selected').text());
+        $menu.find('.ab-dd-item').removeClass('is-selected');
+        $menu.find('.ab-dd-item[data-value="' + prevStatus + '"]').addClass('is-selected');
+      }
+    });
+
+    // Handle confirm button
+    $dialog.find(".ab-dialog-confirm").on("click", function () {
+      var rejectionReason = $("#rejection-reason").val().trim();
+
+      if (!rejectionReason) {
+        alert("Silakan masukkan alasan penolakan terlebih dahulu.");
+        return;
+      }
+
+      console.log("Rejection dialog confirmed with reason:", rejectionReason);
+      $dialog.remove();
+
+      // Proceed with status update including rejection reason
+      proceedWithStatusUpdate(bookingId, newStatus, prevStatus, $selectElement, rejectionReason);
+    });
+
+    // Handle overlay click
+    $dialog.on("click", function (e) {
+      if (e.target === this) {
+        console.log("Rejection dialog overlay clicked - cancelled");
+        $dialog.remove();
+        // Reset select to previous status
+        $selectElement.val(prevStatus);
+        // Also update the custom dropdown display
+        if ($selectElement.hasClass('ab-hidden-select')) {
+          var $wrapper = $selectElement.closest('.ab-dd');
+          var $label = $wrapper.find('.ab-dd-label');
+          var $menu = $wrapper.find('.ab-dd-menu');
+          $label.text($selectElement.find('option:selected').text());
+          $menu.find('.ab-dd-item').removeClass('is-selected');
+          $menu.find('.ab-dd-item[data-value="' + prevStatus + '"]').addClass('is-selected');
+        }
+      }
+    });
+
+    // Handle keyboard events
+    $dialog.on("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        $dialog.find(".ab-dialog-confirm").click();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        $dialog.find(".ab-dialog-cancel").click();
+      }
+    });
+
+    // Focus on textarea
+    $("#rejection-reason").focus();
+  }
+
+  // Function to proceed with status update (refactored from original logic)
+  function proceedWithStatusUpdate(bookingId, newStatus, prevStatus, $selectElement, rejectionReason) {
+    // Set default value for rejectionReason if not provided
+    if (typeof rejectionReason === 'undefined') {
+      rejectionReason = '';
+    }
     console.log(
       "Archeus: Sending status change request - Booking ID:",
       bookingId,
       "New Status:",
-      newStatus
+      newStatus,
+      "Rejection Reason:",
+      rejectionReason
     );
-    console.log("Archeus: AJAX request data:", {
+
+    var requestData = {
       action: "update_booking_status",
       booking_id: bookingId,
       status: newStatus,
       nonce: archeus_booking_ajax.nonce,
-    });
+    };
+
+    // Add rejection reason if provided
+    if (rejectionReason) {
+      requestData.rejection_reason = rejectionReason;
+    }
+
+    console.log("Archeus: AJAX request data:", requestData);
 
     // Proceed to save with full-page overlay
     if (!document.getElementById("ab-loading-style")) {
-      var css =
-        "\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n";
+      var css = '.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}';
       var styleTag = document.createElement("style");
       styleTag.id = "ab-loading-style";
       styleTag.type = "text/css";
@@ -601,20 +714,17 @@ jQuery(document).ready(function ($) {
     var $overlay = $(
       '<div class="ab-loading-overlay"><div class="ab-loading-spinner"></div><div class="ab-loading-text">Memperbarui status...</div></div>'
     ).appendTo("body");
-    $sel.prop("disabled", true);
+    $selectElement.prop("disabled", true);
 
     $.ajax({
       url: archeus_booking_ajax.ajax_url,
       type: "POST",
       dataType: "text",
-      data: {
-        action: "update_booking_status",
-        booking_id: bookingId,
-        status: newStatus,
-        nonce: archeus_booking_ajax.nonce,
-      },
+      data: requestData,
       success: function (resp) {
         console.log("Archeus: AJAX response received:", resp);
+        console.log("Archeus: Response type:", typeof resp);
+        console.log("Archeus: Response length:", resp ? resp.length : 'null');
         try {
           if (typeof resp === "string") {
             var firstBrace = resp.indexOf("{");
@@ -625,7 +735,7 @@ jQuery(document).ready(function ($) {
         } catch (e) {
           console.error("Admin JSON parse error (update status)", e, resp);
           showToast("Invalid server response while updating status.", "error");
-          $sel.val(prevStatus);
+          $selectElement.val(prevStatus);
           if ($overlay) {
             $overlay.remove();
           }
@@ -662,17 +772,22 @@ jQuery(document).ready(function ($) {
           } catch (e) {}
           // Adjust visibility of 'completed' option
           if (newStatus === "approved") {
-            if ($sel.find('option[value="completed"]').length === 0) {
-              $sel.append('<option value="completed">Selesai</option>');
+            if ($selectElement.find('option[value="completed"]').length === 0) {
+              $selectElement.append('<option value="completed">Selesai</option>');
             }
           } else if (newStatus !== "completed") {
             // Hide completed unless status is approved or already completed
-            $sel.find('option[value="completed"]').remove();
+            $selectElement.find('option[value="completed"]').remove();
           }
-          $sel.data("prev", newStatus);
-          $sel.prop("disabled", false);
+          $selectElement.data("prev", newStatus);
+          $selectElement.prop("disabled", false);
 
-          // Show loading overlay a bit longer, then refresh page to show updated data and send email notification
+          // Remove loading overlay first
+          if ($overlay) {
+            $overlay.remove();
+          }
+
+          // Show success message, then refresh page to show updated data and send email notification
           setTimeout(function () {
             console.log("Refreshing page to show updated booking data...");
             window.location.reload();
@@ -683,8 +798,8 @@ jQuery(document).ready(function ($) {
               ? resp.data.message
               : "Failed to update status.";
           showToast(msg, "error");
-          $sel.val(prevStatus);
-          $sel.prop("disabled", false);
+          $selectElement.val(prevStatus);
+          $selectElement.prop("disabled", false);
           if ($overlay) {
             $overlay.remove();
           }
@@ -695,19 +810,21 @@ jQuery(document).ready(function ($) {
           xhr: xhr,
           status: status,
           error: error,
+          responseText: xhr.responseText,
+          statusCode: xhr.status,
         });
         showToast(
           "An error occurred while updating the booking status.",
           "error"
         );
-        $sel.val(prevStatus);
-        $sel.prop("disabled", false);
+        $selectElement.val(prevStatus);
+        $selectElement.prop("disabled", false);
         if ($overlay) {
           $overlay.remove();
         }
       },
     });
-  });
+  }
 
   // Handle delete booking buttons
   $(document).on("click", ".delete-booking", function (e) {
@@ -1984,14 +2101,14 @@ jQuery(document).ready(function ($) {
 
       // Hint removed - no longer needed
 
-      // Update select styling and enhance dropdown (exclude field-type-select from complex enhancement)
-      var $newSelect = $newRow.find('select.ab-select').not('.field-type-select');
+      // Update select styling and enhance dropdown
+      var $newSelect = $newRow.find('select.ab-select');
 
       // Update select state
       if ($newSelect.length > 0) {
         updateAbSelectState($newSelect[0]);
 
-        // Initialize custom dropdown for the new select (only for non field-type-select)
+        // Initialize custom dropdown for the new select
         if (typeof enhanceAbDropdowns === 'function') {
           // Small delay to ensure DOM is ready
           setTimeout(function() {
@@ -2115,7 +2232,7 @@ jQuery(document).ready(function ($) {
         '<input type="text" name="field_labels[custom_' + fieldNumber + ']" value="Custom ' + fieldNumber + '" placeholder="Label field" class="field-label-input">' +
       '</td>' +
       '<td>' +
-        '<select class="ab-select field-type-select" name="field_types[custom_' + fieldNumber + ']">' +
+        '<select class="ab-select ab-dropdown field-type-select" name="field_types[custom_' + fieldNumber + ']">' +
           '<option value="text">Text</option>' +
           '<option value="email">Email</option>' +
           '<option value="number">Number</option>' +

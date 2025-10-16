@@ -702,7 +702,7 @@ class Booking_Admin {
                                             </td>
                                             <td><input type="text" name="field_labels[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($field_data['label']); ?>"></td>
                                             <td>
-                                                <select name="field_types[<?php echo esc_attr($field_key); ?>]" class="ab-select field-type-select">
+                                                <select name="field_types[<?php echo esc_attr($field_key); ?>]" class="ab-select ab-dropdown field-type-select">
                                                     <option value="text" <?php selected($field_data['type'], 'text'); ?>>Text</option>
                                                     <option value="email" <?php selected($field_data['type'], 'email'); ?>>Email</option>
                                                     <option value="number" <?php selected($field_data['type'], 'number'); ?>>Number</option>
@@ -2163,8 +2163,9 @@ class Booking_Admin {
 
         $booking_id = intval($_POST['booking_id']);
         $status = sanitize_text_field($_POST['status']);
+        $rejection_reason = isset($_POST['rejection_reason']) ? sanitize_textarea_field($_POST['rejection_reason']) : '';
 
-        $this->log_email_activity($booking_id, 'debug', 'system', true, 'Processing status update to: ' . $status);
+        $this->log_email_activity($booking_id, 'debug', 'system', true, 'Processing status update to: ' . $status . ($rejection_reason ? ' with rejection reason' : ''));
 
         $booking_db = new Booking_Database();
         $booking = $booking_db->get_booking($booking_id);
@@ -2215,7 +2216,7 @@ class Booking_Admin {
             // Send notification email to customer for all status changes (if enabled in settings)
             if ($status !== $old_status) {
                 error_log('Archeus Booking: Status changed from ' . $old_status . ' to ' . $status . ', sending email notification...');
-                $this->send_status_change_notification($booking, $status);
+                $this->send_status_change_notification($booking, $status, $rejection_reason);
             } else {
                 error_log('Archeus Booking: Email not sent. Status: ' . $status . ', Old Status: ' . $old_status);
             }
@@ -2233,7 +2234,7 @@ class Booking_Admin {
     /**
      * Send notification email when booking status is changed
      */
-    private function send_status_change_notification($booking, $new_status) {
+    private function send_status_change_notification($booking, $new_status, $rejection_reason = '') {
         // Get email settings
         $email_settings = get_option('booking_email_settings', array());
 
@@ -2276,7 +2277,7 @@ class Booking_Admin {
         $subject = $this->build_status_email_subject($booking, $subject_template, $new_status);
 
         // Build email content using the existing build_custom_email_content function
-        $message = $this->build_status_email_content($booking, $body_template, $new_status);
+        $message = $this->build_status_email_content($booking, $body_template, $new_status, $rejection_reason);
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
         // Send email and log result
@@ -2412,7 +2413,7 @@ class Booking_Admin {
     /**
      * Build status email content using custom template from admin settings
      */
-    private function build_status_email_content($booking, $template, $status) {
+    private function build_status_email_content($booking, $template, $status, $rejection_reason = '') {
         // Prepare booking data for tag replacement
         $booking_data = array(
             'booking_id' => $booking->id,
@@ -2430,7 +2431,8 @@ class Booking_Admin {
             'current_date' => date('Y-m-d'),
             'current_time' => date('H:i:s'),
             'current_datetime' => date('Y-m-d H:i:s'),
-            'email_title' => $this->get_status_email_title($status)
+            'email_title' => $this->get_status_email_title($status),
+            'rejection_reason' => $rejection_reason
         );
 
         // Generate greeting based on customer name
@@ -2442,6 +2444,12 @@ class Booking_Admin {
 
         // Replace all available tags in the template
         $message = $template;
+
+        // Debug: Log rejection reason if present
+        if (!empty($rejection_reason)) {
+            error_log('Archeus Booking: Rejection reason found: ' . $rejection_reason);
+            error_log('Archeus Booking: Template contains {rejection_reason}: ' . (strpos($template, '{rejection_reason}') !== false ? 'Yes' : 'No'));
+        }
 
         // Replace standard tags
         foreach ($booking_data as $key => $value) {
