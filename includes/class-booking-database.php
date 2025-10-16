@@ -1,13 +1,12 @@
 <?php
 class Booking_Database {
 
-    // Deprecated: main bookings table removed in favor of per-flow tables
     private $table_name;
     private $table_prefix = 'archeus_';
 
     public function __construct() {
-        // Deprecated main table; per-flow tables are used instead
-        $this->table_name = null;
+        global $wpdb;
+        $this->table_name = $wpdb->prefix . $this->table_prefix . 'booking';
 
         add_action('plugins_loaded', array($this, 'create_tables'));
 
@@ -22,6 +21,29 @@ class Booking_Database {
         global $wpdb;
 
         $charset_collate = $wpdb->get_charset_collate();
+
+        // Create main unified bookings table
+        $bookings_table = $wpdb->prefix . $this->table_prefix . 'booking';
+        $bookings_sql = "CREATE TABLE IF NOT EXISTS {$bookings_table} (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            customer_name varchar(255) NOT NULL,
+            customer_email varchar(255) NOT NULL,
+            booking_date date NOT NULL,
+            booking_time varchar(50) NOT NULL,
+            service_type varchar(255) NOT NULL,
+            status varchar(50) NOT NULL DEFAULT 'pending',
+            flow_id int(11) NULL,
+            flow_name varchar(255) NULL,
+            fields longtext NULL,
+            payload longtext NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY booking_date (booking_date),
+            KEY status (status),
+            KEY flow_id (flow_id),
+            KEY service_type (service_type)
+        ) $charset_collate;";
 
         $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
         $forms_sql = "CREATE TABLE IF NOT EXISTS {$forms_table} (
@@ -39,7 +61,7 @@ class Booking_Database {
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        // Note: main bookings table removed; only create forms/services/schedules/flows tables
+        dbDelta($bookings_sql);
         dbDelta($forms_sql);
         
         // Create services table
@@ -247,56 +269,66 @@ class Booking_Database {
     }
 
     /**
-     * Insert per-flow submission row.
+     * Insert booking submission into unified table.
      */
     public function insert_flow_submission($flow_name, $data) {
         global $wpdb;
-        $table = $this->ensure_flow_table_columns($flow_name, $data);
 
-        $row = array(
-            'booking_date'   => isset($data['booking_date']) ? sanitize_text_field($data['booking_date']) : null,
-            'booking_time'   => isset($data['booking_time']) ? sanitize_text_field($data['booking_time']) : '',
-            'service_type'   => isset($data['service_type']) ? sanitize_text_field($data['service_type']) : '',
-            'status'         => isset($data['status']) ? sanitize_text_field($data['status']) : 'pending',
-            'customer_name'  => isset($data['customer_name']) ? sanitize_text_field($data['customer_name']) : '',
-            'customer_email' => isset($data['customer_email']) ? sanitize_email($data['customer_email']) : '',
-            'payload'        => wp_json_encode($data),
-        );
+        // Extract core fields
+        $customer_name = isset($data['customer_name']) ? sanitize_text_field($data['customer_name']) : '';
+        $customer_email = isset($data['customer_email']) ? sanitize_email($data['customer_email']) : '';
+        $booking_date = isset($data['booking_date']) ? sanitize_text_field($data['booking_date']) : '';
+        $booking_time = isset($data['booking_time']) ? sanitize_text_field($data['booking_time']) : '';
+        $service_type = isset($data['service_type']) ? sanitize_text_field($data['service_type']) : '';
+        $status = isset($data['status']) ? sanitize_text_field($data['status']) : 'pending';
 
-        // Attempt to attach flow_id column value based on flow name
+        // Get flow_id
+        $flow_id = null;
         $flows = $this->get_booking_flows();
         if (is_array($flows)) {
             foreach ($flows as $f) {
                 if (isset($f->name) && $f->name === $flow_name) {
-                    $row['flow_id'] = intval($f->id);
+                    $flow_id = intval($f->id);
                     break;
                 }
             }
         }
 
-        // Add dynamic fields for every key provided
-        $reserved = array('flow_id'); // Only flow_id is truly reserved, customer_name and customer_email should be processed normally
+        // Extract custom fields (exclude core fields)
+        $core_fields = array('customer_name', 'customer_email', 'booking_date', 'booking_time', 'service_type', 'status', 'flow_id', 'flow_name');
+        $custom_fields = array();
         foreach ($data as $key => $value) {
-            $col = $this->sanitize_column_name($key);
-            if (array_key_exists($col, $row) || in_array($col, $reserved, true)) { continue; }
-            if (is_array($value) || is_object($value)) {
-                $value = wp_json_encode($value);
+            if (!in_array($key, $core_fields)) {
+                $custom_fields[$key] = $value;
             }
-            $row[$col] = sanitize_text_field((string)$value);
         }
 
-        // Build formats dynamically (all LONGTEXT/VARCHAR as %s)
-        $formats = array_fill(0, count($row), '%s');
+        // Prepare row data
+        $row = array(
+            'customer_name'  => $customer_name,
+            'customer_email' => $customer_email,
+            'booking_date'   => $booking_date,
+            'booking_time'   => $booking_time,
+            'service_type'   => $service_type,
+            'status'         => $status,
+            'flow_id'        => $flow_id,
+            'flow_name'      => $flow_name,
+            'fields'         => !empty($custom_fields) ? wp_json_encode($custom_fields) : null,
+            'payload'        => wp_json_encode($data)
+        );
+
+        // Build formats
+        $formats = array('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s');
 
         // Enable error reporting for debugging
         $wpdb->show_errors = true;
         $wpdb->suppress_errors = false;
 
-        $res = $wpdb->insert($table, $row, $formats);
+        $res = $wpdb->insert($this->table_name, $row, $formats);
 
         if ($res === false) {
             // Log the error for debugging
-            error_log('Booking insertion failed. Table: ' . $table . '. Error: ' . $wpdb->last_error);
+            error_log('Booking insertion failed. Table: ' . $this->table_name . '. Error: ' . $wpdb->last_error);
             error_log('Data: ' . print_r($row, true));
         }
 
@@ -326,7 +358,7 @@ class Booking_Database {
     }
 
     /**
-     * Get all bookings
+     * Get all bookings from unified table
      */
     public function get_bookings($args = array()) {
         global $wpdb;
@@ -335,179 +367,86 @@ class Booking_Database {
             'limit' => 50,
             'offset' => 0,
             'status' => '',
+            'flow_id' => '',
             'orderby' => 'created_at',
             'order' => 'DESC'
         );
         $args = wp_parse_args($args, $defaults);
 
-        $rows = array();
-        $flows = $this->get_booking_flows();
-        $filter_flow_id = isset($args['flow_id']) ? intval($args['flow_id']) : 0;
-        foreach ($flows as $flow) {
-            if ($filter_flow_id && intval($flow->id) !== $filter_flow_id) { continue; }
-            $table = $this->get_flow_table_name($flow->name);
-            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-            if ($exists !== $table) { continue; }
+        $sql = "SELECT * FROM {$this->table_name}";
+        $params = array();
+        $clauses = array();
 
-            // Dynamic column selection to handle different table structures
-            $existing_cols = $wpdb->get_col("SHOW COLUMNS FROM `{$table}`", 0);
-            if (!is_array($existing_cols)) { $existing_cols = array(); }
+        if (!empty($args['status'])) {
+            $clauses[] = "status = %s";
+            $params[] = $args['status'];
+        }
 
-            $select_cols = ['id', 'booking_date', 'booking_time', 'service_type', 'status', 'created_at', 'payload'];
+        if (!empty($args['flow_id'])) {
+            $clauses[] = "flow_id = %d";
+            $params[] = intval($args['flow_id']);
+        }
 
-            // Try to find customer name column (could be customer_name, nama_lengkap, etc)
-            $customer_name_col = '';
-            foreach (['customer_name', 'nama_lengkap', 'nama', 'full_name', 'name'] as $col) {
-                if (in_array($col, $existing_cols, true)) {
-                    $customer_name_col = $col;
-                    $select_cols[] = $col;
-                    break;
-                }
-            }
+        if (!empty($clauses)) {
+            $sql .= ' WHERE ' . implode(' AND ', $clauses);
+        }
 
-            // Try to find customer email column
-            $customer_email_col = '';
-            foreach (['customer_email', 'email'] as $col) {
-                if (in_array($col, $existing_cols, true)) {
-                    $customer_email_col = $col;
-                    $select_cols[] = $col;
-                    break;
-                }
-            }
+        $sql .= ' ORDER BY ' . sanitize_sql_orderby($args['orderby'] . ' ' . $args['order']);
 
-            $sql = "SELECT " . implode(', ', $select_cols) . " FROM {$table}";
-            $params = array();
-            $clauses = array();
-            if (!empty($args['status'])) {
-                $clauses[] = "status = %s";
-                $params[] = $args['status'];
-            }
-            if (!empty($clauses)) {
-                $sql .= ' WHERE ' . implode(' AND ', $clauses);
-            }
-            $sql .= ' ORDER BY created_at DESC';
+        if (!empty($args['limit'])) {
+            $sql .= ' LIMIT %d OFFSET %d';
+            $params[] = intval($args['limit']);
+            $params[] = intval($args['offset']);
+        }
 
+        if (!empty($params)) {
             $results = $wpdb->get_results($wpdb->prepare($sql, $params));
-            foreach ($results as $r) {
-                $item = (array)$r;
-                $item['flow_name'] = $flow->name;
+        } else {
+            $results = $wpdb->get_results($sql);
+        }
 
-                // Normalize customer name column
-                $customer_name = '';
-                if (!empty($customer_name_col) && !empty($item[$customer_name_col])) {
-                    $customer_name = $item[$customer_name_col];
-                }
-
-                // Check if customer_name is empty, try to get from payload
-                if (empty($customer_name) && !empty($item['payload'])) {
-                    $payload_data = json_decode($item['payload'], true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        // Try different possible keys in payload
-                        $payload_keys = ['customer_name', 'nama_lengkap', 'nama', 'name'];
-                        foreach ($payload_keys as $key) {
-                            if (isset($payload_data[$key]) && !empty($payload_data[$key])) {
-                                $customer_name = $payload_data[$key];
-                                break;
-                            }
-                        }
+        // Decode custom fields for each booking
+        foreach ($results as &$result) {
+            if (!empty($result->fields)) {
+                $custom_fields = json_decode($result->fields, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($custom_fields)) {
+                    // Add custom fields as properties to the result object
+                    foreach ($custom_fields as $key => $value) {
+                        $result->$key = $value;
                     }
                 }
-
-                // Ensure customer_name is never empty
-                if (empty($customer_name)) {
-                    $customer_name = __('Pelanggan', 'archeus-booking');
-                }
-
-                // Standardize the field name
-                $item['customer_name'] = $customer_name;
-
-                // Normalize customer email column if exists
-                if (!empty($customer_email_col) && !empty($item[$customer_email_col])) {
-                    $item['customer_email'] = $item[$customer_email_col];
-                } elseif (empty($item['customer_email']) && !empty($item['payload'])) {
-                    $payload_data = json_decode($item['payload'], true);
-                    if (json_last_error() === JSON_ERROR_NONE && isset($payload_data['customer_email'])) {
-                        $item['customer_email'] = $payload_data['customer_email'];
-                    }
-                }
-
-                $rows[] = (object)$item;
             }
         }
 
-        // Sort aggregate results
-        usort($rows, function($a, $b) use ($args) {
-            $field = $args['orderby'];
-            $ord = strtolower($args['order']) === 'asc' ? 1 : -1;
-            $av = isset($a->$field) ? $a->$field : '';
-            $bv = isset($b->$field) ? $b->$field : '';
-            if ($av == $bv) return 0;
-            return ($av < $bv) ? -1 * $ord : 1 * $ord;
-        });
-
-        // Apply limit/offset after aggregation to ensure global ordering
-        $offset = intval($args['offset']);
-        $limit = intval($args['limit']);
-        return array_slice($rows, $offset, $limit ?: null);
+        return $results;
     }
 
     /**
-     * Get booking by ID
+     * Get booking by ID from unified table
      */
     public function get_booking($id) {
         global $wpdb;
-        $flows = $this->get_booking_flows();
-        foreach ($flows as $flow) {
-            $table = $this->get_flow_table_name($flow->name);
-            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-            if ($exists !== $table) { continue; }
-            $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", intval($id)));
-            if ($row) {
-                $row->flow_name = $flow->name;
-                // Compatibility fields
-                if (!isset($row->schedule_id)) { $row->schedule_id = null; }
 
-                // Auto-migrate customer_name and customer_email from legacy fields or payload
-                if (!empty($row->payload)) {
-                    $payload_data = json_decode($row->payload, true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        // Migrate customer_name if empty
-                        if (empty($row->customer_name)) {
-                            $name_fields = array('nama_lengkap', 'nama', 'name', 'full_name', 'nama lengkap', 'full name');
-                            foreach ($name_fields as $field) {
-                                if (isset($payload_data[$field]) && !empty($payload_data[$field])) {
-                                    $row->customer_name = $payload_data[$field];
-                                    // Update the database record
-                                    $this->update_customer_field($row->id, $flow->name, 'customer_name', $row->customer_name);
-                                    break;
-                                }
-                            }
-                        }
+        $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", intval($id)));
 
-                        // Migrate customer_email if empty
-                        if (empty($row->customer_email)) {
-                            $email_fields = array('email', 'email_address', 'alamat_email', 'e-mail');
-                            foreach ($email_fields as $field) {
-                                if (isset($payload_data[$field]) && !empty($payload_data[$field])) {
-                                    $row->customer_email = $payload_data[$field];
-                                    // Update the database record
-                                    $this->update_customer_field($row->id, $flow->name, 'customer_email', $row->customer_email);
-                                    break;
-                                }
-                            }
-                        }
+        if ($row) {
+            // Decode custom fields
+            if (!empty($row->fields)) {
+                $custom_fields = json_decode($row->fields, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($custom_fields)) {
+                    foreach ($custom_fields as $key => $value) {
+                        $row->$key = $value;
                     }
                 }
+            }
 
-                // Also check direct columns in table for legacy fields
-                if (empty($row->customer_name) || empty($row->customer_email)) {
-                    $this->migrate_from_direct_columns($row, $flow->name);
-                }
-
-                return $row;
+            // Compatibility fields
+            if (!isset($row->schedule_id)) {
+                $row->schedule_id = null;
             }
         }
-        return null;
+
+        return $row;
     }
 
     /**
@@ -578,11 +517,8 @@ class Booking_Database {
      */
     public function update_booking_status($booking_id, $status) {
         global $wpdb;
-        $booking = $this->get_booking($booking_id);
-        if (!$booking || empty($booking->flow_name)) { return false; }
-        $table = $this->get_flow_table_name($booking->flow_name);
         $updated = $wpdb->update(
-            $table,
+            $this->table_name,
             array('status' => sanitize_text_field($status)),
             array('id' => intval($booking_id)),
             array('%s'),
@@ -597,7 +533,7 @@ class Booking_Database {
     public function delete_booking($booking_id) {
         global $wpdb;
         $booking = $this->get_booking($booking_id);
-        if (!$booking || empty($booking->flow_name)) { return false; }
+        if (!$booking) { return false; }
 
         // Check if this booking has a blocking status and needs to release schedule slot
         $blocking_statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
@@ -608,9 +544,8 @@ class Booking_Database {
             $this->update_schedule_bookings($booking->schedule_id, -1);
         }
 
-        $table = $this->get_flow_table_name($booking->flow_name);
         $deleted = $wpdb->delete(
-            $table,
+            $this->table_name,
             array('id' => intval($booking_id)),
             array('%d')
         );
@@ -833,24 +768,18 @@ class Booking_Database {
     }
 
     /**
-     * Get booking count by status
+     * Get booking count by status from unified table
      */
     public function get_booking_count_by_status($status = '') {
         global $wpdb;
-        $total = 0;
-        $flows = $this->get_booking_flows();
-        foreach ($flows as $flow) {
-            $table = $this->get_flow_table_name($flow->name);
-            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-            if ($exists !== $table) { continue; }
-            if (!empty($status)) {
-                $c = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE status = %s", $status));
-            } else {
-                $c = $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
-            }
-            $total += intval($c);
+
+        if (!empty($status)) {
+            $count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$this->table_name} WHERE status = %s", $status));
+        } else {
+            $count = $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}");
         }
-        return $total;
+
+        return intval($count);
     }
 
     /**
@@ -858,6 +787,15 @@ class Booking_Database {
      */
     public function get_booking_counts($flow_id = 0) {
         global $wpdb;
+
+        $where_clause = '';
+        $params = array();
+
+        if ($flow_id) {
+            $where_clause = 'WHERE flow_id = %d';
+            $params[] = intval($flow_id);
+        }
+
         $counts = array(
             'total' => 0,
             'pending' => 0,
@@ -865,18 +803,24 @@ class Booking_Database {
             'completed' => 0,
             'rejected' => 0,
         );
-        $flows = $this->get_booking_flows();
-        foreach ($flows as $flow) {
-            if ($flow_id && intval($flow->id) !== intval($flow_id)) { continue; }
-            $table = $this->get_flow_table_name($flow->name);
-            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-            if ($exists !== $table) { continue; }
-            $counts['total']    += intval($wpdb->get_var("SELECT COUNT(*) FROM {$table}"));
-            $counts['pending']  += intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE status = %s", 'pending')));
-            $counts['approved'] += intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE status = %s", 'approved')));
-            $counts['completed']+= intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE status = %s", 'completed')));
-            $counts['rejected'] += intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE status = %s", 'rejected')));
+
+        // Base query for total count
+        $sql = "SELECT COUNT(*) FROM {$this->table_name} {$where_clause}";
+        if (!empty($params)) {
+            $counts['total'] = intval($wpdb->get_var($wpdb->prepare($sql, $params)));
+        } else {
+            $counts['total'] = intval($wpdb->get_var($sql));
         }
+
+        // Status counts
+        $status_where = !empty($where_clause) ? $where_clause . ' AND status = %s' : 'WHERE status = %s';
+
+        foreach (array('pending', 'approved', 'completed', 'rejected') as $status) {
+            $status_sql = "SELECT COUNT(*) FROM {$this->table_name} {$status_where}";
+            $status_params = !empty($params) ? array_merge($params, array($status)) : array($status);
+            $counts[$status] = intval($wpdb->get_var($wpdb->prepare($status_sql, $status_params)));
+        }
+
         return $counts;
     }
     
@@ -1874,5 +1818,111 @@ class Booking_Database {
         } while (count($rows) === $batch);
 
         return true;
+    }
+
+    /**
+     * Migrate data from per-flow tables to unified table
+     */
+    public function migrate_to_unified_table() {
+        global $wpdb;
+
+        // Get all flows
+        $flows = $this->get_booking_flows();
+        $migrated_count = 0;
+
+        foreach ($flows as $flow) {
+            $old_table = $this->get_flow_table_name($flow->name);
+            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $old_table));
+
+            if ($exists !== $old_table) {
+                continue; // Skip if table doesn't exist
+            }
+
+            // Get all bookings from old table
+            $old_bookings = $wpdb->get_results("SELECT * FROM {$old_table}");
+
+            if (!$old_bookings) {
+                continue;
+            }
+
+            foreach ($old_bookings as $old_booking) {
+                // Extract core fields
+                $customer_name = !empty($old_booking->customer_name) ? $old_booking->customer_name : '';
+                $customer_email = !empty($old_booking->customer_email) ? $old_booking->customer_email : '';
+                $booking_date = !empty($old_booking->booking_date) ? $old_booking->booking_date : '';
+                $booking_time = !empty($old_booking->booking_time) ? $old_booking->booking_time : '';
+                $service_type = !empty($old_booking->service_type) ? $old_booking->service_type : '';
+                $status = !empty($old_booking->status) ? $old_booking->status : 'pending';
+
+                // Extract custom fields (exclude core fields and system fields)
+                $core_fields = array('id', 'flow_id', 'customer_name', 'customer_email', 'booking_date', 'booking_time', 'service_type', 'status', 'payload', 'created_at', 'updated_at');
+                $custom_fields = array();
+
+                foreach ($old_booking as $key => $value) {
+                    if (!in_array($key, $core_fields) && !is_null($value) && $value !== '') {
+                        $custom_fields[$key] = $value;
+                    }
+                }
+
+                // Try to extract customer info from payload if empty
+                if (empty($customer_name) || empty($customer_email)) {
+                    $payload_data = json_decode($old_booking->payload, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($payload_data)) {
+                        if (empty($customer_name)) {
+                            foreach (array('customer_name', 'nama_lengkap', 'nama', 'name', 'full_name') as $field) {
+                                if (!empty($payload_data[$field])) {
+                                    $customer_name = $payload_data[$field];
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (empty($customer_email)) {
+                            foreach (array('customer_email', 'email', 'email_address') as $field) {
+                                if (!empty($payload_data[$field])) {
+                                    $customer_email = $payload_data[$field];
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Add remaining payload fields to custom fields
+                        foreach ($payload_data as $key => $value) {
+                            if (!in_array($key, $core_fields) && !isset($custom_fields[$key])) {
+                                $custom_fields[$key] = $value;
+                            }
+                        }
+                    }
+                }
+
+                // Prepare data for insertion
+                $new_booking = array(
+                    'customer_name'  => $customer_name,
+                    'customer_email' => $customer_email,
+                    'booking_date'   => $booking_date,
+                    'booking_time'   => $booking_time,
+                    'service_type'   => $service_type,
+                    'status'         => $status,
+                    'flow_id'        => $flow->id,
+                    'flow_name'      => $flow->name,
+                    'fields'         => !empty($custom_fields) ? wp_json_encode($custom_fields) : null,
+                    'payload'        => $old_booking->payload,
+                    'created_at'     => $old_booking->created_at,
+                    'updated_at'     => $old_booking->updated_at
+                );
+
+                // Insert into unified table
+                $result = $wpdb->insert($this->table_name, $new_booking);
+
+                if ($result !== false) {
+                    $migrated_count++;
+                }
+            }
+        }
+
+        // Log migration result
+        error_log("Archeus Booking: Migrated {$migrated_count} bookings to unified table");
+
+        return $migrated_count;
     }
 }

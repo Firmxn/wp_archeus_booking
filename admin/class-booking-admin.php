@@ -186,17 +186,17 @@ class Booking_Admin {
             }
 
             echo '<div class="notice notice-info ab-callout is-dismissible" style="padding:0;border-left-width:0;">'
-               . '<div class="ab-callout-inner">'
-               . '  <div class="ab-callout-icon" aria-hidden="true">'
-               . '    <span class="dashicons dashicons-shortcode"></span>'
-               . '  </div>'
-               . '  <div class="ab-callout-body">'
-               . '    <h3 class="ab-callout-title">' . esc_html__('Tampilkan di Sisi Pengguna', 'archeus-booking') . '</h3>'
-               . '    <p class="ab-callout-desc">' . esc_html__('Gunakan shortcode dengan ID flow (contoh: [archeus_booking id="1"]).', 'archeus-booking') . '</p>'
+            . '<div class="ab-callout-inner">'
+            . '  <div class="ab-callout-icon" aria-hidden="true">'
+            . '    <span class="dashicons dashicons-shortcode"></span>'
+            . '  </div>'
+            . '  <div class="ab-callout-body">'
+            . '    <h3 class="ab-callout-title">' . esc_html__('Tampilkan di Sisi Pengguna', 'archeus-booking') . '</h3>'
+            . '    <p class="ab-callout-desc">' . esc_html__('Gunakan shortcode dengan ID flow (contoh: [archeus_booking id="1"]).', 'archeus-booking') . '</p>'
 
-               . '    <div class="ab-shortcode-row">'
-               . '      <label for="ab-flow-select" style="margin-right:6px;">' . esc_html__('Pilih Flow:', 'archeus-booking') . '</label>'
-               . '      <select id="ab-flow-select" class="ab-select ab-dropdown">';
+            . '    <div class="ab-shortcode-row">'
+            . '      <label for="ab-flow-select" style="margin-right:6px;">' . esc_html__('Pilih Flow:', 'archeus-booking') . '</label>'
+            . '      <select id="ab-flow-select" class="ab-select ab-dropdown">';
 
             if (!empty($flows)) {
                 foreach ($flows as $f) {
@@ -209,15 +209,15 @@ class Booking_Admin {
             }
 
             echo    '</select>'
-               . '      <code class="ab-shortcode-code" id="ab-sc-with-id">[archeus_booking id="' . esc_attr($first_id) . '"]</code>'
-               . '      <button type="button" class="button ab-copy-btn" id="ab-copy-with-id" data-copy="[archeus_booking id=\"' . esc_attr($first_id) . '\"]" aria-label="' . esc_attr__('Salin shortcode', 'archeus-booking') . '"><span class="dashicons dashicons-clipboard"></span><span>' . esc_html__('Salin', 'archeus-booking') . '</span></button>'
-               . '      <a class="button button-primary" href="' . esc_url($flow_url) . '">' . esc_html__('Konfigurasi Booking Flow', 'archeus-booking') . '</a>'
-               . '    </div>'
+            . '      <code class="ab-shortcode-code" id="ab-sc-with-id">[archeus_booking id="' . esc_attr($first_id) . '"]</code>'
+            . '      <button type="button" class="button ab-copy-btn" id="ab-copy-with-id" data-copy="[archeus_booking id=\"' . esc_attr($first_id) . '\"]" aria-label="' . esc_attr__('Salin shortcode', 'archeus-booking') . '"><span class="dashicons dashicons-clipboard"></span><span>' . esc_html__('Salin', 'archeus-booking') . '</span></button>'
+            . '      <a class="button button-primary" href="' . esc_url($flow_url) . '">' . esc_html__('Konfigurasi Booking Flow', 'archeus-booking') . '</a>'
+            . '    </div>'
 
-               . '  </div>'
-               . '</div>'
-               . '</div>'
-               . '<script>(function(){
+            . '  </div>'
+            . '</div>'
+            . '</div>'
+            . '<script>(function(){
                     var sel = document.getElementById("ab-flow-select");
                     if (!sel) return;
                     sel.addEventListener("change", function(){
@@ -231,7 +231,7 @@ class Booking_Admin {
     }
     
 
-  
+
     /**
      * Auto-detect field type based on label
      *
@@ -649,9 +649,9 @@ class Booking_Admin {
 
                                         // Check name patterns (phrases with strpos)
                                         $name_phrases = array('nama lengkap', 'full name', 'complete name', 'customer name',
-                                                             'nama lengkap anda', 'your full name', 'nama customer', 'nama pelanggan',
-                                                             'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name',
-                                                             'nama pemesan', 'pemesan nama', 'nama pembeli', 'nama klien');
+                                                                'nama lengkap anda', 'your full name', 'nama customer', 'nama pelanggan',
+                                                                'nama pengunjung', 'visitor name', 'guest name', 'nama anda', 'your name',
+                                                                'nama pemesan', 'pemesan nama', 'nama pembeli', 'nama klien');
 
                                         $name_detected = false;
                                         foreach ($name_phrases as $phrase) {
@@ -677,10 +677,10 @@ class Booking_Admin {
                                         } else {
                                             // Check email phrases
                                             $email_phrases = array('email address', 'e-mail address', 'email anda', 'your email',
-                                                                  'alamat email', 'email customer', 'email pelanggan',
-                                                                  'email pemesan', 'email pembeli', 'email klien',
-                                                                  'alamat email anda', 'your email address',
-                                                                  'surat elektronik', 'electronic mail');
+                                                                    'alamat email', 'email customer', 'email pelanggan',
+                                                                    'email pemesan', 'email pembeli', 'email klien',
+                                                                    'alamat email anda', 'your email address',
+                                                                    'surat elektronik', 'electronic mail');
 
                                             foreach ($email_phrases as $phrase) {
                                                 if (strpos($label_lower, $phrase) !== false) {
@@ -2676,6 +2676,7 @@ class Booking_Admin {
 
     /**
      * Return full booking details (all columns) for a given booking ID.
+     * Custom fields are extracted from 'fields' column and displayed dynamically.
      */
     public function handle_get_booking_details() {
         if (!isset($_POST['nonce']) || (!wp_verify_nonce($_POST['nonce'], 'booking_admin_nonce') && !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce'))) {
@@ -2690,6 +2691,17 @@ class Booking_Admin {
         $row = $db->get_booking($booking_id);
         if (!$row) { wp_send_json_error(array('message' => __('Booking not found', 'archeus-booking'))); }
         $data = (array)$row;
+
+        // Extract custom fields from 'fields' column and add them to main data
+        if (!empty($data['fields'])) {
+            $custom_fields = json_decode($data['fields'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($custom_fields)) {
+                // Add each custom field as a separate property
+                foreach ($custom_fields as $key => $value) {
+                    $data[$key] = $value;
+                }
+            }
+        }
 
         // Extract customer data from payload if not already in database fields
         if (!empty($data['payload'])) {
@@ -2719,7 +2731,8 @@ class Booking_Admin {
             }
         }
 
-        // Remove heavy/internal fields
+        // Remove internal fields that don't need to be displayed
+        unset($data['fields']);
         unset($data['payload']);
         wp_send_json_success($data);
     }
@@ -4024,7 +4037,7 @@ class Booking_Admin {
                         $('.next-month').prop('disabled', true).addClass('disabled');
                     } else {
                         $('.next-month').prop('disabled', false).removeClass('disabled')
-                                         .attr('data-month', nextMonth).attr('data-year', nextYear);
+                                        .attr('data-month', nextMonth).attr('data-year', nextYear);
                     }
                     
                     // Generate new calendar days for the selected month (same as public calendar)

@@ -561,7 +561,25 @@ jQuery(document).ready(function ($) {
 
   // Status control: show custom confirmation dialog
   $(document).on("focusin", ".booking-status", function () {
-    $(this).data("prev", $(this).val());
+    var currentValue = $(this).val();
+    console.log("Focusin event - setting prev status:", {
+      element: this,
+      currentValue: currentValue,
+      currentValueType: typeof currentValue,
+      isCustomDropdown: $(this).hasClass('ab-hidden-select')
+    });
+    $(this).data("prev", currentValue);
+  });
+
+  // Also handle mousedown for custom dropdowns to capture previous state
+  $(document).on("mousedown", ".booking-status", function () {
+    var $sel = $(this);
+    // Only for custom dropdowns (hidden select)
+    if ($sel.hasClass('ab-hidden-select')) {
+      var currentValue = $sel.val();
+      console.log("Mousedown event on custom dropdown - setting prev status:", currentValue);
+      $sel.data("prev", currentValue);
+    }
   });
 
   $(document).on("change", ".booking-status", function () {
@@ -575,7 +593,17 @@ jQuery(document).ready(function ($) {
     var newStatus = $sel.val();
     var prevStatus = $sel.data("prev");
 
-    console.log("Status change details:", { bookingId: bookingId, newStatus: newStatus, prevStatus: prevStatus });
+    console.log("Status change:", {
+      from: prevStatus,
+      to: newStatus,
+      isSame: newStatus === prevStatus
+    });
+
+    // Prevent execution if the same status is selected again
+    if (newStatus === prevStatus) {
+      console.log("Same status selected, preventing execution for better user experience");
+      return;
+    }
 
     // Check if status is being changed to rejected - show reason dialog
     if (newStatus === 'rejected' && prevStatus !== 'rejected') {
@@ -916,6 +944,7 @@ jQuery(document).ready(function ($) {
             "flow_name",
             "id",
             "time_slot",
+            "fields",  // Exclude 'fields' as custom fields are now individual properties
           ];
 
           // Function to get user-friendly field labels
@@ -942,7 +971,31 @@ jQuery(document).ready(function ($) {
               'bukti_vaksin': 'Bukti Vaksin',
               'status': 'Status',
               'created_at': 'Tanggal Dibuat',
-              'updated_at': 'Tanggal Diperbarui'
+              'updated_at': 'Tanggal Diperbarui',
+              // Common custom fields
+              'jenis_hewan': 'Jenis Hewan',
+              'nama_hewan': 'Nama Hewan',
+              'jenis_kelamin_hewan': 'Jenis Kelamin Hewan',
+              'jenis_vaksin': 'Jenis Vaksin',
+              'tanggal_vaksinasi_terakhir': 'Tanggal Vaksinasi Terakhir',
+              'usia_hewan': 'Usia Hewan',
+              'berat_hewan': 'Berat Hewan',
+              'keluhan': 'Keluhan',
+              'catatan': 'Catatan',
+              'pesan': 'Pesan',
+              'keterangan': 'Keterangan',
+              'alamat_lengkap': 'Alamat Lengkap',
+              'kota': 'Kota',
+              'provinsi': 'Provinsi',
+              'kode_pos': 'Kode Pos',
+              'no_telepon': 'No. Telepon',
+              'no_handphone': 'No. Handphone',
+              'tanggal_lahir': 'Tanggal Lahir',
+              'usia': 'Usia',
+              'pekerjaan': 'Pekerjaan',
+              'instansi': 'Instansi',
+              'alasan': 'Alasan',
+              'riwayat': 'Riwayat'
             };
 
             return labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });

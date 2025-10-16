@@ -211,7 +211,7 @@
 }
 
 .stat-box.done {
-  border-left: 4px solid var(--info-background);
+  border-left: 4px solid var(--info-color);
 }
 
 .stat-value {

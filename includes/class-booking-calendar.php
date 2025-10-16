@@ -141,7 +141,7 @@ class Booking_Calendar {
     }
 
     /**
-     * Get booking counts by date for a specific month
+     * Get booking counts by date for a specific month from unified table
      */
     private function get_booking_counts_by_date($year, $month) {
         global $wpdb;
@@ -151,25 +151,17 @@ class Booking_Calendar {
 
         $counts = array();
 
-        // Aggregate from all per-flow tables (new logic)
-        if (class_exists('Booking_Database')) {
-            $db = new Booking_Database();
-            $flows = $db->get_booking_flows();
-            foreach ($flows as $flow) {
-                $table = $db->get_flow_table_name($flow->name);
-                // Skip if table doesn't exist yet
-                $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-                if ($exists !== $table) { continue; }
-                $statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
-                if (!is_array($statuses) || empty($statuses)) { continue; }
-                $ph = implode(',', array_fill(0, count($statuses), '%s'));
-                $args = array_merge(array($first_day, $last_day), $statuses);
-                $sql = "SELECT booking_date, COUNT(*) as count FROM {$table} WHERE booking_date BETWEEN %s AND %s AND status IN ($ph) GROUP BY booking_date";
-                $results = $wpdb->get_results($wpdb->prepare($sql, $args));
-                foreach ($results as $r) {
-                    if (!isset($counts[$r->booking_date])) { $counts[$r->booking_date] = 0; }
-                    $counts[$r->booking_date] += intval($r->count);
-                }
+        // Get booking counts from unified table
+        $table_name = $wpdb->prefix . 'archeus_booking';
+        $statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
+
+        if (is_array($statuses) && !empty($statuses)) {
+            $ph = implode(',', array_fill(0, count($statuses), '%s'));
+            $args = array_merge(array($first_day, $last_day), $statuses);
+            $sql = "SELECT booking_date, COUNT(*) as count FROM {$table_name} WHERE booking_date BETWEEN %s AND %s AND status IN ($ph) GROUP BY booking_date";
+            $results = $wpdb->get_results($wpdb->prepare($sql, $args));
+            foreach ($results as $r) {
+                $counts[$r->booking_date] = intval($r->count);
             }
         }
 
@@ -177,11 +169,11 @@ class Booking_Calendar {
     }
 
     /**
-     * Get availability status with booking count
+     * Get availability status with booking count from unified table
      */
     public function get_availability_with_bookings($date) {
         $availability = $this->get_availability($date);
-        
+
         if (!$availability) {
             // Return default availability if not set
             $availability = (object) array(
@@ -191,24 +183,17 @@ class Booking_Calendar {
             );
         }
 
-        // Get booking count for this date across all per-flow tables (new logic)
+        // Get booking count for this date from unified table
         global $wpdb;
         $booked_count = 0;
-        if (class_exists('Booking_Database')) {
-            $db = new Booking_Database();
-            $flows = $db->get_booking_flows();
-            foreach ($flows as $flow) {
-                $table = $db->get_flow_table_name($flow->name);
-                $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-                if ($exists !== $table) { continue; }
-                $statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
-                if (!is_array($statuses) || empty($statuses)) { continue; }
-                $ph = implode(',', array_fill(0, count($statuses), '%s'));
-                $args = array_merge(array($date), $statuses);
-                $sql = "SELECT COUNT(*) FROM {$table} WHERE booking_date = %s AND status IN ($ph)";
-                $c = $wpdb->get_var($wpdb->prepare($sql, $args));
-                $booked_count += intval($c);
-            }
+        $table_name = $wpdb->prefix . 'archeus_booking';
+        $statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
+
+        if (is_array($statuses) && !empty($statuses)) {
+            $ph = implode(',', array_fill(0, count($statuses), '%s'));
+            $args = array_merge(array($date), $statuses);
+            $sql = "SELECT COUNT(*) FROM {$table_name} WHERE booking_date = %s AND status IN ($ph)";
+            $booked_count = intval($wpdb->get_var($wpdb->prepare($sql, $args)));
         }
 
         return array(
