@@ -221,7 +221,7 @@ class Booking_Calendar {
      * Get max months setting for calendar display
      */
     public function get_max_months_display() {
-        $max_months = get_option('booking_max_calendar_months', 6);
+        $max_months = get_option('booking_max_calendar_months', 3);
         return intval($max_months);
     }
     

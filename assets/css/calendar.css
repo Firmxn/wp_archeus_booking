@@ -636,9 +636,16 @@
   background-color: rgba(239, 68, 68, 0.2);
 }
 
-.booking-calendar,
 .section-calendar .booking-calendar {
   width: 60%;
+  margin: 0 auto;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+.booking-calendar {
+  width: 50% !important;
   margin: 0 auto;
   border-radius: var(--border-radius);
   overflow: hidden;
@@ -825,18 +832,6 @@
   color: #1f2937;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* pengguna */
 
 /* Add spacing between container and inner elements */
@@ -857,5 +852,3 @@
 .section-calendar .booking-calendar-container > * {
   margin-bottom: 6px;
 }
-
-
