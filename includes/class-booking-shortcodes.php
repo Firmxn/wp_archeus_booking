@@ -363,6 +363,9 @@ class Booking_Shortcodes {
 
         <script>
         jQuery(document).ready(function($){
+            // Get max months setting from admin
+            var maxMonths = <?php echo $booking_calendar_obj ? $booking_calendar_obj->get_max_months_display() : 3; ?>;
+
             // Set default date to today if none selected, so time slots can show
             (function ensureDefaultDate(){
                 var sel = sessionStorage.getItem('archeus_selected_date');
@@ -420,7 +423,57 @@ class Booking_Shortcodes {
                 $('#archeus_calendar_days .calendar-day[data-date="' + sel + '"]').addClass('selected-date');
             }
 
+             function updateNavigationButtons() {
+                var now = new Date();
+                var currentMonth = now.getMonth() + 1;
+                var currentYear = now.getFullYear();
+
+                // Calculate max date
+                var maxDate = new Date(currentYear, currentMonth - 1 + maxMonths, 1);
+
+                // Update previous button state
+                var prevMonth = parseInt($('.prev-month').attr('data-month'), 10);
+                var prevYear = parseInt($('.prev-month').attr('data-year'), 10);
+                var prevDate = new Date(prevYear, prevMonth - 1, 1);
+
+                if (prevDate < new Date(currentYear, currentMonth - 1, 1)) {
+                    $('.prev-month').prop('disabled', true).addClass('disabled');
+                } else {
+                    $('.prev-month').prop('disabled', false).removeClass('disabled');
+                }
+
+                // Update next button state
+                var nextMonth = parseInt($('.next-month').attr('data-month'), 10);
+                var nextYear = parseInt($('.next-month').attr('data-year'), 10);
+                var nextDate = new Date(nextYear, nextMonth - 1, 1);
+
+                if (nextDate >= maxDate) {
+                    $('.next-month').prop('disabled', true).addClass('disabled');
+                } else {
+                    $('.next-month').prop('disabled', false).removeClass('disabled');
+                }
+            }
+
             function loadCalendar(month, year){
+                // Validate month navigation - prevent past months and enforce max_months limit
+                var now = new Date();
+                var currentMonth = now.getMonth() + 1;
+                var currentYear = now.getFullYear();
+                var requestedDate = new Date(year, month - 1, 1);
+
+                // Don't allow navigation to past months
+                if (requestedDate < new Date(currentYear, currentMonth - 1, 1)) {
+                    $('.booking-calendar').removeClass('loading');
+                    return;
+                }
+
+                // Check if requested month exceeds max_months limit
+                var maxDate = new Date(currentYear, currentMonth - 1 + maxMonths, 1);
+                if (requestedDate >= maxDate) {
+                    $('.booking-calendar').removeClass('loading');
+                    return;
+                }
+
                 // Disable interactions while loading (match admin behavior)
                 $('.booking-calendar').addClass('loading');
                 $.ajax({
@@ -451,6 +504,9 @@ class Booking_Shortcodes {
                                 $('.next-month').attr('data-month', nextM).attr('data-year', nextY);
                                 currentView.month = month; currentView.year = year;
                                 $('.booking-calendar').removeClass('loading');
+
+                                // Update navigation buttons state
+                                updateNavigationButtons();
                             }
                         } catch (e) {
                             console.error('Calendar JSON parse error', e, resp);
@@ -492,6 +548,8 @@ class Booking_Shortcodes {
             highlightSelected();
             loadCalendar(currentView.month, currentView.year);
             // Ensure time slots are visible immediately on first load
+            // Initialize navigation buttons state
+            setTimeout(updateNavigationButtons, 100);
             if ($('#archeus_time_slots').length){
                 loadTimeSlots();
             }

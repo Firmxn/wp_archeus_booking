@@ -76,17 +76,18 @@ class Booking_Calendar {
     }
 
     /**
-     * Batch set availability for date range with weekend option
+     * Batch set availability for date range with separate weekend options
      */
-    public function batch_set_availability($start_date, $end_date, $status, $limit = 5, $include_weekends = true) {
+    public function batch_set_availability($start_date, $end_date, $status, $limit = 5, $include_saturday = true, $include_sunday = true) {
         $current_date = new DateTime($start_date);
         $end_date_obj = new DateTime($end_date);
 
         while ($current_date <= $end_date_obj) {
             $day_of_week = (int)$current_date->format('N'); // 1=Monday, 7=Sunday
 
-            // Skip weekends if not included
-            if (!$include_weekends && ($day_of_week >= 6)) { // 6=Saturday, 7=Sunday
+            // Skip specific weekend days if not included
+            if (($day_of_week == 6 && !$include_saturday) || // Saturday
+                ($day_of_week == 7 && !$include_sunday)) {   // Sunday
                 $current_date->modify('+1 day');
                 continue;
             }

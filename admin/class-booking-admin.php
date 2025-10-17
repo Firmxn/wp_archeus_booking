@@ -3775,9 +3775,10 @@ class Booking_Admin {
             $end_date = sanitize_text_field($_POST['batch_end_date']);
             $status = sanitize_text_field($_POST['batch_availability_status']);
             $limit = intval($_POST['batch_daily_limit']);
-            $include_weekends = isset($_POST['batch_include_weekends']) ? true : false;
+            $include_saturday = isset($_POST['batch_include_saturday']) ? true : false;
+            $include_sunday = isset($_POST['batch_include_sunday']) ? true : false;
 
-            $booking_calendar->batch_set_availability($start_date, $end_date, $status, $limit, $include_weekends);
+            $booking_calendar->batch_set_availability($start_date, $end_date, $status, $limit, $include_saturday, $include_sunday);
 
             echo '<div class="notice notice-success is-dismissible"><p>' . __('Batch availability updated successfully.', 'archeus-booking') . '</p></div>';
         }
@@ -3938,11 +3939,19 @@ class Booking_Admin {
                             <tr>
                                 <th scope="row"><?php _e('Termasuk Akhir Pekan', 'archeus-booking'); ?></th>
                                 <td>
-                                    <label>
-                                        <input type="checkbox" name="batch_include_weekends" value="1" checked>
-                                        <?php _e('Termasuk Sabtu dan Minggu', 'archeus-booking'); ?>
-                                    </label>
-                                    <p class="description"><?php _e('Centang jika ingin mengubah ketersediaan untuk Sabtu dan Minggu juga. Jika tidak dicentang, Sabtu dan Minggu tidak akan terpengaruh.', 'archeus-booking'); ?></p>
+                                    <div style="margin-bottom: 10px;">
+                                        <label>
+                                            <input type="checkbox" name="batch_include_saturday" value="1" checked>
+                                            <?php _e('Termasuk Sabtu', 'archeus-booking'); ?>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label>
+                                            <input type="checkbox" name="batch_include_sunday" value="1" checked>
+                                            <?php _e('Termasuk Minggu', 'archeus-booking'); ?>
+                                        </label>
+                                    </div>
+                                    <p class="description"><?php _e('Pilih hari akhir pekan yang ingin diubah ketersediaannya. Jika tidak dicentang, hari tersebut tidak akan terpengaruh.', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
                         </table>
