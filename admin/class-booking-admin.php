@@ -1446,6 +1446,7 @@ class Booking_Admin {
 
         wp_enqueue_script('booking-admin-js', ARCHEUS_BOOKING_URL . 'assets/js/admin.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
         wp_enqueue_style('booking-admin-css', ARCHEUS_BOOKING_URL . 'assets/css/admin.css', array(), ARCHEUS_BOOKING_VERSION);
+        wp_enqueue_style('booking-dashboard-css', ARCHEUS_BOOKING_URL . 'assets/css/dashboard.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
         // Styles consolidated into admin.css
         
         wp_localize_script('booking-admin-js', 'archeus_booking_ajax', array(
@@ -1604,8 +1605,26 @@ class Booking_Admin {
             if ($default_flow_id === 0) { $default_flow_id = intval($flows[0]->id); $default_flow_name = $flows[0]->name; }
         }
 
-        $args = array('limit' => 50);
+        // Pagination settings
+        $per_page = 10;
+        $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $offset = ($current_page - 1) * $per_page;
+
+        $args = array(
+            'limit' => $per_page,
+            'offset' => $offset
+        );
         if ($default_flow_id) { $args['flow_id'] = $default_flow_id; }
+
+        // Get total count for pagination (considering flow filter)
+        if ($default_flow_id) {
+            $counts = $booking_db->get_booking_counts($default_flow_id);
+            $total_bookings_count = intval($counts['total']);
+        } else {
+            $total_bookings_count = $booking_db->get_booking_count_by_status('');
+        }
+        $total_pages = ceil($total_bookings_count / $per_page);
+
         $bookings = $booking_db->get_bookings($args);
         // Stats for default flow
         if (method_exists($booking_db, 'get_booking_counts')) {
@@ -1666,7 +1685,6 @@ class Booking_Admin {
                     <option value="completed"><?php _e('Selesai (Completed)', 'archeus-booking'); ?></option>
                     <option value="rejected"><?php _e('Ditolak (Rejected)', 'archeus-booking'); ?></option>
                 </select>
-                <!-- Flow filter disembunyikan sesuai permintaan -->
                 
                 <button id="refresh-bookings" class="button ab-icon-btn" aria-label="<?php esc_attr_e('Muat Ulang', 'archeus-booking'); ?>" title="<?php esc_attr_e('Muat Ulang', 'archeus-booking'); ?>">
                     <span class="dashicons dashicons-update" aria-hidden="true"></span>
@@ -1733,6 +1751,39 @@ class Booking_Admin {
                     <?php endif; ?>
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div class="tablenav bottom" <?php echo ($total_bookings_count <= 10) ? 'style="display:none;"' : ''; ?>>
+                <div class="tablenav-pages">
+                    <span class="displaying-num">
+                        <?php
+                        $start_item = ($current_page - 1) * $per_page + 1;
+                        $end_item = min($current_page * $per_page, $total_bookings_count);
+                        printf(
+                            __('Menampilkan %1$s–%2$s dari %3$s', 'archeus-booking'),
+                            number_format_i18n($start_item),
+                            number_format_i18n($end_item),
+                            '<span class="total-type-count">' . number_format_i18n($total_bookings_count) . '</span>'
+                        );
+                        ?>
+                    </span>
+                    <span class="pagination-links">
+                        <?php
+                        $pagination_args = array(
+                            'base' => add_query_arg('paged', '%#%'),
+                            'format' => '',
+                            'prev_text' => __('&laquo;', 'archeus-booking'),
+                            'next_text' => __('&raquo;', 'archeus-booking'),
+                            'total' => $total_pages,
+                            'current' => $current_page,
+                            'type' => 'plain',
+                            'add_args' => false
+                        );
+                        echo paginate_links($pagination_args);
+                        ?>
+                    </span>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -2646,11 +2697,13 @@ class Booking_Admin {
         }
 
         $status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
-        $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 50;
+        $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 10;
+        $page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+        $offset = ($page - 1) * $limit;
 
         $booking_db = new Booking_Database();
         $flow_id = isset($_POST['flow_id']) ? intval($_POST['flow_id']) : 0;
-        $args = array('status' => $status, 'limit' => $limit);
+        $args = array('status' => $status, 'limit' => $limit, 'offset' => $offset);
         if ($flow_id) { $args['flow_id'] = $flow_id; }
         $bookings = $booking_db->get_bookings($args);
 
@@ -2668,9 +2721,25 @@ class Booking_Admin {
         // Aggregate stats for selected flow (ignoring status filter)
         $stats = method_exists($booking_db, 'get_booking_counts') ? $booking_db->get_booking_counts($flow_id) : array();
 
+        // Calculate total count for pagination (respecting flow filter)
+        if ($flow_id) {
+            // Get total count for this specific flow
+            $flow_stats = $booking_db->get_booking_counts($flow_id);
+            $total_count = isset($flow_stats['total']) ? intval($flow_stats['total']) : 0;
+
+            // Debug: Log the flow stats and total count
+            error_log('Flow ID: ' . $flow_id . ' - Flow Stats: ' . print_r($flow_stats, true) . ' - Total Count: ' . $total_count);
+        } else {
+            $total_count = $booking_db->get_booking_count_by_status($status);
+            error_log('No Flow ID - Total Count: ' . $total_count);
+        }
+
         wp_send_json_success(array(
             'bookings' => $processed_bookings,
-            'stats' => $stats
+            'stats' => $stats,
+            'total_count' => $total_count,
+            'current_page' => $page,
+            'per_page' => $limit
         ));
     }
 

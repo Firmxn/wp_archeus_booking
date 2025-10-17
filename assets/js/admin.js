@@ -1709,7 +1709,13 @@ jQuery(document).ready(function ($) {
           if (resp.data && resp.data.stats) {
             updateDashboardStats(resp.data.stats);
           }
-
+          // Debug: Log the received data
+          console.log('Debug - Total Count from server:', resp.data.total_count);
+          console.log('Debug - Flow ID from server:', resp.data.flow_id);
+          // Update pagination display for flow change
+          if (resp.data && resp.data.total_count !== undefined) {
+            updatePaginationDisplay(resp.data.total_count, 1, 10);
+          }
           // Update shortcode display if exists
           if (resp.data && resp.data.shortcode) {
             updateShortcodeDisplay(resp.data.shortcode);
@@ -3395,4 +3401,263 @@ jQuery(document).ready(function ($) {
   $(document).on('click', '#add-field-btn', function() {
     setTimeout(initializeAutoDetectedFields, 150);
   });
+
+  // Handle pagination clicks
+  $(document).on('click', '.tablenav-pages a', function(e) {
+    e.preventDefault();
+
+    var href = $(this).attr('href');
+    var pageMatch = href.match(/paged=(\d+)/);
+
+    if (pageMatch && pageMatch[1]) {
+      var page = parseInt(pageMatch[1]);
+
+      // Show loading overlay
+      if (!document.getElementById("ab-loading-style")) {
+        var css =
+          "\n.ab-loading-overlay{position:fixed;inset:0;width:100%;height:100%;background:rgba(255,255,255,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;}\n.ab-loading-spinner{width:60px;height:60px;border:6px solid #e5e7eb;border-top:6px solid #54b335;border-radius:50%;animation:abspin 1s linear infinite;}\n.ab-loading-text{margin-top:12px;font-weight:600;color:#1f2937;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}\n@keyframes abspin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}\n";
+        var style = document.createElement("style");
+        style.id = "ab-loading-style";
+        style.textContent = css;
+        document.head.appendChild(style);
+      }
+
+      var $overlay = $("<div>")
+        .addClass("ab-loading-overlay")
+        .html(
+          '<div class="ab-loading-spinner"></div><div class="ab-loading-text">Loading...</div>'
+        );
+
+      $("body").append($overlay);
+
+      // Update URL without page reload
+      var newUrl = window.location.href.split('?')[0] + '?page=archeus-booking-management&paged=' + page;
+      window.history.pushState({ page: page }, '', newUrl);
+
+      // Load bookings for current page with pagination
+      var status = $("#booking-status-filter").val();
+      var flowId = $("#booking-flow-filter").length
+        ? $("#booking-flow-filter").val()
+        : $("#ab-flow-select").length
+        ? $("#ab-flow-select").val()
+        : 0;
+
+      $.ajax({
+        url: archeus_booking_ajax.ajax_url,
+        type: "POST",
+        dataType: "text",
+        data: {
+          action: "get_bookings",
+          status: status,
+          flow_id: flowId,
+          page: page,
+          limit: 10,
+          nonce: archeus_booking_ajax.nonce,
+        },
+        success: function (resp) {
+          try {
+            if (typeof resp === "string") {
+              var firstBrace = resp.indexOf("{");
+              if (firstBrace > 0) resp = resp.slice(firstBrace);
+              resp = JSON.parse(resp);
+            }
+          } catch (e) {
+            console.error("Admin JSON parse error (pagination)", e, resp);
+            showToast("Invalid server response while loading page.", "error");
+            return;
+          }
+          if (resp && resp.success) {
+            var bookings = resp.data && (resp.data.bookings || resp.data);
+            updateBookingsTable(bookings);
+            if (resp.data && resp.data.stats) {
+              updateDashboardStats(resp.data.stats);
+            }
+            // Update pagination display
+            if (resp.data && resp.data.total_count !== undefined) {
+              updatePaginationDisplay(resp.data.total_count, resp.data.current_page, resp.data.per_page);
+            }
+            // Update shortcode display if exists
+            if (resp.data && resp.data.shortcode) {
+              updateShortcodeDisplay(resp.data.shortcode);
+            }
+            showToast("Bookings loaded successfully.", "success");
+          } else {
+            var msg =
+              resp && resp.data && resp.data.message
+                ? resp.data.message
+                : "Failed to load bookings.";
+            showToast(msg, "error");
+          }
+        },
+        error: function () {
+          showToast("Terjadi kesalahan saat memuat bookings.", "error");
+        },
+        complete: function () {
+          // Remove loading overlay
+          if ($overlay) {
+            $overlay.remove();
+          }
+        },
+      });
+    }
+  });
+
+  // Update pagination display based on total count
+  function updatePaginationDisplay(totalCount, currentPage, perPage) {
+    var $pagination = $('.tablenav.bottom');
+
+    // Debug: Log the parameters
+    console.log('updatePaginationDisplay called with:', {totalCount: totalCount, currentPage: currentPage, perPage: perPage});
+    console.log('$pagination element:', $pagination);
+    console.log('$pagination.length:', $pagination.length);
+
+    if ($pagination.length === 0) {
+      console.log('Pagination container not found!');
+      return;
+    }
+
+    // Only show pagination if more than 10 items
+    if (totalCount <= 10) {
+      console.log('Hiding pagination because totalCount <= 10:', totalCount);
+      $pagination.hide();
+      return;
+    }
+
+    console.log('Showing pagination because totalCount > 10:', totalCount);
+    $pagination.show();
+
+    var totalPages = Math.ceil(totalCount / perPage);
+    var $paginationLinks = $pagination.find('.pagination-links');
+
+    // Update displaying num text
+    var startItem = (currentPage - 1) * perPage + 1;
+    var endItem = Math.min(currentPage * perPage, totalCount);
+    $pagination.find('.displaying-num').html(
+      'Menampilkan ' + startItem + '–' + endItem + ' dari <span class="total-type-count">' + totalCount + '</span>'
+    );
+
+    // Generate pagination links
+    var paginationHtml = '';
+
+    // First and previous links
+    if (currentPage > 1) {
+      paginationHtml += '<a class="first-page button" href="' + window.location.href.split('?')[0] + '?page=archeus-booking-management&paged=1"</a>';
+      paginationHtml += '<a class="prev-page button" href="' + window.location.href.split('?')[0] + '?page=archeus-booking-management&paged=' + (currentPage - 1) + '"</a>';
+    }
+
+    // Page numbers
+    for (var i = 1; i <= totalPages; i++) {
+      if (i === currentPage) {
+        paginationHtml += '<span class="paging-input">' + i + '</span>';
+      } else {
+        paginationHtml += '<a class="page-numbers button" href="' + window.location.href.split('?')[0] + '?page=archeus-booking-management&paged=' + i + '">' + i + '</a>';
+      }
+    }
+
+    // Next and last links
+    if (currentPage < totalPages) {
+      paginationHtml += '<a class="next-page button" href="' + window.location.href.split('?')[0] + '?page=archeus-booking-management&paged=' + (currentPage + 1) + '"</a>';
+      paginationHtml += '<a class="last-page button" href="' + window.location.href.split('?')[0] + '?page=archeus-booking-management&paged=' + totalPages + '"></a>';
+    }
+
+    console.log('Generated pagination HTML:', paginationHtml);
+    $paginationLinks.html(paginationHtml);
+  }
+
+  // Initialize pagination display on page load
+  function initializePaginationDisplay() {
+    var $totalTypeCount = $('.total-type-count');
+    if ($totalTypeCount.length) {
+      var totalCount = parseInt($totalTypeCount.text()) || 0;
+      var $pagination = $('.tablenav.bottom');
+
+      // Debug: Log the initial values
+      console.log('initializePaginationDisplay - totalCount:', totalCount, 'from element:', $totalTypeCount.text());
+
+      // Show/hide pagination based on item count
+      if (totalCount <= 10) {
+        console.log('Initial load - Hiding pagination because totalCount <= 10:', totalCount);
+        $pagination.hide();
+      } else {
+        console.log('Initial load - Showing pagination because totalCount > 10:', totalCount);
+        $pagination.show();
+      }
+    } else {
+      console.log('initializePaginationDisplay - No .total-type-count element found');
+    }
+  }
+
+  // Run initialization when DOM is ready
+  $(document).ready(function() {
+    initializePaginationDisplay();
+
+    // Add micro-interactions for dashboard elements
+    addDashboardMicroInteractions();
+  });
+
+  // Micro-interactions for enhanced UX
+  function addDashboardMicroInteractions() {
+    // Animate stat cards on hover
+    $('.stat-card').hover(
+      function() {
+        $(this).css('transform', 'translateY(-4px) scale(1.02)');
+      },
+      function() {
+        $(this).css('transform', 'translateY(0) scale(1)');
+      }
+    );
+
+    // Add ripple effect to buttons
+    $('.button').not('.ab-icon-btn').on('click', function(e) {
+      var $button = $(this);
+      var $ripple = $('<span class="ripple"></span>');
+
+      $button.css('position', 'relative');
+      $button.css('overflow', 'hidden');
+
+      var offset = $button.offset();
+      var x = e.pageX - offset.left;
+      var y = e.pageY - offset.top;
+
+      $ripple.css({
+        position: 'absolute',
+        width: '20px',
+        height: '20px',
+        background: 'rgba(255,255,255,0.5)',
+        border: 'none',
+        borderRadius: '50%',
+        transform: 'scale(0)',
+        animation: 'ripple 0.6s ease-out',
+        left: x - 10,
+        top: y - 10
+      });
+
+      $button.append($ripple);
+
+      setTimeout(function() {
+        $ripple.remove();
+      }, 600);
+    });
+
+    // Smooth scroll to table on filter change
+    $('#booking-status-filter').on('change', function() {
+      $('html, body').animate({
+        scrollTop: $('#bookings-table').offset().top - 50
+      }, 300);
+    });
+
+    // Add loading state to refresh button
+    $('#refresh-bookings').on('click', function() {
+      var $button = $(this);
+      var $icon = $button.find('.dashicons');
+
+      $icon.addClass('spinning');
+      $button.prop('disabled', true);
+
+      setTimeout(function() {
+        $icon.removeClass('spinning');
+        $button.prop('disabled', false);
+      }, 1000);
+    });
+  }
 });
