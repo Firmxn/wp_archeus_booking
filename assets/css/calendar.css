@@ -422,8 +422,11 @@
   .section-calendar .booking-calendar-container {
     margin: 8px 4px;
     padding: 14px !important;
+    width: 100% !important;
   }
-
+  .section-calendar .booking-calendar {
+    width: 100% !important;
+  }
   /* Add spacing between container and inner elements for smaller mobile */
   .section-calendar .booking-calendar-container > * {
     margin-bottom: 8px;

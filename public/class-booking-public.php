@@ -391,7 +391,7 @@ class Booking_Public {
             wp_send_json_error(array('message' => __('Security check failed', 'archeus-booking')));
         }
         
-        $date = sanitize_text_field($_POST['date']);
+        $date = sanitize_text_field(wp_unslash($_POST['date']));
         // Service selection is independent from time slots. Ignore service filter for time slots listing.
         $service_name = '';
         
@@ -458,7 +458,7 @@ class Booking_Public {
         }
 
         $flow_id = intval($_POST['flow_id']);
-        $form_data = isset($_POST['form_data']) ? $_POST['form_data'] : array();
+        $form_data = isset($_POST['form_data']) ? wp_unslash($_POST['form_data']) : array();
         // Debug: Log received form data
         error_log('Booking Flow Debug - Received form_data: ' . print_r($form_data, true));
 
@@ -508,8 +508,8 @@ class Booking_Public {
                         $service_type = sanitize_text_field($value);
                         $combined_data['service_type'] = $service_type;
                     } else {
-                        // Handle other fields normally
-                        $combined_data[$field] = $value;
+                        // Handle other fields normally with sanitization
+                        $combined_data[$field] = is_array($value) ? array_map('sanitize_text_field', $value) : sanitize_text_field($value);
                     }
                 }
             }
@@ -852,7 +852,15 @@ class Booking_Public {
         
         // Validate file type (you can extend this as needed)
         $allowed_types = array('image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf');
-        $file_type = $file['type'];
+        $file_type = sanitize_mime_type($file['type']);
+
+        // Additional security: Check file extension matches type
+        $allowed_extensions = array('jpg', 'jpeg', 'png', 'gif', 'pdf');
+        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($file_extension, $allowed_extensions)) {
+            return false;
+        }
         
         if (!in_array($file_type, $allowed_types)) {
             return false;

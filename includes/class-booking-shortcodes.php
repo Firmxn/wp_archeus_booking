@@ -141,7 +141,7 @@ class Booking_Shortcodes {
             <div class="booking-flow-header">
                 <h3 class="booking-flow-title"><?php echo esc_html($flow->name); ?></h3>
                 <?php if (!empty($flow->description)): ?>
-                    <p class="booking-flow-description"><?php echo esc_html($flow->description); ?></p>
+                    <p class="booking-flow-description"><?php echo wp_kses_post($flow->description); ?></p>
                 <?php endif; ?>
                 <?php // Progress indicators intentionally hidden to reduce clutter ?>
             </div>
@@ -161,7 +161,7 @@ class Booking_Shortcodes {
                                 ?>
                                     <h2 class="section-title"><?php echo esc_html($section_title); ?></h2>
                                 <?php endif; ?>
-                                <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo esc_html($section['section_description']); ?></p><?php endif; ?>
+                                <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo wp_kses_post($section['section_description']); ?></p><?php endif; ?>
                                 <?php
                                     $month = intval(date('n'));
                                     $year = intval(date('Y'));
@@ -264,7 +264,7 @@ class Booking_Shortcodes {
                             <div class="section-block">
                                 <?php $section_title = !empty($section['section_name']) ? $section['section_name'] : (!empty($section['name']) ? $section['name'] : (!empty($section['label']) ? $section['label'] : __('Pilih layanan', 'archeus-booking'))); ?>
                                 <h2 class="section-title"><?php echo esc_html($section_title); ?></h2>
-                                <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo esc_html($section['section_description']); ?></p><?php endif; ?>
+                                <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo wp_kses_post($section['section_description']); ?></p><?php endif; ?>
                                 <div class="services-grid" id="archeus_services_grid">
                                     <?php foreach ($services as $svc): if ($svc->is_active): ?>
                                         <label class="service-card" data-value="<?php echo esc_attr($svc->name); ?>">
@@ -291,7 +291,7 @@ class Booking_Shortcodes {
                             <div class="section-block">
                                 <?php $section_title = !empty($section['section_name']) ? $section['section_name'] : (!empty($section['name']) ? $section['name'] : (!empty($section['label']) ? $section['label'] : __('Pilih waktu', 'archeus-booking'))); ?>
                                 <h2 class="section-title"><?php echo esc_html($section_title); ?></h2>
-                                <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo esc_html($section['section_description']); ?></p><?php endif; ?>
+                                <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo wp_kses_post($section['section_description']); ?></p><?php endif; ?>
                                 <div class="time-slots-list time-slots-container" id="archeus_time_slots"></div>
                             </div>
                             
@@ -305,7 +305,7 @@ class Booking_Shortcodes {
                                 <?php $section_title = !empty($section['section_name']) ? $section['section_name'] : (!empty($section['name']) ? $section['name'] : (!empty($section['label']) ? $section['label'] : __('', 'archeus-booking'))); ?>
                                 <h2 class="section-title"><?php echo esc_html($section_title); ?></h2>
                                 <?php if ($form): ?>
-                                    <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo esc_html($section['section_description']); ?></p><?php endif; ?>
+                                    <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo wp_kses_post($section['section_description']); ?></p><?php endif; ?>
                                     <div class="booking-form-fields widefat" data-form-id="<?php echo esc_attr($form_id); ?>">
                                         <?php foreach ($form_fields as $field_key => $field_data): ?>
                                             <div class="form-group field-<?php echo esc_attr($field_key); ?><?php echo in_array($field_data['type'], ['textarea', 'file']) ? ' full-width' : ''; ?>">

@@ -3,6 +3,59 @@
  * Handles the booking flow navigation and form submission
  */
 jQuery(document).ready(function($) {
+    // HTML Escaping Functions for Security
+    function escapeHtml(text) {
+        if (!text) return '';
+
+        // Convert to string if not already
+        text = String(text);
+
+        // Create a div element to use DOM escaping
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Strict HTML escaping for all user input
+    function escapeHtmlStrict(text) {
+        if (!text) return '';
+
+        // Convert to string if not already
+        text = String(text);
+
+        // Escape all HTML special characters
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\//g, '&#x2F;');
+    }
+
+    // Sanitize string to prevent XSS
+    function sanitizeString(str) {
+        if (!str) return '';
+        str = String(str);
+        return escapeHtmlStrict(str.trim());
+    }
+
+    // Validate email format
+    function isValidEmail(email) {
+        if (!email) return false;
+        email = sanitizeString(email);
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    // Validate phone number
+    function isValidPhone(phone) {
+        if (!phone) return false;
+        phone = sanitizeString(phone);
+        var phoneRegex = /^[\d\s\-\+\(\)]+$/;
+        return phoneRegex.test(phone);
+    }
+
     // Initialize the booking flow
     initBookingFlow();
 
@@ -475,12 +528,6 @@ jQuery(document).ready(function($) {
             default:
                 return true;
         }
-        
-        // Helper function to validate email format
-        function isValidEmail(email) {
-            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
     }
     
     
@@ -623,27 +670,43 @@ jQuery(document).ready(function($) {
             // Handle different field types
             if ($(this).attr('type') === 'checkbox') {
                 if ($(this).is(':checked')) {
-                    data[name] = value;
-                    console.log('Checkbox collected:', name, '=', value);
+                    data[name] = sanitizeString(value);
+                    console.log('Checkbox collected:', name, '=', sanitizeString(value));
                 }
             } else if ($(this).attr('type') === 'radio') {
                 if ($(this).is(':checked')) {
-                    data[name] = value;
-                    console.log('Radio collected:', name, '=', value);
+                    data[name] = sanitizeString(value);
+                    console.log('Radio collected:', name, '=', sanitizeString(value));
                 }
+            } else if ($(this).attr('type') === 'email') {
+                // Additional email validation and sanitization
+                if (isValidEmail(value)) {
+                    data[name] = sanitizeString(value);
+                } else {
+                    console.log('Invalid email format for:', name, '=', value);
+                }
+            } else if ($(this).attr('type') === 'tel') {
+                // Phone number validation
+                if (isValidPhone(value)) {
+                    data[name] = sanitizeString(value);
+                } else {
+                    console.log('Invalid phone format for:', name, '=', value);
+                }
+            } else if ($(this).is('textarea')) {
+                // For textareas, allow more characters but still escape HTML
+                data[name] = sanitizeString(value);
             } else {
-                data[name] = value;
-                console.log('Field collected:', name, '=', value);
+                data[name] = sanitizeString(value);
             }
         });
 
-        // Multiple selects
+        // Multiple selects - sanitize each value
         $('.booking-form-fields').find('select[multiple]').each(function(){
             var name = $(this).attr('name');
             var values = $(this).val();
             if (name && values) {
-                data[name] = values;
-                console.log('Multiple select collected:', name, '=', values);
+                data[name] = Array.isArray(values) ? values.map(function(val) { return sanitizeString(val); }) : sanitizeString(values);
+                console.log('Multiple select collected:', name, '=', data[name]);
             }
         });
 
@@ -790,17 +853,20 @@ jQuery(document).ready(function($) {
                 $sel.data('ab-dd', true);
 
                 var selectedText = $sel.find('option:selected').text() || '';
+                var safeSelectedText = sanitizeString(selectedText);
                 var $wrap = $('<div class="ab-dd"></div>');
                 var $btn = $('<button type="button" class="ab-dd-toggle" aria-haspopup="listbox" aria-expanded="false"></button>');
-                var $label = $('<span class="ab-dd-label"></span>').text(selectedText);
+                var $label = $('<span class="ab-dd-label"></span>').text(safeSelectedText);
                 var $caret = $('<span class="ab-dd-caret" aria-hidden="true"></span>');
                 $btn.append($label).append($caret);
                 var $menu = $('<div class="ab-dd-menu" role="listbox"></div>');
 
                 $sel.find('option').each(function() {
                     var $opt = $(this);
-                    var $item = $('<div class="ab-dd-item" role="option" tabindex="-1"></div>').text($opt.text());
-                    $item.attr('data-value', $opt.attr('value'));
+                    var safeText = sanitizeString($opt.text());
+                    var safeValue = sanitizeString($opt.attr('value'));
+                    var $item = $('<div class="ab-dd-item" role="option" tabindex="-1"></div>').text(safeText);
+                    $item.attr('data-value', safeValue);
                     if ($opt.is(':selected')) $item.addClass('is-selected');
                     $menu.append($item);
                 });
@@ -834,7 +900,8 @@ jQuery(document).ready(function($) {
                     $sel.val(val).trigger('change');
                     $menu.find('.ab-dd-item').removeClass('is-selected');
                     $(this).addClass('is-selected');
-                    $label.text($(this).text());
+                    var safeText = sanitizeString($(this).text());
+                    $label.text(safeText);
 
                     // Remove error styling when value is selected
                     if (val && val !== '') {
@@ -848,7 +915,8 @@ jQuery(document).ready(function($) {
                 $sel.on('change', function() {
                     var txt = $sel.find('option:selected').text() || '';
                     var val = $sel.val();
-                    $label.text(txt);
+                    var safeText = sanitizeString(txt);
+                    $label.text(safeText);
                     $menu.find('.ab-dd-item').each(function() {
                         var $i = $(this);
                         $i.toggleClass('is-selected', $i.attr('data-value') == val);

@@ -314,7 +314,6 @@
 }
 .calendar-availability-form,
 .calendar-batch-form,
-.calendar-display-settings,
 .calendar-view {
   background: #ffffff;
   padding: 24px;
@@ -414,29 +413,6 @@
   }
 }
 
-/* Settings section headings (migrated) */
-.settings-section {
-  margin-bottom: 36px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #e5e7eb;
-}
-.settings-section h3 {
-  font-size: 18px;
-  color: #374151;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  position: relative;
-  border-bottom: 1px solid #e5e7eb;
-}
-.settings-section h3:after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 50px;
-  height: 3px;
-  background: #54b335;
-}
 
 /* Enhanced heading spacing for form tables */
 .booking-admin-page h2,
@@ -446,12 +422,6 @@
   padding-bottom: 5px !important;
 }
 
-/* Specific spacing for language settings section */
-.booking-admin-page .settings-section h2 {
-  margin-bottom: 20px !important;
-  padding-bottom: 10px !important;
-  border-bottom: 1px solid #e5e7eb;
-}
 
 /* Service admin (migrated from admin-services.css) */
 .service-examples {
@@ -1029,10 +999,6 @@
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Section heading accent */
-.settings-section h3:after {
-  background: var(--primary-color);
-}
 
 /* Enhanced table styles - Modern yet functional */
 .booking-admin-page .wp-list-table,

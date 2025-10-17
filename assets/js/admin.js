@@ -2,6 +2,67 @@
 console.log('ARCHAEUS ADMIN JS LOADED!');
 jQuery(document).ready(function ($) {
   console.log('ARCHAEUS ADMIN JS DOCUMENT READY!');
+
+  // Security Functions for Admin Interface
+  function escapeHtml(text) {
+      if (!text) return '';
+      text = String(text);
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+  }
+
+  function escapeHtmlStrict(text) {
+      if (!text) return '';
+      text = String(text);
+      return text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;')
+          .replace(/\//g, '&#x2F;');
+  }
+
+  function sanitizeAdminInput(str) {
+      if (!str) return '';
+      str = String(str);
+      return escapeHtmlStrict(str.trim());
+  }
+
+  function isValidAdminInput(value) {
+      if (!value) return false;
+      value = String(value);
+      // Check for potential XSS patterns
+      const xssPatterns = [
+          /<script/i,
+          /javascript:/i,
+          /on\w+\s*=/i,
+          /<iframe/i,
+          /<object/i,
+          /<embed/i,
+          /<\?/i,
+          /<%/i,
+          /eval\s*\(/i,
+          /expression\s*\(/i
+      ];
+
+      return !xssPatterns.some(pattern => pattern.test(value));
+  }
+
+  function sanitizeFieldName(name) {
+      if (!name) return '';
+      name = String(name);
+      // Allow only alphanumeric, underscore, and dash for field names
+      return name.replace(/[^a-zA-Z0-9_\-]/g, '');
+  }
+
+  function sanitizeFieldValue(value) {
+      if (!value) return '';
+      value = String(value);
+      // For field values, we allow more characters but escape HTML
+      return escapeHtmlStrict(value);
+  }
   // Check for table overflow and add visual indicator
   function checkTableOverflow() {
     $('.form-fields-builder').each(function() {
@@ -2377,19 +2438,41 @@ jQuery(document).ready(function ($) {
     return null;
   }
 
-  // Validate field key - ensure it's not empty
+  // Validate field key - ensure it's not empty and secure
   function validateFieldKey(key, $row) {
     if (!key || key.trim() === '') {
       return false;
     }
+
+    // Sanitize the key to prevent security issues
+    var sanitizedKey = sanitizeFieldName(key);
+    if (sanitizedKey !== key) {
+      // Update input to sanitized version
+      $row.find('input[name^="field_keys_input["]').val(sanitizedKey);
+      if ($row.find('input[name^="field_keys["]').length > 0) {
+        $row.find('input[name^="field_keys["]').val(sanitizedKey);
+      }
+    }
+
+    // Check for potential XSS patterns
+    if (!isValidAdminInput(key)) {
+      return false;
+    }
+
     return true;
   }
 
-  // Validate field label - ensure it's not empty
+  // Validate field label - ensure it's not empty and secure
   function validateFieldLabel(label, $row) {
     if (!label || label.trim() === '') {
       return false;
     }
+
+    // Check for potential XSS patterns
+    if (!isValidAdminInput(label)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -2991,10 +3074,16 @@ jQuery(document).ready(function ($) {
     var serviceId = $form.find('input[name="service_id"]').val();
     var isUpdate = serviceId && serviceId > 0;
 
-    // Validate required fields
-    var serviceName = $form.find('input[name="service_name"]').val().trim();
+    // Validate and sanitize required fields
+    var serviceName = sanitizeAdminInput($form.find('input[name="service_name"]').val().trim());
     if (!serviceName) {
       showToast('Nama layanan wajib diisi', 'error');
+      return;
+    }
+
+    // Security check for service name
+    if (!isValidAdminInput(serviceName)) {
+      showToast('Nama layanan mengandung karakter yang tidak valid', 'error');
       return;
     }
 
@@ -3006,13 +3095,14 @@ jQuery(document).ready(function ($) {
     var $checkbox = $form.find('input[name="is_active"]');
     var isActiveValue = $checkbox.is(':checked') ? 1 : 0;
 
-    // Prepare form data
+    // Prepare form data with sanitization
+    var serviceDescription = sanitizeAdminInput($form.find('textarea[name="service_description"]').val());
     var formData = {
       action: isUpdate ? 'update_service' : 'create_service',
       nonce: archeus_booking_ajax.nonce,
       service_id: serviceId,
       service_name: serviceName,
-      service_description: $form.find('textarea[name="service_description"]').val(),
+      service_description: serviceDescription,
       service_price: parseFloat($form.find('input[name="service_price"]').val()) || 0,
       service_duration: parseInt($form.find('input[name="service_duration"]').val()) || 30,
       is_active: isActiveValue
@@ -3069,11 +3159,17 @@ jQuery(document).ready(function ($) {
     var formId = $form.find('input[name="form_id"]').val();
     var isUpdate = formId && formId > 0;
 
-    // Validate required fields
+    // Validate and sanitize required fields
     var $formNameField = $form.find('input[name="form_name"]');
-    var formName = $formNameField.length ? $formNameField.val().trim() : '';
+    var formName = sanitizeAdminInput($formNameField.length ? $formNameField.val().trim() : '');
     if (!formName) {
       showToast('Nama formulir wajib diisi', 'error');
+      return;
+    }
+
+    // Security check for form name
+    if (!isValidAdminInput(formName)) {
+      showToast('Nama formulir mengandung karakter yang tidak valid', 'error');
       return;
     }
 
@@ -3102,16 +3198,16 @@ jQuery(document).ready(function ($) {
     // Collect form data
     var formData = new FormData($form[0]);
 
-    // Handle array fields manually for proper FormData serialization
+    // Handle array fields manually for proper FormData serialization with sanitization
     $form.find('input[name^="field_keys["]').each(function() {
       var name = $(this).attr('name');
-      var value = $(this).val();
+      var value = sanitizeFieldName($(this).val());
       formData.append(name, value);
     });
 
     $form.find('input[name^="field_keys_input["]').each(function() {
       var name = $(this).attr('name');
-      var value = $(this).val();
+      var value = sanitizeFieldName($(this).val());
       formData.append(name, value);
     });
 
@@ -3120,7 +3216,7 @@ jQuery(document).ready(function ($) {
 
     $form.find('input[name^="field_labels["]').each(function() {
       var name = $(this).attr('name');
-      var value = $(this).val();
+      var value = sanitizeFieldValue($(this).val());
       console.log('Field label:', name, '=', value);
       formData.append(name, value);
     });
@@ -3236,17 +3332,23 @@ jQuery(document).ready(function ($) {
     var slotId = $form.find('input[name="slot_id"]').val();
     var isUpdate = slotId && slotId > 0;
 
-    // Validate required fields
+    // Validate and sanitize required fields
     var $timeLabelField = $form.find('input[name="time_label"]');
     var $startTimeField = $form.find('input[name="start_time"]');
     var $endTimeField = $form.find('input[name="end_time"]');
 
-    var timeLabel = $timeLabelField.length ? $timeLabelField.val().trim() : '';
+    var timeLabel = sanitizeAdminInput($timeLabelField.length ? $timeLabelField.val().trim() : '');
     var startTime = $startTimeField.length ? $startTimeField.val().trim() : '';
     var endTime = $endTimeField.length ? $endTimeField.val().trim() : '';
 
     if (!timeLabel || !startTime || !endTime) {
       showToast('Semua field wajib diisi', 'error');
+      return;
+    }
+
+    // Security check for time label
+    if (!isValidAdminInput(timeLabel)) {
+      showToast('Label waktu mengandung karakter yang tidak valid', 'error');
       return;
     }
 
@@ -3269,7 +3371,7 @@ jQuery(document).ready(function ($) {
     var $maxCapacityField = $form.find('input[name="max_capacity"]');
     var maxCapacity = $maxCapacityField.length ? parseInt($maxCapacityField.val()) || 1 : 1;
 
-    // Prepare form data
+    // Prepare form data with sanitization
     var formData = {
       action: isUpdate ? 'update_time_slot' : 'create_time_slot',
       nonce: archeus_booking_ajax.nonce,

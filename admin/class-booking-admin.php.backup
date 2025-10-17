@@ -16,6 +16,7 @@ class Booking_Admin {
         add_action('wp_ajax_update_booking_status', array($this, 'handle_booking_status_update'));
         add_action('wp_ajax_get_bookings', array($this, 'handle_get_bookings'));
         add_action('wp_ajax_get_booking_details', array($this, 'handle_get_booking_details'));
+        add_action('admin_post_save_booking_settings', array($this, 'save_booking_settings'));
         add_action('wp_ajax_delete_booking', array($this, 'handle_booking_deletion'));
         add_action('wp_ajax_delete_form', array($this, 'handle_form_deletion'));
         add_action('wp_ajax_create_form', array($this, 'handle_form_creation'));
@@ -32,7 +33,8 @@ class Booking_Admin {
         add_action('wp_ajax_get_admin_calendar_data', array($this, 'handle_get_admin_calendar_data'));
 
 
-        add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
+        add_action('admin_post_save_form_settings', array($this, 'save_form_settings'));
+                add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
 
         // Add debugging page
         add_action('admin_menu', array($this, 'add_debug_menu'));
@@ -1834,7 +1836,90 @@ class Booking_Admin {
         <?php
     }
     
-  
+    /**
+     * Save booking settings
+     */
+    public function save_booking_settings() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.', 'archeus-booking'));
+        }
+        
+        if (!isset($_POST['booking_settings_nonce']) || !wp_verify_nonce($_POST['booking_settings_nonce'], 'save_booking_settings')) {
+            wp_die(__('Security check failed', 'archeus-booking'));
+        }
+        
+        $fields = array();
+        if (isset($_POST['field_keys'])) {
+            foreach ($_POST['field_keys'] as $index => $field_key) {
+                $label = sanitize_text_field($_POST['field_labels'][$field_key]);
+                $type = sanitize_text_field($_POST['field_types'][$field_key]);
+                $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
+                
+                $fields[$field_key] = array(
+                    'label' => $label,
+                    'type' => $type,
+                    'required' => $required
+                );
+            }
+        }
+        
+        update_option('booking_form_fields', $fields);
+        
+        // Save email settings
+        if (isset($_POST['email_settings'])) {
+            $email_settings = array(
+                'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
+                'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
+                'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
+                'customer_confirmation_body' => sanitize_textarea_field($_POST['email_settings']['customer_confirmation_body']),
+                'admin_notification_subject' => sanitize_text_field($_POST['email_settings']['admin_notification_subject']),
+                'admin_notification_body' => sanitize_textarea_field($_POST['email_settings']['admin_notification_body'])
+            );
+            
+            update_option('booking_email_settings', $email_settings);
+        }
+        
+        wp_redirect(add_query_arg(array('page' => 'archeus-booking-management', 'updated' => 'true'), admin_url('admin.php')));
+        exit;
+    }
+
+    /**
+     * Save form settings
+     */
+    public function save_form_settings() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.', 'archeus-booking'));
+        }
+        
+        if (!isset($_POST['booking_settings_nonce']) || !wp_verify_nonce($_POST['booking_settings_nonce'], 'save_booking_settings')) {
+            wp_die(__('Security check failed', 'archeus-booking'));
+        }
+        
+        $fields = array();
+        if (isset($_POST['field_keys'])) {
+            foreach ($_POST['field_keys'] as $index => $field_key) {
+                $label = sanitize_text_field($_POST['field_labels'][$field_key]);
+                $type = sanitize_text_field($_POST['field_types'][$field_key]);
+                $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
+                
+                $fields[$field_key] = array(
+                    'label' => $label,
+                    'type' => $type,
+                    'required' => $required
+                );
+            }
+        }
+        
+        update_option('booking_form_fields', $fields);
+
+        // Redirect to clear form data and show success message
+        wp_redirect(add_query_arg(array(
+            'page' => 'archeus-booking-forms',
+            'form_saved' => 'true'
+        ), admin_url('admin.php')));
+        exit;
+    }
+
   
     /**
      * Add debug menu
