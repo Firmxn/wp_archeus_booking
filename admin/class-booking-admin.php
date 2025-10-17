@@ -3775,9 +3775,10 @@ class Booking_Admin {
             $end_date = sanitize_text_field($_POST['batch_end_date']);
             $status = sanitize_text_field($_POST['batch_availability_status']);
             $limit = intval($_POST['batch_daily_limit']);
-            
-            $booking_calendar->batch_set_availability($start_date, $end_date, $status, $limit);
-            
+            $include_weekends = isset($_POST['batch_include_weekends']) ? true : false;
+
+            $booking_calendar->batch_set_availability($start_date, $end_date, $status, $limit, $include_weekends);
+
             echo '<div class="notice notice-success is-dismissible"><p>' . __('Batch availability updated successfully.', 'archeus-booking') . '</p></div>';
         }
         
@@ -3858,7 +3859,6 @@ class Booking_Admin {
                             <ul>
                                 <li><span class="legend-color available"></span> <?php _e('Tersedia', 'archeus-booking'); ?></li>
                                 <li><span class="legend-color unavailable"></span> <?php _e('Tidak Tersedia', 'archeus-booking'); ?></li>
-                                <li><span class="legend-color holiday"></span> <?php _e('Libur', 'archeus-booking'); ?></li>
                                 <li><span class="legend-color full"></span> <?php _e('Penuh', 'archeus-booking'); ?></li>
                                 <li><span class="legend-color limited"></span> <?php _e('Tersedia Terbatas', 'archeus-booking'); ?></li>
                             </ul>
@@ -3884,7 +3884,6 @@ class Booking_Admin {
                                     <select name="availability_status" class="ab-select">
                                         <option value="available"><?php _e('Tersedia', 'archeus-booking'); ?></option>
                                         <option value="unavailable"><?php _e('Tidak Tersedia', 'archeus-booking'); ?></option>
-                                        <option value="holiday"><?php _e('Libur', 'archeus-booking'); ?></option>
                                     </select>
                                 </td>
                             </tr>
@@ -3926,7 +3925,6 @@ class Booking_Admin {
                                     <select name="batch_availability_status" class="ab-select">
                                         <option value="available"><?php _e('Tersedia', 'archeus-booking'); ?></option>
                                         <option value="unavailable"><?php _e('Tidak Tersedia', 'archeus-booking'); ?></option>
-                                        <option value="holiday"><?php _e('Libur', 'archeus-booking'); ?></option>
                                     </select>
                                 </td>
                             </tr>
@@ -3935,6 +3933,16 @@ class Booking_Admin {
                                 <td>
                                     <input type="number" name="batch_daily_limit" value="3" min="0">
                                     <p class="description"><?php _e('Jumlah maksimum pemesanan yang diizinkan untuk tanggal ini (ditetapkan ke 0 jika tidak ada batasan)', 'archeus-booking'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php _e('Termasuk Akhir Pekan', 'archeus-booking'); ?></th>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" name="batch_include_weekends" value="1" checked>
+                                        <?php _e('Termasuk Sabtu dan Minggu', 'archeus-booking'); ?>
+                                    </label>
+                                    <p class="description"><?php _e('Centang jika ingin mengubah ketersediaan untuk Sabtu dan Minggu juga. Jika tidak dicentang, Sabtu dan Minggu tidak akan terpengaruh.', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
                         </table>
@@ -4241,7 +4249,7 @@ class Booking_Admin {
             $daily_limit = $day_availability['daily_limit'];
 
             // Determine availability status
-            if ($status === 'unavailable' || $status === 'holiday') {
+            if ($status === 'unavailable') {
                 $classes[] = $status;
                 $status_class = $status;
             } else {
@@ -4267,8 +4275,8 @@ class Booking_Admin {
             
             $day_label = $day;
             
-            // Check if this date has any bookings
-            if ($booked_count > 0) {
+            // Check if this date has any bookings, but don't show count for past dates
+            if ($booked_count > 0 && $date >= $today) {
                 $day_label = $day . '<span class="booking-count">(' . $booked_count . '/' . $daily_limit . ')</span>';
             }
 
@@ -4307,7 +4315,7 @@ class Booking_Admin {
             $daily_limit = $data['daily_limit'];
             
             // Determine display status
-            if ($status === 'unavailable' || $status === 'holiday') {
+            if ($status === 'unavailable') {
                 $display_status = $status;
             } elseif ($booked_count >= $daily_limit) {
                 $display_status = 'full';

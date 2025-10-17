@@ -701,8 +701,8 @@
 
 .calendar-day.past,
 .section-calendar .calendar-day.past {
-  background-color: var(--past-color);
-  color: var(--dark-color);
+  background-color: var(--past-color) !important;
+  color: var(--dark-color) !important;
   text-decoration: line-through;
   cursor: not-allowed;
 }

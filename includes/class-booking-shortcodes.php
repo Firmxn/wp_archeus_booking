@@ -194,7 +194,7 @@ class Booking_Shortcodes {
                                         $booked_count = $day_availability['booked_count'];
                                         $daily_limit = $day_availability['daily_limit'];
 
-                                        if ($status === 'unavailable' || $status === 'holiday') {
+                                        if ($status === 'unavailable') {
                                             $status_class = $status;
                                             $classes[] = $status;
                                         } else {
@@ -217,7 +217,7 @@ class Booking_Shortcodes {
 
                                         $classes_str = implode(' ', $classes);
                                         $day_label = $day;
-                                        if ($booked_count > 0) {
+                                        if ($booked_count > 0 && $date >= $current_date) {
                                             $day_label = $day . '<span class="booking-count">(' . $booked_count . '/' . $daily_limit . ')</span>';
                                         }
 
@@ -252,7 +252,6 @@ class Booking_Shortcodes {
                                         <ul>
                                             <li><span class="legend-color available"></span> <?php echo esc_html__('Tersedia', 'archeus-booking'); ?></li>
                                             <li><span class="legend-color unavailable"></span> <?php echo esc_html__('Tidak Tersedia', 'archeus-booking'); ?></li>
-                                            <li><span class="legend-color holiday"></span> <?php echo esc_html__('Libur', 'archeus-booking'); ?></li>
                                             <li><span class="legend-color full"></span> <?php echo esc_html__('Penuh', 'archeus-booking'); ?></li>
                                             <li><span class="legend-color limited"></span> <?php echo esc_html__('Tersedia Terbatas', 'archeus-booking'); ?></li>
                                             <li><span class="legend-color selected-date"></span> <?php echo esc_html__('Tanggal Terpilih', 'archeus-booking'); ?></li>
@@ -402,7 +401,7 @@ class Booking_Shortcodes {
                     var classes = ['calendar-day', status];
                     if (dateStr < todayStr) { classes.push('past'); status = 'past'; }
                     var label = ''+d;
-                    if (info.booked_count && info.daily_limit){
+                    if (info.booked_count && info.daily_limit && dateStr >= todayStr){
                         label += '<span class="booking-count">(' + info.booked_count + '/' + info.daily_limit + ')</span>';
                     }
                     html += '<div class="' + classes.join(' ') + '" data-date="' + dateStr + '" data-status="' + status + '">'

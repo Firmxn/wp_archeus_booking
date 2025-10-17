@@ -403,9 +403,9 @@ class Booking_Public {
         $booking_db = new Booking_Database();
         $booking_calendar = new Booking_Calendar();
         
-        // Check if the date is generally available (not a holiday or manually disabled)
+        // Check if the date is generally available (not manually disabled)
         $date_availability = $booking_calendar->get_availability_with_bookings($date);
-        if (!$date_availability || in_array($date_availability['availability']->availability_status, ['unavailable', 'holiday'])) {
+        if (!$date_availability || in_array($date_availability['availability']->availability_status, ['unavailable'])) {
             wp_send_json_success(array()); // Return empty array for unavailable dates
         }
         

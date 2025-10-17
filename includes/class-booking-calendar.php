@@ -30,7 +30,7 @@ class Booking_Calendar {
         $sql = "CREATE TABLE IF NOT EXISTS {$this->availability_table} (
             id int(11) NOT NULL AUTO_INCREMENT,
             date date NOT NULL,
-            availability_status varchar(20) NOT NULL DEFAULT 'available', -- available, unavailable, holiday
+            availability_status varchar(20) NOT NULL DEFAULT 'available', -- available, unavailable
             daily_limit int(11) DEFAULT 5,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -76,13 +76,21 @@ class Booking_Calendar {
     }
 
     /**
-     * Batch set availability for date range
+     * Batch set availability for date range with weekend option
      */
-    public function batch_set_availability($start_date, $end_date, $status, $limit = 5) {
+    public function batch_set_availability($start_date, $end_date, $status, $limit = 5, $include_weekends = true) {
         $current_date = new DateTime($start_date);
         $end_date_obj = new DateTime($end_date);
 
         while ($current_date <= $end_date_obj) {
+            $day_of_week = (int)$current_date->format('N'); // 1=Monday, 7=Sunday
+
+            // Skip weekends if not included
+            if (!$include_weekends && ($day_of_week >= 6)) { // 6=Saturday, 7=Sunday
+                $current_date->modify('+1 day');
+                continue;
+            }
+
             $this->set_availability($current_date->format('Y-m-d'), $status, $limit);
             $current_date->modify('+1 day');
         }
@@ -110,9 +118,14 @@ class Booking_Calendar {
 
         while ($current_date <= $end_date) {
             $date_str = $current_date->format('Y-m-d');
+            $day_of_week = (int)$current_date->format('N'); // 1=Monday, 7=Sunday
+
+            // Default status: weekends (Saturday=6, Sunday=7) are unavailable
+            $default_status = ($day_of_week >= 6) ? 'unavailable' : 'available';
+
             $availability[$date_str] = array(
                 'date' => $date_str,
-                'availability_status' => 'available', // Default
+                'availability_status' => $default_status,
                 'daily_limit' => 5, // Default
                 'booked_count' => 0
             );
@@ -175,10 +188,15 @@ class Booking_Calendar {
         $availability = $this->get_availability($date);
 
         if (!$availability) {
+            // Check if date is weekend and set default accordingly
+            $date_obj = new DateTime($date);
+            $day_of_week = (int)$date_obj->format('N'); // 1=Monday, 7=Sunday
+            $default_status = ($day_of_week >= 6) ? 'unavailable' : 'available';
+
             // Return default availability if not set
             $availability = (object) array(
                 'date' => $date,
-                'availability_status' => 'available',
+                'availability_status' => $default_status,
                 'daily_limit' => 5
             );
         }

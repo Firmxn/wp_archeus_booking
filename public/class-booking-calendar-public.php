@@ -119,7 +119,6 @@ class Booking_Calendar_Public {
                 <ul>
                     <li><span class="legend-color available"></span> <?php echo esc_html__('Tersedia', 'archeus-booking'); ?></li>
                     <li><span class="legend-color unavailable"></span> <?php echo esc_html__('Tidak Tersedia', 'archeus-booking'); ?></li>
-                    <li><span class="legend-color holiday"></span> <?php echo esc_html__('Libur', 'archeus-booking'); ?></li>
                     <li><span class="legend-color full"></span> <?php echo esc_html__('Penuh', 'archeus-booking'); ?></li>
                     <li><span class="legend-color limited"></span> <?php echo esc_html__('Tersedia Terbatas', 'archeus-booking'); ?></li>
                     <li><span class="legend-color selected-date"></span> <?php echo esc_html__('Tanggal Terpilih', 'archeus-booking'); ?></li>
@@ -174,10 +173,7 @@ class Booking_Calendar_Public {
             if ($status === 'unavailable') {
                 $classes[] = 'unavailable';
                 $status_class = $status;
-            } elseif ($status === 'holiday') {
-                $classes[] = 'holiday';
-                $status_class = $status;
-            } else {
+                        } else {
                 if ($booked_count >= $daily_limit) {
                     $status_class = 'full';
                     $classes[] = 'full';
@@ -200,8 +196,8 @@ class Booking_Calendar_Public {
             
             $day_label = $day;
             
-            // Check if this date has any bookings
-            if ($booked_count > 0) {
+            // Check if this date has any bookings, but don't show count for past dates
+            if ($booked_count > 0 && $date >= $current_date) {
                 $day_label = $day . '<span class="booking-count">(' . $booked_count . '/' . $daily_limit . ')</span>';
             }
 
@@ -233,7 +229,7 @@ class Booking_Calendar_Public {
             $daily_limit = $data['daily_limit'];
             
             // Determine display status
-            if ($status === 'unavailable' || $status === 'holiday') {
+            if ($status === 'unavailable') {
                 $display_status = $status;
             } elseif ($booked_count >= $daily_limit) {
                 $display_status = 'full';
