@@ -50,7 +50,7 @@ class Booking_Shortcodes {
                                 if ($field_key === 'service_type') {
                                     $booking_db_inner = new Booking_Database();
                                     $services = $booking_db_inner->get_services();
-                                    foreach ($services as $service) { if ($service->is_active) { echo '<option value="' . esc_attr($service->name) . '">' . esc_html($service->name) . '</option>'; } }
+                                    foreach ($services as $service) { echo '<option value="' . esc_attr($service->name) . '">' . esc_html($service->name) . '</option>'; }
                                 } elseif (!empty($field_data['options']) && is_array($field_data['options'])) {
                                     foreach ($field_data['options'] as $opt) { echo '<option value="' . esc_attr($opt) . '">' . esc_html($opt) . '</option>'; }
                                 }
@@ -266,7 +266,7 @@ class Booking_Shortcodes {
                                 <h2 class="section-title"><?php echo esc_html($section_title); ?></h2>
                                 <?php if (!empty($section['section_description'])): ?><p class="section-description"><?php echo wp_kses_post($section['section_description']); ?></p><?php endif; ?>
                                 <div class="services-grid" id="archeus_services_grid">
-                                    <?php foreach ($services as $svc): if ($svc->is_active): ?>
+                                    <?php foreach ($services as $svc): ?>
                                         <label class="service-card" data-value="<?php echo esc_attr($svc->name); ?>">
                                             <input class="visually-hidden" type="radio" name="service_type" value="<?php echo esc_attr($svc->name); ?>">
                                             <h4><?php echo esc_html($svc->name); ?></h4>
@@ -283,7 +283,7 @@ class Booking_Shortcodes {
                                             </div>
                                             <p class="service-duration"><?php echo esc_html(sprintf(__('Durasi %d menit', 'archeus-booking'), (int)$svc->duration)); ?></p>
                                         </label>
-                                    <?php endif; endforeach; ?>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
 
@@ -325,7 +325,7 @@ class Booking_Shortcodes {
                                                         echo '<option value="">' . esc_html(($field_data['placeholder'] ?? '') ?: '-- Pilih --') . '</option>';
                                                         if ($field_key === 'service_type') {
                                                             $services_inner = $db->get_services();
-                                                            foreach ($services_inner as $service) { if ($service->is_active) { echo '<option value="' . esc_attr($service->name) . '">' . esc_html($service->name) . '</option>'; } }
+                                                            foreach ($services_inner as $service) { echo '<option value="' . esc_attr($service->name) . '">' . esc_html($service->name) . '</option>'; }
                                                         } elseif (!empty($field_data['options']) && is_array($field_data['options'])) {
                                                             foreach ($field_data['options'] as $opt) { echo '<option value="' . esc_attr($opt) . '">' . esc_html($opt) . '</option>'; }
                                                         }

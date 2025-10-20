@@ -2977,8 +2977,7 @@ class Booking_Admin {
         $sections = array();
         $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
         $names_arr = isset($_POST['section_names']) ? $_POST['section_names'] : (isset($_POST['step_names']) ? $_POST['step_names'] : array());
-        $req_arr   = isset($_POST['section_required']) ? $_POST['section_required'] : (isset($_POST['step_required']) ? $_POST['step_required'] : array());
-        $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
+                $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
         $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
 
         if (is_array($types_arr)) {
@@ -2987,8 +2986,7 @@ class Booking_Admin {
                     $section = array(
                         'type' => sanitize_text_field($type),
                         'name' => sanitize_text_field($names_arr[$index] ?? ''),
-                        'required' => isset($req_arr[$index]) ? 1 : 0
-                    );
+                                            );
                     if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
                     if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
                     $section['section_name'] = $section['name'];
@@ -3038,8 +3036,7 @@ class Booking_Admin {
         $sections = array();
         $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
         $names_arr = isset($_POST['section_names']) ? $_POST['section_names'] : (isset($_POST['step_names']) ? $_POST['step_names'] : array());
-        $req_arr   = isset($_POST['section_required']) ? $_POST['section_required'] : (isset($_POST['step_required']) ? $_POST['step_required'] : array());
-        $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
+                $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
         $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
 
         if (is_array($types_arr)) {
@@ -3048,8 +3045,7 @@ class Booking_Admin {
                     $section = array(
                         'type' => sanitize_text_field($type),
                         'name' => sanitize_text_field($names_arr[$index] ?? ''),
-                        'required' => isset($req_arr[$index]) ? 1 : 0
-                    );
+                                            );
                     if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
                     if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
                     $section['section_name'] = $section['name'];
@@ -3361,7 +3357,6 @@ class Booking_Admin {
         $start_time = sanitize_text_field($_POST['start_time']);
         $end_time = sanitize_text_field($_POST['end_time']);
         $max_capacity = intval($_POST['max_capacity']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
 
         // Log received data
         error_log('Received data: ' . print_r($_POST, true));
@@ -3429,10 +3424,9 @@ class Booking_Admin {
                 'time_label' => $time_label,
                 'start_time' => $start_time,
                 'end_time' => $end_time,
-                'max_capacity' => $max_capacity,
-                'is_active' => $is_active
+                'max_capacity' => $max_capacity
             ),
-            array('%s', '%s', '%s', '%d', '%d')
+            array('%s', '%s', '%s', '%d')
         );
 
         // Check for database errors
@@ -3472,7 +3466,6 @@ class Booking_Admin {
         $start_time = sanitize_text_field($_POST['start_time']);
         $end_time = sanitize_text_field($_POST['end_time']);
         $max_capacity = intval($_POST['max_capacity']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
         $sort_order = 0; // Not used anymore, but kept for parameter compatibility
 
         // Validate time format - accept both HH:MM and HH:MM:SS formats
@@ -3550,11 +3543,10 @@ class Booking_Admin {
                 'start_time' => $start_time,
                 'end_time' => $end_time,
                 'max_capacity' => $max_capacity,
-                'is_active' => $is_active,
                 'updated_at' => current_time('mysql')
             ),
             array('id' => $slot_id),
-            array('%s', '%s', '%s', '%d', '%d', '%s'),
+            array('%s', '%s', '%s', '%d', '%s'),
             array('%d')
         );
 
@@ -3593,10 +3585,9 @@ class Booking_Admin {
         $description = sanitize_textarea_field($_POST['service_description']);
         $price = floatval($_POST['service_price']);
         $duration = intval($_POST['service_duration']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
 
         $booking_db = new Booking_Database();
-        $result = $booking_db->create_service($name, $description, $price, $duration, $is_active);
+        $result = $booking_db->create_service($name, $description, $price, $duration);
 
         if ($result) {
             wp_send_json_success(array(
@@ -3632,10 +3623,9 @@ class Booking_Admin {
         $description = sanitize_textarea_field($_POST['service_description']);
         $price = floatval($_POST['service_price']);
         $duration = intval($_POST['service_duration']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
 
         $booking_db = new Booking_Database();
-        $result = $booking_db->update_service($service_id, $name, $description, $price, $duration, $is_active);
+        $result = $booking_db->update_service($service_id, $name, $description, $price, $duration);
 
         if ($result) {
             wp_send_json_success(array(
@@ -4282,15 +4272,14 @@ class Booking_Admin {
             $description = sanitize_textarea_field($_POST['service_description']);
             $price = floatval($_POST['service_price']);
             $duration = intval($_POST['service_duration']);
-            $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
             
             if ($service_id > 0) {
                 // Update existing service
-                $result = $booking_db->update_service($service_id, $name, $description, $price, $duration, $is_active);
+                $result = $booking_db->update_service($service_id, $name, $description, $price, $duration);
                 $message = $result ? __('Service updated successfully.', 'archeus-booking') : __('Error updating service.', 'archeus-booking');
             } else {
                 // Create new service
-                $result = $booking_db->create_service($name, $description, $price, $duration, $is_active);
+                $result = $booking_db->create_service($name, $description, $price, $duration);
                 $message = $result ? __('Service created successfully.', 'archeus-booking') : __('Error creating service.', 'archeus-booking');
             }
 
@@ -4414,17 +4403,7 @@ class Booking_Admin {
                                     <p class="description"><?php _e('Masukkan durasi layanan (dalam menit)', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
-                            <tr>
-                                <th scope="row"><label for="is_active"><?php _e('Status', 'archeus-booking'); ?></label></th>
-                                <td>
-                                    <label>
-                                        <input type="checkbox" id="is_active" name="is_active" value="1" <?php echo $edit_service ? checked($edit_service->is_active, 1, false) : 'checked'; ?>>
-                                        <?php _e('Active', 'archeus-booking'); ?>
-                                    </label>
-                                    <p class="description"><?php _e('Hapus centang untuk menonaktifkan layanan ini', 'archeus-booking'); ?></p>
-                                </td>
-                            </tr>
-                        </table>
+                          </table>
                         
                         <?php submit_button($edit_service ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_service'); ?>
                     </form>
@@ -4445,7 +4424,6 @@ class Booking_Admin {
                                     <th><?php _e('Deskripsi', 'archeus-booking'); ?></th>
                                     <th><?php _e('Harga', 'archeus-booking'); ?></th>
                                     <th><?php _e('Durasi', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Status', 'archeus-booking'); ?></th>
                                     <th><?php _e('Aksi', 'archeus-booking'); ?></th>
                                 </tr>
                             </thead>
@@ -4457,13 +4435,6 @@ class Booking_Admin {
                                         <td><?php echo wp_trim_words(esc_html($service->description), 10); ?></td>
                                         <td><?php echo $service->price > 0 ? 'Rp ' . number_format($service->price, 0, ',', '.') : __('Gratis', 'archeus-booking'); ?></td>
                                         <td><?php echo esc_html($service->duration); ?> <?php _e('minutes', 'archeus-booking'); ?></td>
-                                        <td>
-                                            <?php if ($service->is_active): ?>
-                                                <span class="status-active"><?php _e('Aktif', 'archeus-booking'); ?></span>
-                                            <?php else: ?>
-                                                <span class="status-inactive"><?php _e('Nonaktif', 'archeus-booking'); ?></span>
-                                            <?php endif; ?>
-                                        </td>
                                         <td class="col-actions">
                                             <div class="action-buttons">
                                                 <a href="<?php echo admin_url('admin.php?page=archeus-booking-services&action=edit&service_id=' . $service->id); ?>" class="button button-warning edit-button" title="<?php esc_attr_e('Ubah Layanan', 'archeus-booking'); ?>">
@@ -4598,7 +4569,6 @@ class Booking_Admin {
             $start_time = sanitize_text_field($_POST['start_time']);
             $end_time = sanitize_text_field($_POST['end_time']);
             $max_capacity = intval($_POST['max_capacity']);
-            $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
             $sort_order = 0; // Not used anymore, but kept for parameter compatibility
             
             // Validate time format - accept both HH:MM and HH:MM:SS formats
@@ -4627,7 +4597,7 @@ class Booking_Admin {
                 } else {
                     if ($slot_id > 0) {
                         // Update existing time slot - use 0 for sort_order to maintain parameter compatibility
-                        $result = $time_slots_manager->update_time_slot($slot_id, $time_label, $start_time, $end_time, $max_capacity, $is_active, 0);
+                        $result = $time_slots_manager->update_time_slot($slot_id, $time_label, $start_time, $end_time, $max_capacity, 1, 0);
                         $message = $result ? __('Slot waktu berhasil diperbarui.', 'archeus-booking') : __('Gagal memperbarui slot waktu.', 'archeus-booking');
                     } else {
                         // Create new time slot
@@ -4765,17 +4735,7 @@ class Booking_Admin {
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th scope="row"><label for="is_active"><?php _e('Status', 'archeus-booking'); ?></label></th>
-                                <td>
-                                    <label>
-                                        <input type="checkbox" id="is_active" name="is_active" value="1" <?php echo $edit_slot ? checked($edit_slot->is_active, 1, false) : 'checked'; ?>>
-                                        <?php _e('Active', 'archeus-booking'); ?>
-                                    </label>
-                                    <p class="description"><?php _e('Hapus centang untuk menonaktifkan slot waktu ini', 'archeus-booking'); ?></p>
-                                </td>
-                            </tr>
-                        </table>
+                                                    </table>
                         
                         <?php submit_button($edit_slot ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_time_slot'); ?>
                     </form>
@@ -4807,11 +4767,7 @@ class Booking_Admin {
                                         <td><?php echo esc_html($slot->start_time . ' - ' . $slot->end_time); ?></td>
                                         <td><?php echo esc_html($slot->max_capacity); ?></td>
                                         <td>
-                                            <?php if ($slot->is_active): ?>
-                                                <span class="status-active" style="color: green;"><?php _e('Aktif', 'archeus-booking'); ?></span>
-                                            <?php else: ?>
-                                                <span class="status-inactive" style="color: red;"><?php _e('Tidak Aktif', 'archeus-booking'); ?></span>
-                                            <?php endif; ?>
+                                            <span style="color: green;"><?php _e('Aktif', 'archeus-booking'); ?></span>
                                         </td>
                                         <td class="col-actions">
                                             <div class="action-buttons">
@@ -5142,11 +5098,6 @@ class Booking_Admin {
                                                 '</select>' +
                                             '</td>' +
                                         '</tr>' +
-
-                                        '<tr>' +
-                                            '<th scope="row"><label><?php _e('Wajib?', 'archeus-booking'); ?></label></th>' +
-                                            '<td><input type="checkbox" name="section_required[]" value="1"> <?php _e('Apakah bagian ini diwajibkan?', 'archeus-booking'); ?></td>' +
-                                        '</tr>' +
                                     '</table>' +
                                 '</div>';
 
@@ -5238,8 +5189,7 @@ class Booking_Admin {
         $step_type = $section ? $section['type'] : '';
         $step_name = $section ? $section['name'] : '';
         $step_desc = $section && isset($section['section_description']) ? $section['section_description'] : '';
-        $step_required = $section ? $section['required'] : 0;
-        $step_form_id = $section && isset($section['form_id']) ? $section['form_id'] : '';
+                $step_form_id = $section && isset($section['form_id']) ? $section['form_id'] : '';
         $step_label = $section && isset($section['label']) ? $section['label'] : '';
         ?>
             <!-- <div class="drag-handle">⋮⋮</div> -->
@@ -5295,11 +5245,6 @@ class Booking_Admin {
                             <?php endforeach; ?>
                         </select>
                     </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><label><?php _e('Required?', 'archeus-booking'); ?></label></th>
-                    <td><input type="checkbox" name="section_required[]" value="1" <?php checked($step_required, 1); ?>> <?php _e('Apakah bagian ini diwajibkan?', 'archeus-booking'); ?></td>
                 </tr>
             </table>
         </div>

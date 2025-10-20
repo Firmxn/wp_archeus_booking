@@ -3091,10 +3091,6 @@ jQuery(document).ready(function ($) {
     $submitBtn.prop('disabled', true);
     $submitBtn.addClass('loading');
 
-    // Get checkbox status
-    var $checkbox = $form.find('input[name="is_active"]');
-    var isActiveValue = $checkbox.is(':checked') ? 1 : 0;
-
     // Prepare form data with sanitization
     var serviceDescription = sanitizeAdminInput($form.find('textarea[name="service_description"]').val());
     var formData = {
@@ -3104,8 +3100,7 @@ jQuery(document).ready(function ($) {
       service_name: serviceName,
       service_description: serviceDescription,
       service_price: parseFloat($form.find('input[name="service_price"]').val()) || 0,
-      service_duration: parseInt($form.find('input[name="service_duration"]').val()) || 30,
-      is_active: isActiveValue
+      service_duration: parseInt($form.find('input[name="service_duration"]').val()) || 30
     };
 
     // Send AJAX request
@@ -3363,10 +3358,6 @@ jQuery(document).ready(function ($) {
       return;
     }
 
-    // Get checkbox status
-    var $checkbox = $form.find('input[name="is_active"]');
-    var isActiveValue = $checkbox.length && $checkbox.is(':checked') ? 1 : 0;
-
     // Get max capacity with safe parsing
     var $maxCapacityField = $form.find('input[name="max_capacity"]');
     var maxCapacity = $maxCapacityField.length ? parseInt($maxCapacityField.val()) || 1 : 1;
@@ -3379,8 +3370,7 @@ jQuery(document).ready(function ($) {
       time_label: timeLabel,
       start_time: startTime,
       end_time: endTime,
-      max_capacity: maxCapacity,
-      is_active: isActiveValue
+      max_capacity: maxCapacity
     };
 
     // Debug: Log form submission

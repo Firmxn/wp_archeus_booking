@@ -622,7 +622,7 @@ class Booking_Database {
         global $wpdb;
         $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
         
-        $forms = $wpdb->get_results("SELECT * FROM {$forms_table} WHERE is_active = 1 ORDER BY name ASC");
+        $forms = $wpdb->get_results("SELECT * FROM {$forms_table} ORDER BY name ASC");
         return $forms;
     }
     
@@ -649,7 +649,7 @@ class Booking_Database {
         $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
         
         $form = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$forms_table} WHERE slug = %s AND is_active = 1",
+            "SELECT * FROM {$forms_table} WHERE slug = %s",
             $slug
         ));
         
@@ -839,11 +839,9 @@ class Booking_Database {
             description text NULL,
             price decimal(10,2) DEFAULT 0.00,
             duration int(11) DEFAULT 30,
-            is_active tinyint(1) DEFAULT 1,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY is_active (is_active)
+            PRIMARY KEY (id)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -858,10 +856,9 @@ class Booking_Database {
                     'name' => 'General Checkup',
                     'description' => 'Comprehensive health examination for your pet',
                     'price' => 150000,
-                    'duration' => 30,
-                    'is_active' => 1
+                    'duration' => 30
                 ),
-                array('%s', '%s', '%f', '%d', '%d')
+                array('%s', '%s', '%f', '%d')
             );
             
             $wpdb->insert(
@@ -870,22 +867,20 @@ class Booking_Database {
                     'name' => 'Vaccination',
                     'description' => 'Vaccination services for dogs and cats',
                     'price' => 100000,
-                    'duration' => 15,
-                    'is_active' => 1
+                    'duration' => 15
                 ),
-                array('%s', '%s', '%f', '%d', '%d')
+                array('%s', '%s', '%f', '%d')
             );
-            
+
             $wpdb->insert(
                 $services_table,
                 array(
                     'name' => 'Grooming',
                     'description' => 'Professional grooming and hygiene services',
                     'price' => 200000,
-                    'duration' => 60,
-                    'is_active' => 1
+                    'duration' => 60
                 ),
-                array('%s', '%s', '%f', '%d', '%d')
+                array('%s', '%s', '%f', '%d')
             );
         }
         
@@ -976,20 +971,19 @@ class Booking_Database {
     /**
      * Create new service
      */
-    public function create_service($name, $description, $price, $duration, $is_active) {
+    public function create_service($name, $description, $price, $duration) {
         global $wpdb;
         $services_table = $wpdb->prefix . $this->table_prefix . 'booking_services';
-        
+
         $result = $wpdb->insert(
             $services_table,
             array(
                 'name' => sanitize_text_field($name),
                 'description' => sanitize_textarea_field($description),
                 'price' => floatval($price),
-                'duration' => intval($duration),
-                'is_active' => intval($is_active)
+                'duration' => intval($duration)
             ),
-            array('%s', '%s', '%f', '%d', '%d')
+            array('%s', '%s', '%f', '%d')
         );
         
         // $wpdb->insert returns false on error, or the number of rows affected (1 on success)
@@ -1004,7 +998,7 @@ class Booking_Database {
     /**
      * Update service
      */
-    public function update_service($service_id, $name, $description, $price, $duration, $is_active) {
+    public function update_service($service_id, $name, $description, $price, $duration) {
         global $wpdb;
         $services_table = $wpdb->prefix . $this->table_prefix . 'booking_services';
 
@@ -1015,11 +1009,10 @@ class Booking_Database {
                 'description' => sanitize_textarea_field($description),
                 'price' => floatval($price),
                 'duration' => intval($duration),
-                'is_active' => intval($is_active),
                 'updated_at' => current_time('mysql')
             ),
             array('id' => intval($service_id)),
-            array('%s', '%s', '%f', '%d', '%d', '%s'),
+            array('%s', '%s', '%f', '%d', '%s'),
             array('%d')
         );
 

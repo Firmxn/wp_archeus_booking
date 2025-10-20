@@ -35,11 +35,9 @@ class Time_Slots_Manager {
             start_time time NOT NULL,         -- e.g., '09:00:00'
             end_time time NOT NULL,           -- e.g., '10:00:00'
             max_capacity int(11) DEFAULT 1,
-            is_active tinyint(1) DEFAULT 1,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
-            KEY is_active (is_active),
             KEY start_time (start_time),
             KEY end_time (end_time),
             UNIQUE KEY unique_time_window (start_time, end_time)
@@ -110,9 +108,8 @@ class Time_Slots_Manager {
                     'start_time' => $slot['start_time'],
                     'end_time' => $slot['end_time'],
                     'max_capacity' => $slot['max_capacity'],
-                    'is_active' => 1
-                ),
-                array('%s', '%s', '%s', '%d', '%d')
+                                    ),
+                array('%s', '%s', '%s', '%d')
             );
         }
     }
@@ -123,7 +120,7 @@ class Time_Slots_Manager {
     public function get_time_slots($active_only = true) {
         global $wpdb;
 
-        $where_clause = $active_only ? 'WHERE is_active = 1' : '';
+        $where_clause = ''; // All time slots are now active by default
         $order_clause = 'ORDER BY start_time ASC';
 
         $query = "SELECT * FROM {$this->time_slots_table} {$where_clause} {$order_clause}";
@@ -188,9 +185,8 @@ class Time_Slots_Manager {
                 'start_time' => sanitize_text_field($start_time),
                 'end_time' => sanitize_text_field($end_time),
                 'max_capacity' => intval($max_capacity),
-                'is_active' => 1
-            ),
-            array('%s', '%s', '%s', '%d', '%d')
+                            ),
+            array('%s', '%s', '%s', '%d')
         );
 
         // Check for database errors
@@ -206,7 +202,7 @@ class Time_Slots_Manager {
     /**
      * Update time slot
      */
-    public function update_time_slot($slot_id, $time_label, $start_time, $end_time, $max_capacity = 1, $is_active = 1, $sort_order = 0) {
+    public function update_time_slot($slot_id, $time_label, $start_time, $end_time, $max_capacity = 1, $sort_order = 0) {
         global $wpdb;
 
         // Validate time format - accept both HH:MM and HH:MM:SS formats
@@ -246,11 +242,10 @@ class Time_Slots_Manager {
                 'start_time' => sanitize_text_field($start_time),
                 'end_time' => sanitize_text_field($end_time),
                 'max_capacity' => intval($max_capacity),
-                'is_active' => intval($is_active),
                 'updated_at' => current_time('mysql')
             ),
             array('id' => intval($slot_id)),
-            array('%s', '%s', '%s', '%d', '%d', '%s'),
+            array('%s', '%s', '%s', '%d', '%s'),
             array('%d')
         );
 
