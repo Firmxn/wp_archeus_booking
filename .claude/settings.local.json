@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(php:*)",
+      "Read(//c/Code/my-wordpress/wordpress/**)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

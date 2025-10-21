@@ -1440,6 +1440,12 @@ class Booking_Admin {
         if (!$is_plugin_page) { return; }
 
         wp_enqueue_script('booking-admin-js', ARCHEUS_BOOKING_URL . 'assets/js/admin.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
+
+        // Load history.js specifically for history page
+        if ($page === 'archeus-booking-history') {
+            wp_enqueue_script('booking-history-js', ARCHEUS_BOOKING_URL . 'assets/js/history.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
+        }
+
         wp_enqueue_style('booking-admin-css', ARCHEUS_BOOKING_URL . 'assets/css/admin.css', array(), ARCHEUS_BOOKING_VERSION);
         wp_enqueue_style('booking-dashboard-css', ARCHEUS_BOOKING_URL . 'assets/css/dashboard.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
                 // Styles consolidated into admin.css
@@ -1448,6 +1454,19 @@ class Booking_Admin {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('archeus_booking_admin_nonce')
         ));
+
+        // Load history.css specifically for history page
+        if ($page === 'archeus-booking-history') {
+            wp_enqueue_style('booking-history-css', ARCHEUS_BOOKING_URL . 'assets/css/history.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
+
+            wp_localize_script('booking-history-js', 'ArcheusBookingHistory', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('booking_history_nonce'),
+                'view_details_text' => __('View Details', 'archeus-booking'),
+                'close_text' => __('Close', 'archeus-booking'),
+                'loading_text' => __('Loading...', 'archeus-booking')
+            ));
+        }
 
         // Add inline script for form deletion toast notification
         if (isset($_GET['page']) && $_GET['page'] === 'archeus-booking-forms' && isset($_GET['form_deleted']) && $_GET['form_deleted'] === '1') {
@@ -1577,7 +1596,8 @@ class Booking_Admin {
             </script>
             <?php
         }
-    }
+
+            }
 
     /**
      * Admin page content
@@ -4658,6 +4678,7 @@ class Booking_Admin {
                                     <?php endif; ?>
                                 </a>
                             </th>
+                            <th scope="col"><?php _e('Actions', 'archeus-booking'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4672,11 +4693,16 @@ class Booking_Admin {
                                     <td><?php echo esc_html($item->service_type); ?></td>
                                     <td><?php echo esc_html(ucfirst($item->status)); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))); ?></td>
+                                    <td>
+                                        <button class="view-history-details button" data-history-id="<?php echo esc_attr($item->id); ?>" title="<?php esc_attr_e('Lihat Detail', 'archeus-booking'); ?>">
+                                            <?php _e('View Details', 'archeus-booking'); ?>
+                                        </button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="7"><?php _e('No history records found.', 'archeus-booking'); ?></td>
+                                <td colspan="8"><?php _e('No history records found.', 'archeus-booking'); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -4736,6 +4762,205 @@ class Booking_Admin {
                     </div>
                 <?php endif; ?>
             </div>
+
+            <!-- History Details Modal -->
+            <div id="history-details-modal" class="archeus-booking-modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><?php _e('Booking History Details', 'archeus-booking'); ?></h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                /* History Details Modal Styling */
+                .archeus-booking-modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 100000;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0,0,0,0.4);
+                    overflow: auto;
+                }
+
+                .modal-content {
+                    background-color: #fefefe;
+                    margin: 5% auto;
+                    padding: 0;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    width: 80%;
+                    max-width: 800px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                }
+
+                .modal-header {
+                    padding: 16px 20px;
+                    background-color: #f8f9f9;
+                    border-bottom: 1px solid #ddd;
+                    border-radius: 4px 4px 0 0;
+                    position: relative;
+                }
+
+                .modal-header h3 {
+                    margin: 0;
+                    color: #23282d;
+                    font-size: 1.3em;
+                }
+
+                .modal-close {
+                    position: absolute;
+                    right: 20px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #666;
+                    font-size: 24px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    background: none;
+                    border: none;
+                    padding: 0;
+                }
+
+                .modal-close:hover {
+                    color: #000;
+                }
+
+                .modal-body {
+                    padding: 20px;
+                    max-height: 70vh;
+                    overflow-y: auto;
+                }
+
+                /* History Details Content Styling */
+                .history-details-content {
+                    margin-bottom: 0;
+                }
+
+                .history-details-content .details-section {
+                    margin-bottom: 25px;
+                }
+
+                .history-details-content h4 {
+                    color: #23282d;
+                    font-size: 1.1em;
+                    margin: 0 0 12px 0;
+                    padding-bottom: 8px;
+                    border-bottom: 1px solid #eee;
+                }
+
+                .history-details-content .details-table,
+                .history-details-content .custom-fields-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 0;
+                }
+
+                .history-details-content .details-table th,
+                .history-details-content .custom-fields-table th {
+                    width: 200px;
+                    text-align: left;
+                    padding: 8px 12px;
+                    font-weight: 600;
+                    background-color: #f8f9f9;
+                    border: 1px solid #ddd;
+                }
+
+                .history-details-content .details-table td,
+                .history-details-content .custom-fields-table td {
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                }
+
+                .history-details-content .status-badge {
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    font-size: 0.9em;
+                    font-weight: 600;
+                }
+
+                .status-badge.status-completed {
+                    background-color: #ecf7ed;
+                    color: #46b450;
+                    border: 1px solid #b2e2c8;
+                }
+
+                .status-badge.status-rejected {
+                    background-color: #fbf7f7;
+                    color: #dc3232;
+                    border: 1px solid #e2a2a2;
+                }
+
+                .history-details-content .loading {
+                    text-align: center;
+                    padding: 40px 20px;
+                    color: #666;
+                }
+
+                .history-details-content .error-message {
+                    color: #dc3232;
+                    background: #fbf7f7;
+                    border: 1px solid #e2a2a2;
+                    border-left: 4px solid #dc3232;
+                    padding: 12px 15px;
+                    margin: 10px 0;
+                    border-radius: 3px;
+                }
+
+                .history-details-content .payload-data {
+                    background: #f8f9f9;
+                    border: 1px solid #ddd;
+                    padding: 15px;
+                    border-radius: 3px;
+                    overflow-x: auto;
+                    font-size: 0.9em;
+                    margin: 10px 0;
+                }
+
+                .view-history-details {
+                    white-space: nowrap;
+                }
+
+                /* Responsive */
+                @media screen and (max-width: 782px) {
+                    .modal-content {
+                        width: 95%;
+                        margin: 10% auto;
+                    }
+
+                    .modal-header {
+                        padding: 12px 15px;
+                    }
+
+                    .modal-header h3 {
+                        font-size: 1.1em;
+                    }
+
+                    .modal-body {
+                        padding: 15px;
+                    }
+
+                    .history-details-content .details-table th,
+                    .history-details-content .custom-fields-table th {
+                        width: 150px;
+                        padding: 6px 8px;
+                        font-size: 0.9em;
+                    }
+
+                    .history-details-content .details-table td,
+                    .history-details-content .custom-fields-table td {
+                        padding: 6px 8px;
+                        font-size: 0.9em;
+                    }
+                }
+            </style>
 
             <?php
             // No additional CSS or JS loaded - using WordPress default styles

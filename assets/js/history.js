@@ -1,6 +1,9 @@
 jQuery(document).ready(function($) {
     'use strict';
 
+    // Debug: Confirm script is loading
+    console.log('History.js script loaded and ready');
+
     // Initialize
     var ArcheusBookingHistory = window.ArcheusBookingHistory || {
         ajax_url: '',
@@ -10,18 +13,29 @@ jQuery(document).ready(function($) {
         loading_text: 'Loading...'
     };
 
+    // Debug: Log the localization object
+    console.log('ArcheusBookingHistory localization object:', ArcheusBookingHistory);
+
     // Modal functionality
     var $modal = $('#history-details-modal');
     var $modalBody = $modal.find('.modal-body');
 
+    // Debug: Check if modal element exists
+    console.log('Modal element found:', $modal.length > 0 ? 'Yes' : 'No');
+
     // Open modal when view details button is clicked
     $(document).on('click', '.view-history-details', function(e) {
         e.preventDefault();
+        console.log('View Details button clicked');
 
         var $button = $(this);
         var historyId = $button.data('history-id');
 
+        console.log('History ID:', historyId);
+        console.log('ArcheusBookingHistory object:', ArcheusBookingHistory);
+
         if (!historyId) {
+            console.log('No history ID found');
             return;
         }
 
