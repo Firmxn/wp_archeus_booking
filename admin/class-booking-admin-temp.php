@@ -1,5 +1,0 @@
-<?php
-    }
-
-    /**
-     * Add debug menu
