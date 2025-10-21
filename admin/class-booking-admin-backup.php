@@ -16,7 +16,6 @@ class Booking_Admin {
         add_action('wp_ajax_update_booking_status', array($this, 'handle_booking_status_update'));
         add_action('wp_ajax_get_bookings', array($this, 'handle_get_bookings'));
         add_action('wp_ajax_get_booking_details', array($this, 'handle_get_booking_details'));
-        add_action('admin_post_save_booking_settings', array($this, 'save_booking_settings'));
         add_action('wp_ajax_delete_booking', array($this, 'handle_booking_deletion'));
         add_action('wp_ajax_delete_form', array($this, 'handle_form_deletion'));
         add_action('wp_ajax_create_form', array($this, 'handle_form_creation'));
@@ -31,10 +30,10 @@ class Booking_Admin {
         add_action('wp_ajax_create_time_slot', array($this, 'handle_time_slot_creation'));
         add_action('wp_ajax_update_time_slot', array($this, 'handle_time_slot_update'));
         add_action('wp_ajax_get_admin_calendar_data', array($this, 'handle_get_admin_calendar_data'));
+        add_action('wp_ajax_get_history_details', array($this, 'handle_get_history_details'));
 
 
-        add_action('admin_post_save_form_settings', array($this, 'save_form_settings'));
-                add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
+        add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
 
         // Add debugging page
         add_action('admin_menu', array($this, 'add_debug_menu'));
@@ -139,10 +138,16 @@ class Booking_Admin {
             'archeus-booking-services',
             array($this, 'services_page')
         );
-        
 
-        
-        
+        // History submenu
+        add_submenu_page(
+            'archeus-booking-management',
+            __('Riwayat Reservasi', 'archeus-booking'),
+            __('History', 'archeus-booking'),
+            'manage_options',
+            'archeus-booking-history',
+            array($this, 'booking_history_page')
+        );
     }
 
     /**
@@ -1437,7 +1442,7 @@ class Booking_Admin {
         wp_enqueue_script('booking-admin-js', ARCHEUS_BOOKING_URL . 'assets/js/admin.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
         wp_enqueue_style('booking-admin-css', ARCHEUS_BOOKING_URL . 'assets/css/admin.css', array(), ARCHEUS_BOOKING_VERSION);
         wp_enqueue_style('booking-dashboard-css', ARCHEUS_BOOKING_URL . 'assets/css/dashboard.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
-        // Styles consolidated into admin.css
+                // Styles consolidated into admin.css
         
         wp_localize_script('booking-admin-js', 'archeus_booking_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -1836,90 +1841,7 @@ class Booking_Admin {
         <?php
     }
     
-    /**
-     * Save booking settings
-     */
-    public function save_booking_settings() {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'archeus-booking'));
-        }
-        
-        if (!isset($_POST['booking_settings_nonce']) || !wp_verify_nonce($_POST['booking_settings_nonce'], 'save_booking_settings')) {
-            wp_die(__('Security check failed', 'archeus-booking'));
-        }
-        
-        $fields = array();
-        if (isset($_POST['field_keys'])) {
-            foreach ($_POST['field_keys'] as $index => $field_key) {
-                $label = sanitize_text_field($_POST['field_labels'][$field_key]);
-                $type = sanitize_text_field($_POST['field_types'][$field_key]);
-                $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
-                
-                $fields[$field_key] = array(
-                    'label' => $label,
-                    'type' => $type,
-                    'required' => $required
-                );
-            }
-        }
-        
-        update_option('booking_form_fields', $fields);
-        
-        // Save email settings
-        if (isset($_POST['email_settings'])) {
-            $email_settings = array(
-                'enable_customer_confirmation' => isset($_POST['email_settings']['enable_customer_confirmation']) ? 1 : 0,
-                'enable_admin_notification' => isset($_POST['email_settings']['enable_admin_notification']) ? 1 : 0,
-                'customer_confirmation_subject' => sanitize_text_field($_POST['email_settings']['customer_confirmation_subject']),
-                'customer_confirmation_body' => sanitize_textarea_field($_POST['email_settings']['customer_confirmation_body']),
-                'admin_notification_subject' => sanitize_text_field($_POST['email_settings']['admin_notification_subject']),
-                'admin_notification_body' => sanitize_textarea_field($_POST['email_settings']['admin_notification_body'])
-            );
-            
-            update_option('booking_email_settings', $email_settings);
-        }
-        
-        wp_redirect(add_query_arg(array('page' => 'archeus-booking-management', 'updated' => 'true'), admin_url('admin.php')));
-        exit;
-    }
-
-    /**
-     * Save form settings
-     */
-    public function save_form_settings() {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'archeus-booking'));
-        }
-        
-        if (!isset($_POST['booking_settings_nonce']) || !wp_verify_nonce($_POST['booking_settings_nonce'], 'save_booking_settings')) {
-            wp_die(__('Security check failed', 'archeus-booking'));
-        }
-        
-        $fields = array();
-        if (isset($_POST['field_keys'])) {
-            foreach ($_POST['field_keys'] as $index => $field_key) {
-                $label = sanitize_text_field($_POST['field_labels'][$field_key]);
-                $type = sanitize_text_field($_POST['field_types'][$field_key]);
-                $required = isset($_POST['field_required'][$field_key]) ? 1 : 0;
-                
-                $fields[$field_key] = array(
-                    'label' => $label,
-                    'type' => $type,
-                    'required' => $required
-                );
-            }
-        }
-        
-        update_option('booking_form_fields', $fields);
-
-        // Redirect to clear form data and show success message
-        wp_redirect(add_query_arg(array(
-            'page' => 'archeus-booking-forms',
-            'form_saved' => 'true'
-        ), admin_url('admin.php')));
-        exit;
-    }
-
+  
   
     /**
      * Add debug menu
@@ -3062,8 +2984,7 @@ class Booking_Admin {
         $sections = array();
         $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
         $names_arr = isset($_POST['section_names']) ? $_POST['section_names'] : (isset($_POST['step_names']) ? $_POST['step_names'] : array());
-        $req_arr   = isset($_POST['section_required']) ? $_POST['section_required'] : (isset($_POST['step_required']) ? $_POST['step_required'] : array());
-        $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
+                $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
         $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
 
         if (is_array($types_arr)) {
@@ -3072,8 +2993,7 @@ class Booking_Admin {
                     $section = array(
                         'type' => sanitize_text_field($type),
                         'name' => sanitize_text_field($names_arr[$index] ?? ''),
-                        'required' => isset($req_arr[$index]) ? 1 : 0
-                    );
+                                            );
                     if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
                     if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
                     $section['section_name'] = $section['name'];
@@ -3123,8 +3043,7 @@ class Booking_Admin {
         $sections = array();
         $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
         $names_arr = isset($_POST['section_names']) ? $_POST['section_names'] : (isset($_POST['step_names']) ? $_POST['step_names'] : array());
-        $req_arr   = isset($_POST['section_required']) ? $_POST['section_required'] : (isset($_POST['step_required']) ? $_POST['step_required'] : array());
-        $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
+                $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
         $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
 
         if (is_array($types_arr)) {
@@ -3133,8 +3052,7 @@ class Booking_Admin {
                     $section = array(
                         'type' => sanitize_text_field($type),
                         'name' => sanitize_text_field($names_arr[$index] ?? ''),
-                        'required' => isset($req_arr[$index]) ? 1 : 0
-                    );
+                                            );
                     if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
                     if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
                     $section['section_name'] = $section['name'];
@@ -3446,7 +3364,6 @@ class Booking_Admin {
         $start_time = sanitize_text_field($_POST['start_time']);
         $end_time = sanitize_text_field($_POST['end_time']);
         $max_capacity = intval($_POST['max_capacity']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
 
         // Log received data
         error_log('Received data: ' . print_r($_POST, true));
@@ -3514,10 +3431,9 @@ class Booking_Admin {
                 'time_label' => $time_label,
                 'start_time' => $start_time,
                 'end_time' => $end_time,
-                'max_capacity' => $max_capacity,
-                'is_active' => $is_active
+                'max_capacity' => $max_capacity
             ),
-            array('%s', '%s', '%s', '%d', '%d')
+            array('%s', '%s', '%s', '%d')
         );
 
         // Check for database errors
@@ -3557,7 +3473,6 @@ class Booking_Admin {
         $start_time = sanitize_text_field($_POST['start_time']);
         $end_time = sanitize_text_field($_POST['end_time']);
         $max_capacity = intval($_POST['max_capacity']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
         $sort_order = 0; // Not used anymore, but kept for parameter compatibility
 
         // Validate time format - accept both HH:MM and HH:MM:SS formats
@@ -3635,11 +3550,10 @@ class Booking_Admin {
                 'start_time' => $start_time,
                 'end_time' => $end_time,
                 'max_capacity' => $max_capacity,
-                'is_active' => $is_active,
                 'updated_at' => current_time('mysql')
             ),
             array('id' => $slot_id),
-            array('%s', '%s', '%s', '%d', '%d', '%s'),
+            array('%s', '%s', '%s', '%d', '%s'),
             array('%d')
         );
 
@@ -3678,10 +3592,9 @@ class Booking_Admin {
         $description = sanitize_textarea_field($_POST['service_description']);
         $price = floatval($_POST['service_price']);
         $duration = intval($_POST['service_duration']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
 
         $booking_db = new Booking_Database();
-        $result = $booking_db->create_service($name, $description, $price, $duration, $is_active);
+        $result = $booking_db->create_service($name, $description, $price, $duration);
 
         if ($result) {
             wp_send_json_success(array(
@@ -3717,10 +3630,9 @@ class Booking_Admin {
         $description = sanitize_textarea_field($_POST['service_description']);
         $price = floatval($_POST['service_price']);
         $duration = intval($_POST['service_duration']);
-        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
 
         $booking_db = new Booking_Database();
-        $result = $booking_db->update_service($service_id, $name, $description, $price, $duration, $is_active);
+        $result = $booking_db->update_service($service_id, $name, $description, $price, $duration);
 
         if ($result) {
             wp_send_json_success(array(
@@ -4367,15 +4279,14 @@ class Booking_Admin {
             $description = sanitize_textarea_field($_POST['service_description']);
             $price = floatval($_POST['service_price']);
             $duration = intval($_POST['service_duration']);
-            $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
             
             if ($service_id > 0) {
                 // Update existing service
-                $result = $booking_db->update_service($service_id, $name, $description, $price, $duration, $is_active);
+                $result = $booking_db->update_service($service_id, $name, $description, $price, $duration);
                 $message = $result ? __('Service updated successfully.', 'archeus-booking') : __('Error updating service.', 'archeus-booking');
             } else {
                 // Create new service
-                $result = $booking_db->create_service($name, $description, $price, $duration, $is_active);
+                $result = $booking_db->create_service($name, $description, $price, $duration);
                 $message = $result ? __('Service created successfully.', 'archeus-booking') : __('Error creating service.', 'archeus-booking');
             }
 
@@ -4499,17 +4410,7 @@ class Booking_Admin {
                                     <p class="description"><?php _e('Masukkan durasi layanan (dalam menit)', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
-                            <tr>
-                                <th scope="row"><label for="is_active"><?php _e('Status', 'archeus-booking'); ?></label></th>
-                                <td>
-                                    <label>
-                                        <input type="checkbox" id="is_active" name="is_active" value="1" <?php echo $edit_service ? checked($edit_service->is_active, 1, false) : 'checked'; ?>>
-                                        <?php _e('Active', 'archeus-booking'); ?>
-                                    </label>
-                                    <p class="description"><?php _e('Hapus centang untuk menonaktifkan layanan ini', 'archeus-booking'); ?></p>
-                                </td>
-                            </tr>
-                        </table>
+                          </table>
                         
                         <?php submit_button($edit_service ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_service'); ?>
                     </form>
@@ -4530,7 +4431,6 @@ class Booking_Admin {
                                     <th><?php _e('Deskripsi', 'archeus-booking'); ?></th>
                                     <th><?php _e('Harga', 'archeus-booking'); ?></th>
                                     <th><?php _e('Durasi', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Status', 'archeus-booking'); ?></th>
                                     <th><?php _e('Aksi', 'archeus-booking'); ?></th>
                                 </tr>
                             </thead>
@@ -4542,13 +4442,6 @@ class Booking_Admin {
                                         <td><?php echo wp_trim_words(esc_html($service->description), 10); ?></td>
                                         <td><?php echo $service->price > 0 ? 'Rp ' . number_format($service->price, 0, ',', '.') : __('Gratis', 'archeus-booking'); ?></td>
                                         <td><?php echo esc_html($service->duration); ?> <?php _e('minutes', 'archeus-booking'); ?></td>
-                                        <td>
-                                            <?php if ($service->is_active): ?>
-                                                <span class="status-active"><?php _e('Aktif', 'archeus-booking'); ?></span>
-                                            <?php else: ?>
-                                                <span class="status-inactive"><?php _e('Nonaktif', 'archeus-booking'); ?></span>
-                                            <?php endif; ?>
-                                        </td>
                                         <td class="col-actions">
                                             <div class="action-buttons">
                                                 <a href="<?php echo admin_url('admin.php?page=archeus-booking-services&action=edit&service_id=' . $service->id); ?>" class="button button-warning edit-button" title="<?php esc_attr_e('Ubah Layanan', 'archeus-booking'); ?>">
@@ -4570,13 +4463,41 @@ class Booking_Admin {
             </div>
             
             <?php wp_enqueue_style('admin-services-css', ARCHEUS_BOOKING_URL . 'assets/css/admin-services.css', array(), ARCHEUS_BOOKING_VERSION); ?>
-            
+
             </div>
         <?php
     }
-    
 
-    
+    /**
+     * Booking history page content
+     */
+    public function booking_history_page() {
+        echo '<div class="wrap">';
+        echo '<h1>' . esc_html__('Booking History (Riwayat Reservasi)', 'archeus-booking') . '</h1>';
+
+        $booking_db = new Booking_Database();
+
+        // Handle pagination and filtering
+        $page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $per_page = 20;
+        $status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+        $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+
+        // Get history data
+        $history_status = !empty($status) ? $status : null;
+        $history_data = $booking_db->get_booking_history($history_status, $page, $per_page, $search);
+        $total_items = $booking_db->get_history_count($history_status, $search);
+        $total_pages = ceil($total_items / $per_page);
+
+        // Get history stats
+        $stats = $booking_db->get_history_stats();
+
+        
+        echo '</div>';
+    }
+
+
+
     /**
      * Handle AJAX request to check schedule limit for a date
      */
@@ -4683,7 +4604,6 @@ class Booking_Admin {
             $start_time = sanitize_text_field($_POST['start_time']);
             $end_time = sanitize_text_field($_POST['end_time']);
             $max_capacity = intval($_POST['max_capacity']);
-            $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
             $sort_order = 0; // Not used anymore, but kept for parameter compatibility
             
             // Validate time format - accept both HH:MM and HH:MM:SS formats
@@ -4712,7 +4632,7 @@ class Booking_Admin {
                 } else {
                     if ($slot_id > 0) {
                         // Update existing time slot - use 0 for sort_order to maintain parameter compatibility
-                        $result = $time_slots_manager->update_time_slot($slot_id, $time_label, $start_time, $end_time, $max_capacity, $is_active, 0);
+                        $result = $time_slots_manager->update_time_slot($slot_id, $time_label, $start_time, $end_time, $max_capacity, 1, 0);
                         $message = $result ? __('Slot waktu berhasil diperbarui.', 'archeus-booking') : __('Gagal memperbarui slot waktu.', 'archeus-booking');
                     } else {
                         // Create new time slot
@@ -4850,17 +4770,7 @@ class Booking_Admin {
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th scope="row"><label for="is_active"><?php _e('Status', 'archeus-booking'); ?></label></th>
-                                <td>
-                                    <label>
-                                        <input type="checkbox" id="is_active" name="is_active" value="1" <?php echo $edit_slot ? checked($edit_slot->is_active, 1, false) : 'checked'; ?>>
-                                        <?php _e('Active', 'archeus-booking'); ?>
-                                    </label>
-                                    <p class="description"><?php _e('Hapus centang untuk menonaktifkan slot waktu ini', 'archeus-booking'); ?></p>
-                                </td>
-                            </tr>
-                        </table>
+                                                    </table>
                         
                         <?php submit_button($edit_slot ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_time_slot'); ?>
                     </form>
@@ -4892,11 +4802,7 @@ class Booking_Admin {
                                         <td><?php echo esc_html($slot->start_time . ' - ' . $slot->end_time); ?></td>
                                         <td><?php echo esc_html($slot->max_capacity); ?></td>
                                         <td>
-                                            <?php if ($slot->is_active): ?>
-                                                <span class="status-active" style="color: green;"><?php _e('Aktif', 'archeus-booking'); ?></span>
-                                            <?php else: ?>
-                                                <span class="status-inactive" style="color: red;"><?php _e('Tidak Aktif', 'archeus-booking'); ?></span>
-                                            <?php endif; ?>
+                                            <span style="color: green;"><?php _e('Aktif', 'archeus-booking'); ?></span>
                                         </td>
                                         <td class="col-actions">
                                             <div class="action-buttons">
@@ -5227,11 +5133,6 @@ class Booking_Admin {
                                                 '</select>' +
                                             '</td>' +
                                         '</tr>' +
-
-                                        '<tr>' +
-                                            '<th scope="row"><label><?php _e('Wajib?', 'archeus-booking'); ?></label></th>' +
-                                            '<td><input type="checkbox" name="section_required[]" value="1"> <?php _e('Apakah bagian ini diwajibkan?', 'archeus-booking'); ?></td>' +
-                                        '</tr>' +
                                     '</table>' +
                                 '</div>';
 
@@ -5323,8 +5224,7 @@ class Booking_Admin {
         $step_type = $section ? $section['type'] : '';
         $step_name = $section ? $section['name'] : '';
         $step_desc = $section && isset($section['section_description']) ? $section['section_description'] : '';
-        $step_required = $section ? $section['required'] : 0;
-        $step_form_id = $section && isset($section['form_id']) ? $section['form_id'] : '';
+                $step_form_id = $section && isset($section['form_id']) ? $section['form_id'] : '';
         $step_label = $section && isset($section['label']) ? $section['label'] : '';
         ?>
             <!-- <div class="drag-handle">⋮⋮</div> -->
@@ -5380,11 +5280,6 @@ class Booking_Admin {
                             <?php endforeach; ?>
                         </select>
                     </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><label><?php _e('Required?', 'archeus-booking'); ?></label></th>
-                    <td><input type="checkbox" name="section_required[]" value="1" <?php checked($step_required, 1); ?>> <?php _e('Apakah bagian ini diwajibkan?', 'archeus-booking'); ?></td>
                 </tr>
             </table>
         </div>
@@ -5546,16 +5441,94 @@ class Booking_Admin {
         </script>
         <?php
     }
+
+
+
+
+  /**
+     * Handle AJAX request to get history details
+     */
+    public function handle_get_history_details() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'booking_history_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $history_id = isset($_POST['history_id']) ? intval($_POST['history_id']) : 0;
+
+        if (!$history_id) {
+            wp_send_json_error(array(
+                'message' => __('Invalid history ID', 'archeus-booking')
+            ));
+        }
+
+        $booking_db = new Booking_Database();
+        $history_item = $booking_db->get_history_booking($history_id);
+
+        if (!$history_item) {
+            wp_send_json_error(array(
+                'message' => __('History record not found', 'archeus-booking')
+            ));
+        }
+
+        // Prepare data for display
+        $data = array(
+            'id' => $history_item->id,
+            'original_booking_id' => $history_item->original_booking_id,
+            'customer_name' => $history_item->customer_name,
+            'customer_email' => $history_item->customer_email,
+            'booking_date' => date_i18n(get_option('date_format'), strtotime($history_item->booking_date)),
+            'booking_time' => $history_item->booking_time,
+            'service_type' => $history_item->service_type,
+            'status' => $history_item->status,
+            'flow_id' => $history_item->flow_id,
+            'flow_name' => $history_item->flow_name,
+            'completion_notes' => $history_item->completion_notes,
+            'rejection_reason' => $history_item->rejection_reason,
+            'moved_at' => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($history_item->moved_at)),
+            'custom_fields' => array()
+        );
+
+        // Decode custom fields if they exist
+        if (!empty($history_item->fields)) {
+            $custom_fields = json_decode($history_item->fields, true);
+            if (is_array($custom_fields)) {
+                $data['custom_fields'] = $custom_fields;
+            }
+        }
+
+        // Decode payload if it exists
+        if (!empty($history_item->payload)) {
+            $payload_data = json_decode($history_item->payload, true);
+            if (is_array($payload_data)) {
+                $data['payload'] = $payload_data;
+            }
+        }
+
+        // Get moved by user info if available
+        if (!empty($history_item->moved_by)) {
+            $moved_by_user = get_userdata($history_item->moved_by);
+            if ($moved_by_user) {
+                $data['moved_by'] = array(
+                    'id' => $moved_by_user->ID,
+                    'name' => $moved_by_user->display_name,
+                    'email' => $moved_by_user->user_email
+                );
+            }
+        }
+
+        wp_send_json_success($data);
+    }
+
+
+
+
 }
-
-
-
-
-
-
-
-
-
-
-
-

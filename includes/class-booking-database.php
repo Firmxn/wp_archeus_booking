@@ -63,13 +63,39 @@ class Booking_Database {
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($bookings_sql);
         dbDelta($forms_sql);
-        
+
+        // Create history table for completed and rejected bookings
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+        $history_sql = "CREATE TABLE IF NOT EXISTS {$history_table} (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            original_booking_id int(11) NOT NULL,
+            customer_name varchar(255) NOT NULL,
+            customer_email varchar(255) NOT NULL,
+            booking_date date NOT NULL,
+            booking_time varchar(50) NOT NULL,
+            service_type varchar(255) NOT NULL,
+            status varchar(50) NOT NULL,
+            flow_id int(11) NULL,
+            flow_name varchar(255) NULL,
+            fields longtext NULL,
+            payload longtext NULL,
+            completion_notes text NULL,
+            rejection_reason text NULL,
+            moved_by int(11) NULL,
+            moved_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY original_booking_id (original_booking_id),
+            KEY moved_at (moved_at),
+            KEY status (status)
+        ) $charset_collate;";
+        dbDelta($history_sql);
+
         // Create services table
         $this->create_services_table();
-        
+
         // Create schedules table
         $this->create_schedules_table();
-        
+
         // Insert default form if none exists (without reserved name/email fields)
         $default_form_count = $wpdb->get_var("SELECT COUNT(*) FROM {$forms_table}");
         if ($default_form_count == 0) {
@@ -515,8 +541,12 @@ class Booking_Database {
     /**
      * Update booking status
      */
-    public function update_booking_status($booking_id, $status) {
+    public function update_booking_status($booking_id, $status, $rejection_reason = '') {
         global $wpdb;
+
+        // Debug: Log function parameters
+        error_log('Archeus Booking: update_booking_status called with booking_id=' . $booking_id . ', status=' . $status . ', rejection_reason=' . ($rejection_reason ? '"' . $rejection_reason . '"' : 'NONE/EMPTY'));
+
         $updated = $wpdb->update(
             $this->table_name,
             array('status' => sanitize_text_field($status)),
@@ -524,6 +554,30 @@ class Booking_Database {
             array('%s'),
             array('%d')
         );
+
+        if ($updated !== false) {
+            // If status is completed or rejected, move to history immediately
+            if (in_array($status, array('completed', 'rejected'))) {
+                $booking = $this->get_booking($booking_id);
+                if ($booking) {
+                    // Get current user for moved_by field
+                    $moved_by = get_current_user_id();
+
+                    // Move to history immediately with rejection reason (if any)
+                    error_log('Archeus Booking: Moving booking ID ' . $booking_id . ' to history with status: ' . $status . ' and rejection reason: ' . ($rejection_reason ? '"' . $rejection_reason . '"' : 'NONE'));
+                    $history_id = $this->move_to_history($booking_id, $rejection_reason, $moved_by);
+
+                    if ($history_id) {
+                        error_log('Archeus Booking: Successfully moved booking ID ' . $booking_id . ' to history. New history ID: ' . $history_id);
+                    } else {
+                        error_log('Archeus Booking: Failed to move booking ID ' . $booking_id . ' to history');
+                    }
+                } else {
+                    error_log('Archeus Booking: Could not find booking ID ' . $booking_id . ' for history move');
+                }
+            }
+        }
+
         return $updated !== false;
     }
 
@@ -606,6 +660,7 @@ class Booking_Database {
         return $this->cleanup_expired_availability();
     }
 
+    
     /**
      * Force cleanup (for manual triggers)
      *
@@ -823,7 +878,8 @@ class Booking_Database {
 
         return $counts;
     }
-    
+
+  
     /**
      * Create services table
      */
@@ -1917,5 +1973,315 @@ class Booking_Database {
         error_log("Archeus Booking: Migrated {$migrated_count} bookings to unified table");
 
         return $migrated_count;
+    }
+
+    /**
+     * Move a booking to history
+     */
+    public function move_to_history($booking_id, $rejection_reason = '', $moved_by = null) {
+        global $wpdb;
+
+        // Get booking details
+        $booking = $this->get_booking($booking_id);
+        if (!$booking) {
+            return false;
+        }
+
+        // Only move completed or rejected bookings
+        if (!in_array($booking->status, array('completed', 'rejected'))) {
+            return false;
+        }
+
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+
+        // Prepare history data
+        $history_data = array(
+            'original_booking_id' => intval($booking_id),
+            'customer_name' => sanitize_text_field($booking->customer_name),
+            'customer_email' => sanitize_email($booking->customer_email),
+            'booking_date' => sanitize_text_field($booking->booking_date),
+            'booking_time' => sanitize_text_field($booking->booking_time),
+            'service_type' => sanitize_text_field($booking->service_type),
+            'status' => sanitize_text_field($booking->status),
+            'flow_id' => !empty($booking->flow_id) ? intval($booking->flow_id) : null,
+            'flow_name' => !empty($booking->flow_name) ? sanitize_text_field($booking->flow_name) : null,
+            'fields' => !empty($booking->fields) ? $booking->fields : null,
+            'payload' => !empty($booking->payload) ? $booking->payload : null,
+            'rejection_reason' => !empty($rejection_reason) ? sanitize_textarea_field($rejection_reason) : null,
+            'moved_by' => !empty($moved_by) ? intval($moved_by) : null,
+            'moved_at' => current_time('mysql')
+        );
+
+        // Insert into history table
+        error_log('Archeus Booking: Inserting into history table. Data: ' . json_encode($history_data));
+        $result = $wpdb->insert($history_table, $history_data);
+
+        if ($result === false) {
+            error_log('Archeus Booking: Failed to insert booking into history: ' . $wpdb->last_error);
+            return false;
+        } else {
+            $history_id = $wpdb->insert_id;
+            error_log('Archeus Booking: Successfully inserted into history table. History ID: ' . $history_id);
+        }
+
+        // Delete original booking
+        error_log('Archeus Booking: Deleting original booking ID: ' . $booking_id);
+        $deleted = $this->delete_booking($booking_id);
+
+        if (!$deleted) {
+            error_log('Archeus Booking: Failed to delete original booking after moving to history: ' . $wpdb->last_error);
+            return false;
+        } else {
+            error_log('Archeus Booking: Successfully deleted original booking ID: ' . $booking_id);
+        }
+
+        return $history_id;
+    }
+
+    /**
+     * Get booking history with pagination and search
+     */
+    public function get_booking_history($status = null, $page = 1, $per_page = 20, $search = '', $order_by = 'moved_at', $order = 'DESC') {
+        global $wpdb;
+
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+
+        $offset = ($page - 1) * $per_page;
+
+        // Build query
+        $sql = "SELECT * FROM {$history_table}";
+        $where_clauses = array();
+        $params = array();
+
+        // Status filter
+        if (!empty($status)) {
+            $where_clauses[] = "status = %s";
+            $params[] = $status;
+        }
+
+        // Search in customer name, email, or service type
+        if (!empty($search)) {
+            $search = '%' . $wpdb->esc_like($search) . '%';
+            $where_clauses[] = "(customer_name LIKE %s OR customer_email LIKE %s OR service_type LIKE %s)";
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
+        }
+
+        // Add WHERE clause if needed
+        if (!empty($where_clauses)) {
+            $sql .= ' WHERE ' . implode(' AND ', $where_clauses);
+        }
+
+        // Add ORDER BY
+        $allowed_order_by = array('moved_at', 'booking_date', 'customer_name', 'service_type', 'status');
+        $order_by = in_array($order_by, $allowed_order_by) ? $order_by : 'moved_at';
+        $order = strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
+        $sql .= " ORDER BY {$order_by} {$order}";
+
+        // Add LIMIT
+        $sql .= " LIMIT %d OFFSET %d";
+        $params[] = $per_page;
+        $params[] = $offset;
+
+        // Get results
+        if (!empty($params)) {
+            $results = $wpdb->get_results($wpdb->prepare($sql, $params));
+        } else {
+            $results = $wpdb->get_results($sql);
+        }
+
+        // Decode custom fields for each result
+        foreach ($results as &$result) {
+            if (!empty($result->fields)) {
+                $custom_fields = json_decode($result->fields, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($custom_fields)) {
+                    // Add custom fields as properties to result object
+                    foreach ($custom_fields as $key => $value) {
+                        $result->$key = $value;
+                    }
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Get single history booking by ID
+     */
+    public function get_history_booking($history_id) {
+        global $wpdb;
+
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+
+        $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$history_table} WHERE id = %d", intval($history_id)));
+
+        if ($result && !empty($result->fields)) {
+            $custom_fields = json_decode($result->fields, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($custom_fields)) {
+                foreach ($custom_fields as $key => $value) {
+                    $result->$key = $value;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get history statistics
+     */
+    public function get_history_stats($start_date = null, $end_date = null) {
+        global $wpdb;
+
+        // First check if history table exists
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$history_table}'");
+
+        if (!$table_exists) {
+            // Return empty stats object if table doesn't exist
+            return (object)array(
+                'total_history' => 0,
+                'completed' => 0,
+                'rejected' => 0
+            );
+        }
+
+        $where_clause = '';
+        $params = array();
+
+        if (!empty($start_date) && !empty($end_date)) {
+            $where_clause = 'WHERE moved_at BETWEEN %s AND %s';
+            $params[] = $start_date . ' 00:00:00';
+            $params[] = $end_date . ' 23:59:59';
+        }
+
+        $sql = "SELECT
+                    COUNT(*) as total_history,
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
+                 FROM {$history_table} {$where_clause}";
+
+        try {
+            if (!empty($params)) {
+                $result = $wpdb->get_row($wpdb->prepare($sql, $params));
+            } else {
+                $result = $wpdb->get_row($sql);
+            }
+
+            // Ensure we return a valid object with all properties
+            if ($result) {
+                $result->completed = intval($result->completed);
+                $result->rejected = intval($result->rejected);
+                $result->total_history = intval($result->total_history);
+                return $result;
+            } else {
+                return (object)array(
+                    'total_history' => 0,
+                    'completed' => 0,
+                    'rejected' => 0
+                );
+            }
+        } catch (Exception $e) {
+            // Fallback on error
+            return (object)array(
+                'total_history' => 0,
+                'completed' => 0,
+                'rejected' => 0
+            );
+        }
+    }
+
+    /**
+     * Get total count for history pagination
+     */
+    public function get_history_count($status = null, $search = '') {
+        global $wpdb;
+
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+
+        $where_clauses = array();
+        $params = array();
+
+        // Status filter
+        if (!empty($status)) {
+            $where_clauses[] = "status = %s";
+            $params[] = $status;
+        }
+
+        // Search filter
+        if (!empty($search)) {
+            $search = '%' . $wpdb->esc_like($search) . '%';
+            $where_clauses[] = "(customer_name LIKE %s OR customer_email LIKE %s OR service_type LIKE %s)";
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
+        }
+
+        $sql = "SELECT COUNT(*) FROM {$history_table}";
+
+        if (!empty($where_clauses)) {
+            $sql .= ' WHERE ' . implode(' AND ', $where_clauses);
+        }
+
+        if (!empty($params)) {
+            return intval($wpdb->get_var($wpdb->prepare($sql, $params)));
+        } else {
+            return intval($wpdb->get_var($sql));
+        }
+    }
+
+    /**
+     * Bulk move bookings to history
+     */
+    public function bulk_move_to_history($booking_ids, $moved_by = null) {
+        global $wpdb;
+
+        if (!is_array($booking_ids) || empty($booking_ids)) {
+            return false;
+        }
+
+        $moved_count = 0;
+
+        foreach ($booking_ids as $booking_id) {
+            $result = $this->move_to_history($booking_id, '', $moved_by);
+            if ($result !== false) {
+                $moved_count++;
+            }
+        }
+
+        return array(
+            'moved_count' => $moved_count,
+            'total_count' => count($booking_ids)
+        );
+    }
+
+    /**
+     * Auto-move completed bookings to history
+     */
+    public function auto_move_completed_bookings_to_history($limit = 100) {
+        global $wpdb;
+
+        // Get bookings that are completed or rejected and older than 7 days
+        $seven_days_ago = date('Y-m-d H:i:s', strtotime('-7 days'));
+
+        $sql = "SELECT id FROM {$this->table_name}
+                WHERE status IN ('completed', 'rejected')
+                AND updated_at < %s
+                LIMIT %d";
+
+        $bookings = $wpdb->get_col($wpdb->prepare($sql, $seven_days_ago, $limit));
+
+        $moved_count = 0;
+
+        foreach ($bookings as $booking_id) {
+            $result = $this->move_to_history($booking_id, '');
+            if ($result !== false) {
+                $moved_count++;
+            }
+        }
+
+        return $moved_count;
     }
 }

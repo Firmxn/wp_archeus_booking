@@ -30,6 +30,7 @@ class Booking_Admin {
         add_action('wp_ajax_create_time_slot', array($this, 'handle_time_slot_creation'));
         add_action('wp_ajax_update_time_slot', array($this, 'handle_time_slot_update'));
         add_action('wp_ajax_get_admin_calendar_data', array($this, 'handle_get_admin_calendar_data'));
+        add_action('wp_ajax_get_history_details', array($this, 'handle_get_history_details'));
 
 
         add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
@@ -137,10 +138,16 @@ class Booking_Admin {
             'archeus-booking-services',
             array($this, 'services_page')
         );
-        
 
-        
-        
+        // History submenu
+        add_submenu_page(
+            'archeus-booking-management',
+            __('Riwayat Reservasi', 'archeus-booking'),
+            __('History', 'archeus-booking'),
+            'manage_options',
+            'archeus-booking-history',
+            array($this, 'booking_history_page')
+        );
     }
 
     /**
@@ -1435,7 +1442,7 @@ class Booking_Admin {
         wp_enqueue_script('booking-admin-js', ARCHEUS_BOOKING_URL . 'assets/js/admin.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
         wp_enqueue_style('booking-admin-css', ARCHEUS_BOOKING_URL . 'assets/css/admin.css', array(), ARCHEUS_BOOKING_VERSION);
         wp_enqueue_style('booking-dashboard-css', ARCHEUS_BOOKING_URL . 'assets/css/dashboard.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
-        // Styles consolidated into admin.css
+                // Styles consolidated into admin.css
         
         wp_localize_script('booking-admin-js', 'archeus_booking_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -2112,6 +2119,9 @@ class Booking_Admin {
         $status = sanitize_text_field($_POST['status']);
         $rejection_reason = isset($_POST['rejection_reason']) ? sanitize_textarea_field($_POST['rejection_reason']) : '';
 
+        // Debug: Log what we received
+        error_log('Archeus Booking: AJAX received - booking_id=' . $booking_id . ', status=' . $status . ', rejection_reason_raw=' . (isset($_POST['rejection_reason']) ? '"' . $_POST['rejection_reason'] . '"' : 'NOT_SET') . ', rejection_reason_sanitized=' . ($rejection_reason ? '"' . $rejection_reason . '"' : 'NONE/EMPTY'));
+
         $this->log_email_activity($booking_id, 'debug', 'system', true, 'Processing status update to: ' . $status . ($rejection_reason ? ' with rejection reason' : ''));
 
         $booking_db = new Booking_Database();
@@ -2130,7 +2140,7 @@ class Booking_Admin {
         // Get the old status before updating
         $old_status = $booking->status;
         
-        $result = $booking_db->update_booking_status($booking_id, $status);
+        $result = $booking_db->update_booking_status($booking_id, $status, $rejection_reason);
 
         if ($result) {
             // Handle schedule bookings count based on status change
@@ -2664,7 +2674,7 @@ class Booking_Admin {
         $db = new Booking_Database();
         $row = $db->get_booking($booking_id);
         if (!$row) { wp_send_json_error(array('message' => __('Booking not found', 'archeus-booking'))); }
-        $data = (array)$row;
+        $data = json_decode(json_encode($row), true);
 
         // Extract custom fields from 'fields' column and add them to main data
         if (!empty($data['fields'])) {
@@ -4456,13 +4466,166 @@ class Booking_Admin {
             </div>
             
             <?php wp_enqueue_style('admin-services-css', ARCHEUS_BOOKING_URL . 'assets/css/admin-services.css', array(), ARCHEUS_BOOKING_VERSION); ?>
-            
+
             </div>
         <?php
     }
-    
 
-    
+    /**
+     * Booking history page content
+     */
+    public function booking_history_page() {
+        $booking_db = new Booking_Database();
+
+            // Handle pagination and filtering
+            $page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+            $per_page = 20;
+            $status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+            $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+
+            // Get history data
+            $history_status = !empty($status) ? $status : null;
+            $history_data = $booking_db->get_booking_history($history_status, $page, $per_page, $search);
+            $total_items = $booking_db->get_history_count($history_status, $search);
+            $total_pages = ceil($total_items / $per_page);
+
+            // Get history stats
+            $stats = $booking_db->get_history_stats();
+
+            // Debug: Check if stats data is valid and database table exists
+            if (!$stats || !isset($stats->total_history)) {
+                // Check if the database method exists and test query
+                if (method_exists($booking_db, 'get_history_count')) {
+                    $total_count = $booking_db->get_history_count();
+                    if ($total_count === 0) {
+                        // Table exists but is empty
+                        $stats = (object)array(
+                            'total_history' => 0,
+                            'completed' => 0,
+                            'rejected' => 0
+                        );
+                    } else {
+                        // Table has data but stats query failed
+                        $stats = (object)array(
+                            'total_history' => $total_count,
+                            'completed' => 0,
+                            'rejected' => 0
+                        );
+                    }
+                } else {
+                    // Fallback
+                    $stats = (object)array(
+                        'total_history' => 0,
+                        'completed' => 0,
+                        'rejected' => 0
+                    );
+                }
+            }
+            ?>
+            <div class="wrap">
+                <h1><?php _e('Booking History (Riwayat Reservasi)', 'archeus-booking'); ?></h1>
+
+                <!-- Stats Overview -->
+                <?php if ($stats->total_history > 0) : ?>
+                    <p><?php _e('Total History:', 'archeus-booking'); ?> <strong><?php echo esc_html($stats->total_history); ?></strong> |
+                    <?php _e('Completed:', 'archeus-booking'); ?> <strong><?php echo esc_html($stats->completed); ?></strong> |
+                    <?php _e('Rejected:', 'archeus-booking'); ?> <strong><?php echo esc_html($stats->rejected); ?></strong></p>
+                <?php else : ?>
+                    <p><?php _e('No booking history records found.', 'archeus-booking'); ?></p>
+                <?php endif; ?>
+
+                <!-- Filters -->
+                <form method="get" action="">
+                    <input type="hidden" name="page" value="archeus-booking-history">
+
+                    <label for="status" class="screen-reader-text"><?php _e('Status:', 'archeus-booking'); ?></label>
+                    <select name="status" id="status">
+                        <option value=""><?php _e('All Status', 'archeus-booking'); ?></option>
+                        <option value="completed" <?php selected($status, 'completed'); ?>><?php _e('Completed', 'archeus-booking'); ?></option>
+                        <option value="rejected" <?php selected($status, 'rejected'); ?>><?php _e('Rejected', 'archeus-booking'); ?></option>
+                    </select>
+
+                    <label for="s" class="screen-reader-text"><?php _e('Search:', 'archeus-booking'); ?></label>
+                    <input type="text" name="s" id="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php esc_attr_e('Search by name, email, or service...', 'archeus-booking'); ?>" class="regular-text">
+
+                    <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
+                </form>
+
+                <!-- History Table -->
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th scope="col"><?php _e('ID', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Customer Name', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Customer Email', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Date', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Time', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Service', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Status', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Moved At', 'archeus-booking'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($history_data)) : ?>
+                            <?php foreach ($history_data as $item) : ?>
+                                <tr>
+                                    <td><?php echo esc_html($item->id); ?></td>
+                                    <td><?php echo esc_html($item->customer_name); ?></td>
+                                    <td><?php echo esc_html($item->customer_email); ?></td>
+                                    <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
+                                    <td><?php echo esc_html($item->booking_time); ?></td>
+                                    <td><?php echo esc_html($item->service_type); ?></td>
+                                    <td><?php echo esc_html(ucfirst($item->status)); ?></td>
+                                    <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <tr>
+                                <td colspan="7"><?php _e('No history records found.', 'archeus-booking'); ?></td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1) : ?>
+                    <div class="tablenav bottom">
+                        <div class="tablenav-pages">
+                            <?php
+                            $pagination_args = array(
+                                'base' => add_query_arg('paged', '%#%'),
+                                'format' => '',
+                                'prev_text' => __('&laquo;'),
+                                'next_text' => __('&raquo;'),
+                                'total' => $total_pages,
+                                'current' => $page
+                            );
+
+                            if (!empty($status)) {
+                                $pagination_args['add_args'] = array('status' => $status);
+                            }
+
+                            if (!empty($search)) {
+                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
+                                    ? array_merge($pagination_args['add_args'], array('s' => $search))
+                                    : array('s' => $search);
+                            }
+
+                            echo paginate_links($pagination_args);
+                            ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <?php
+            // No additional CSS or JS loaded - using WordPress default styles
+
+      }
+
+
+
     /**
      * Handle AJAX request to check schedule limit for a date
      */
@@ -5406,16 +5569,94 @@ class Booking_Admin {
         </script>
         <?php
     }
+
+
+
+
+  /**
+     * Handle AJAX request to get history details
+     */
+    public function handle_get_history_details() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'booking_history_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        $history_id = isset($_POST['history_id']) ? intval($_POST['history_id']) : 0;
+
+        if (!$history_id) {
+            wp_send_json_error(array(
+                'message' => __('Invalid history ID', 'archeus-booking')
+            ));
+        }
+
+        $booking_db = new Booking_Database();
+        $history_item = $booking_db->get_history_booking($history_id);
+
+        if (!$history_item) {
+            wp_send_json_error(array(
+                'message' => __('History record not found', 'archeus-booking')
+            ));
+        }
+
+        // Prepare data for display
+        $data = array(
+            'id' => $history_item->id,
+            'original_booking_id' => $history_item->original_booking_id,
+            'customer_name' => $history_item->customer_name,
+            'customer_email' => $history_item->customer_email,
+            'booking_date' => date_i18n(get_option('date_format'), strtotime($history_item->booking_date)),
+            'booking_time' => $history_item->booking_time,
+            'service_type' => $history_item->service_type,
+            'status' => $history_item->status,
+            'flow_id' => $history_item->flow_id,
+            'flow_name' => $history_item->flow_name,
+            'completion_notes' => $history_item->completion_notes,
+            'rejection_reason' => $history_item->rejection_reason,
+            'moved_at' => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($history_item->moved_at)),
+            'custom_fields' => array()
+        );
+
+        // Decode custom fields if they exist
+        if (!empty($history_item->fields)) {
+            $custom_fields = json_decode($history_item->fields, true);
+            if (is_array($custom_fields)) {
+                $data['custom_fields'] = $custom_fields;
+            }
+        }
+
+        // Decode payload if it exists
+        if (!empty($history_item->payload)) {
+            $payload_data = json_decode($history_item->payload, true);
+            if (is_array($payload_data)) {
+                $data['payload'] = $payload_data;
+            }
+        }
+
+        // Get moved by user info if available
+        if (!empty($history_item->moved_by)) {
+            $moved_by_user = get_userdata($history_item->moved_by);
+            if ($moved_by_user) {
+                $data['moved_by'] = array(
+                    'id' => $moved_by_user->ID,
+                    'name' => $moved_by_user->display_name,
+                    'email' => $moved_by_user->user_email
+                );
+            }
+        }
+
+        wp_send_json_success($data);
+    }
+
+
+
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
