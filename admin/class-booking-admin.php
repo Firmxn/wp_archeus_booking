@@ -4482,11 +4482,31 @@ class Booking_Admin {
             $per_page = 20;
             $status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
             $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+            $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
+            $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
+            $orderby = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : 'moved_at';
+            $order = isset($_GET['order']) ? strtoupper(sanitize_text_field($_GET['order'])) : 'DESC';
+
+            // Validate date format and logic
+            if (!empty($date_from)) {
+                $date_from_obj = DateTime::createFromFormat('Y-m-d', $date_from);
+                $date_from = $date_from_obj ? $date_from_obj->format('Y-m-d') : '';
+            }
+            if (!empty($date_to)) {
+                $date_to_obj = DateTime::createFromFormat('Y-m-d', $date_to);
+                $date_to = $date_to_obj ? $date_to_obj->format('Y-m-d') : '';
+            }
+            // Swap dates if from > to
+            if (!empty($date_from) && !empty($date_to) && strtotime($date_from) > strtotime($date_to)) {
+                $temp = $date_from;
+                $date_from = $date_to;
+                $date_to = $temp;
+            }
 
             // Get history data
             $history_status = !empty($status) ? $status : null;
-            $history_data = $booking_db->get_booking_history($history_status, $page, $per_page, $search);
-            $total_items = $booking_db->get_history_count($history_status, $search);
+            $history_data = $booking_db->get_booking_history($history_status, $page, $per_page, $search, $date_from, $date_to, $orderby, $order);
+            $total_items = $booking_db->get_history_count($history_status, $search, $date_from, $date_to);
             $total_pages = ceil($total_items / $per_page);
 
             // Get history stats
@@ -4525,6 +4545,40 @@ class Booking_Admin {
             <div class="wrap">
                 <h1><?php _e('Booking History (Riwayat Reservasi)', 'archeus-booking'); ?></h1>
 
+                <!-- Active Filters Display -->
+                <?php
+                $active_filters = array();
+                if (!empty($status)) {
+                    $active_filters[] = __('Status: ', 'archeus-booking') . '<strong>' . esc_html(ucfirst($status)) . '</strong>';
+                }
+                if (!empty($search)) {
+                    $active_filters[] = __('Search: ', 'archeus-booking') . '<strong>"' . esc_html($search) . '"</strong>';
+                }
+                if (!empty($date_from) && !empty($date_to)) {
+                    $active_filters[] = __('Date Range: ', 'archeus-booking') . '<strong>' . esc_html($date_from) . ' - ' . esc_html($date_to) . '</strong>';
+                } elseif (!empty($date_from)) {
+                    $active_filters[] = __('Date From: ', 'archeus-booking') . '<strong>' . esc_html($date_from) . '</strong>';
+                } elseif (!empty($date_to)) {
+                    $active_filters[] = __('Date To: ', 'archeus-booking') . '<strong>' . esc_html($date_to) . '</strong>';
+                }
+                if (!empty($orderby)) {
+                    $orderby_label = '';
+                    switch($orderby) {
+                        case 'booking_date': $orderby_label = __('Booking Date', 'archeus-booking'); break;
+                        case 'status': $orderby_label = __('Status', 'archeus-booking'); break;
+                        case 'moved_at': $orderby_label = __('Moved At', 'archeus-booking'); break;
+                        default: $orderby_label = ucfirst($orderby);
+                    }
+                    $active_filters[] = __('Sort by: ', 'archeus-booking') . '<strong>' . esc_html($orderby_label) . ' ' . ($order === 'ASC' ? '↑' : '↓') . '</strong>';
+                }
+                ?>
+                <?php if (!empty($active_filters)) : ?>
+                    <p style="background: #e7f3ff; padding: 8px 12px; border-left: 4px solid #00a0d2; margin-bottom: 15px;">
+                        <strong><?php _e('Active Filters:', 'archeus-booking'); ?></strong>
+                        <?php echo implode(' | ', $active_filters); ?>
+                    </p>
+                <?php endif; ?>
+
                 <!-- Stats Overview -->
                 <?php if ($stats->total_history > 0) : ?>
                     <p><?php _e('Total History:', 'archeus-booking'); ?> <strong><?php echo esc_html($stats->total_history); ?></strong> |
@@ -4548,8 +4602,27 @@ class Booking_Admin {
                     <label for="s" class="screen-reader-text"><?php _e('Search:', 'archeus-booking'); ?></label>
                     <input type="text" name="s" id="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php esc_attr_e('Search by name, email, or service...', 'archeus-booking'); ?>" class="regular-text">
 
+                    <span style="margin-left: 10px;">
+                        <label for="date_from" style="margin-right: 5px;"><?php _e('From:', 'archeus-booking'); ?></label>
+                        <input type="date" name="date_from" id="date_from" value="<?php echo esc_attr($date_from); ?>" placeholder="<?php esc_attr_e('From date...', 'archeus-booking'); ?>">
+                    </span>
+
+                    <span style="margin-left: 10px;">
+                        <label for="date_to" style="margin-right: 5px;"><?php _e('To:', 'archeus-booking'); ?></label>
+                        <input type="date" name="date_to" id="date_to" value="<?php echo esc_attr($date_to); ?>" placeholder="<?php esc_attr_e('To date...', 'archeus-booking'); ?>">
+                    </span>
+
                     <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
                     <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
+
+                    <span style="margin-left: 20px;">
+                        <strong><?php _e('Quick Filters:', 'archeus-booking'); ?></strong>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Today', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-1 day')), 'date_to' => date('Y-m-d', strtotime('-1 day'))))); ?>" class="button"><?php _e('Yesterday', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-6 days')), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Last 7 Days', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-29 days')), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Last 30 Days', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-01'), 'date_to' => date('Y-m-t')))); ?>" class="button"><?php _e('This Month', 'archeus-booking'); ?></a>
+                    </span>
                 </form>
 
                 <!-- History Table -->
@@ -4559,11 +4632,32 @@ class Booking_Admin {
                             <th scope="col"><?php _e('ID', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Customer Name', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Customer Email', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Date', 'archeus-booking'); ?></th>
+                            <th scope="col">
+                                <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'booking_date', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
+                                    <?php _e('Date', 'archeus-booking'); ?>
+                                    <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'booking_date') : ?>
+                                        <span class="sorting-indicator"><?php echo isset($_GET['order']) && $_GET['order'] === 'ASC' ? '▲' : '▼'; ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            </th>
                             <th scope="col"><?php _e('Time', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Service', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Status', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Moved At', 'archeus-booking'); ?></th>
+                            <th scope="col">
+                                <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'status', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
+                                    <?php _e('Status', 'archeus-booking'); ?>
+                                    <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'status') : ?>
+                                        <span class="sorting-indicator"><?php echo isset($_GET['order']) && $_GET['order'] === 'ASC' ? '▲' : '▼'; ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            </th>
+                            <th scope="col">
+                                <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'moved_at', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
+                                    <?php _e('Moved At', 'archeus-booking'); ?>
+                                    <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'moved_at') : ?>
+                                        <span class="sorting-indicator"><?php echo isset($_GET['order']) && $_GET['order'] === 'ASC' ? '▲' : '▼'; ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4610,6 +4704,30 @@ class Booking_Admin {
                                 $pagination_args['add_args'] = isset($pagination_args['add_args'])
                                     ? array_merge($pagination_args['add_args'], array('s' => $search))
                                     : array('s' => $search);
+                            }
+
+                            if (!empty($date_from)) {
+                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
+                                    ? array_merge($pagination_args['add_args'], array('date_from' => $date_from))
+                                    : array('date_from' => $date_from);
+                            }
+
+                            if (!empty($date_to)) {
+                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
+                                    ? array_merge($pagination_args['add_args'], array('date_to' => $date_to))
+                                    : array('date_to' => $date_to);
+                            }
+
+                            if (!empty($orderby)) {
+                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
+                                    ? array_merge($pagination_args['add_args'], array('orderby' => $orderby))
+                                    : array('orderby' => $orderby);
+                            }
+
+                            if (!empty($order)) {
+                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
+                                    ? array_merge($pagination_args['add_args'], array('order' => $order))
+                                    : array('order' => $order);
                             }
 
                             echo paginate_links($pagination_args);

@@ -2041,7 +2041,7 @@ class Booking_Database {
     /**
      * Get booking history with pagination and search
      */
-    public function get_booking_history($status = null, $page = 1, $per_page = 20, $search = '', $order_by = 'moved_at', $order = 'DESC') {
+    public function get_booking_history($status = null, $page = 1, $per_page = 20, $search = '', $date_from = '', $date_to = '', $order_by = 'moved_at', $order = 'DESC') {
         global $wpdb;
 
         $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
@@ -2066,6 +2066,16 @@ class Booking_Database {
             $params[] = $search;
             $params[] = $search;
             $params[] = $search;
+        }
+
+        // Date range filter
+        if (!empty($date_from)) {
+            $where_clauses[] = "booking_date >= %s";
+            $params[] = $date_from;
+        }
+        if (!empty($date_to)) {
+            $where_clauses[] = "booking_date <= %s";
+            $params[] = $date_to;
         }
 
         // Add WHERE clause if needed
@@ -2196,7 +2206,7 @@ class Booking_Database {
     /**
      * Get total count for history pagination
      */
-    public function get_history_count($status = null, $search = '') {
+    public function get_history_count($status = null, $search = '', $date_from = '', $date_to = '') {
         global $wpdb;
 
         $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
@@ -2217,6 +2227,16 @@ class Booking_Database {
             $params[] = $search;
             $params[] = $search;
             $params[] = $search;
+        }
+
+        // Date range filter
+        if (!empty($date_from)) {
+            $where_clauses[] = "booking_date >= %s";
+            $params[] = $date_from;
+        }
+        if (!empty($date_to)) {
+            $where_clauses[] = "booking_date <= %s";
+            $params[] = $date_to;
         }
 
         $sql = "SELECT COUNT(*) FROM {$history_table}";
