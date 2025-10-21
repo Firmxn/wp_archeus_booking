@@ -4,6 +4,84 @@ jQuery(document).ready(function($) {
     // Debug: Confirm script is loading
     console.log('History.js script loaded and ready');
 
+    // Helper functions (defined at the top to ensure they're available)
+    function escapeHtml(text) {
+        if (!text) return '';
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
+    function formatFieldValue(value) {
+        if (!value && value !== 0) return '';
+
+        if (Array.isArray(value)) {
+            if (value.length === 0) return '';
+            return '<ul><li>' + value.map(function(v) { return escapeHtml(String(v)); }).join('</li><li>') + '</ul>';
+        } else if (typeof value === 'object') {
+            return '<pre>' + escapeHtml(JSON.stringify(value, null, 2)) + '</pre>';
+        } else {
+            return escapeHtml(String(value));
+        }
+    }
+
+    // Extract filename from full path
+    function formatFilePath(path) {
+        if (!path) return '';
+
+        // Check if it looks like a file path (contains / or \)
+        if (path.includes('/') || path.includes('\\')) {
+            // Extract filename from path
+            var filename = path.split('/').pop().split('\\').pop();
+
+            // If the extracted filename is not empty and different from original path
+            if (filename && filename !== path) {
+                return escapeHtml(filename);
+            }
+        }
+
+        // If it doesn't look like a path or extraction failed, return original value
+        return escapeHtml(String(path));
+    }
+
+    // Convert snake_case to capitalized words like "Customer Name"
+    function formatHeaderName(key) {
+        if (!key) return '';
+
+        // Replace underscores with spaces and capitalize each word
+        var formatted = key
+            .replace(/_/g, ' ')                      // Replace underscores with spaces
+            .replace(/-/g, ' ')                      // Replace hyphens with spaces
+            .toLowerCase()                            // Convert to lowercase first
+            .replace(/\b\w/g, function(l) {       // Capitalize first letter of each word
+                return l.toUpperCase();
+            });
+
+        return escapeHtml(formatted);
+    }
+
+    // Initialize localization object
+    var archeus_booking_l10n = window.archeus_booking_l10n || {
+        basic_info: 'Basic Information',
+        customer_name: 'Customer Name',
+        customer_email: 'Customer Email',
+        booking_date: 'Booking Date',
+        booking_time: 'Booking Time',
+        service_type: 'Service Type',
+        status: 'Status',
+        moved_at: 'Created At',
+        rejection_reason: 'Rejection Reason',
+        custom_fields: 'Custom Fields',
+        close: 'Close',
+        loading: 'Loading...',
+        error: 'Error'
+    };
+
     // Initialize
     var ArcheusBookingHistory = window.ArcheusBookingHistory || {
         ajax_url: '',
@@ -15,6 +93,7 @@ jQuery(document).ready(function($) {
 
     // Debug: Log the localization object
     console.log('ArcheusBookingHistory localization object:', ArcheusBookingHistory);
+    console.log('archeus_booking_l10n object:', archeus_booking_l10n);
 
     // Modal functionality
     var $modal = $('#history-details-modal');
@@ -88,8 +167,7 @@ jQuery(document).ready(function($) {
         html += '<div class="details-section">';
         html += '<h4>' + archeus_booking_l10n.basic_info + '</h4>';
         html += '<table class="details-table">';
-        html += '<tr><th>' + archeus_booking_l10n.history_id + '</th><td>#' + data.id + '</td></tr>';
-        html += '<tr><th>' + archeus_booking_l10n.original_booking_id + '</th><td>#' + data.original_booking_id + '</td></tr>';
+        // History ID and Original Booking ID are hidden from display but kept in database
         html += '<tr><th>' + archeus_booking_l10n.customer_name + '</th><td>' + escapeHtml(data.customer_name) + '</td></tr>';
         html += '<tr><th>' + archeus_booking_l10n.customer_email + '</th><td>' + escapeHtml(data.customer_email) + '</td></tr>';
         html += '<tr><th>' + archeus_booking_l10n.booking_date + '</th><td>' + escapeHtml(data.booking_date) + '</td></tr>';
@@ -97,36 +175,19 @@ jQuery(document).ready(function($) {
         html += '<tr><th>' + archeus_booking_l10n.service_type + '</th><td>' + escapeHtml(data.service_type) + '</td></tr>';
         html += '<tr><th>' + archeus_booking_l10n.status + '</th><td><span class="status-badge status-' + data.status + '">' + escapeHtml(data.status.charAt(0).toUpperCase() + data.status.slice(1)) + '</span></td></tr>';
 
-        if (data.flow_name) {
-            html += '<tr><th>' + archeus_booking_l10n.flow_name + '</th><td>' + escapeHtml(data.flow_name) + '</td></tr>';
-        }
+        // Flow Name is hidden from display but kept in database
 
         html += '<tr><th>' + archeus_booking_l10n.moved_at + '</th><td>' + escapeHtml(data.moved_at) + '</td></tr>';
 
-        if (data.moved_by) {
-            html += '<tr><th>' + archeus_booking_l10n.moved_by + '</th><td>' + escapeHtml(data.moved_by.name) + ' (' + escapeHtml(data.moved_by.email) + ')</td></tr>';
+        // Moved By is hidden from display but kept in database
+
+        // Add rejection reason to basic information if it exists
+        if (data.rejection_reason) {
+            html += '<tr><th>' + archeus_booking_l10n.rejection_reason + '</th><td>' + escapeHtml(data.rejection_reason) + '</td></tr>';
         }
 
         html += '</table>';
         html += '</div>';
-
-        // Completion/Rejection Notes Section
-        if (data.completion_notes || data.rejection_reason) {
-            html += '<div class="details-section">';
-            html += '<h4>' + archeus_booking_l10n.notes_section + '</h4>';
-
-            if (data.completion_notes) {
-                html += '<p><strong>' + archeus_booking_l10n.completion_notes + ':</strong></p>';
-                html += '<p>' + escapeHtml(data.completion_notes) + '</p>';
-            }
-
-            if (data.rejection_reason) {
-                html += '<p><strong>' + archeus_booking_l10n.rejection_reason + ':</strong></p>';
-                html += '<p>' + escapeHtml(data.rejection_reason) + '</p>';
-            }
-
-            html += '</div>';
-        }
 
         // Custom Fields Section
         if (data.custom_fields && Object.keys(data.custom_fields).length > 0) {
@@ -137,8 +198,8 @@ jQuery(document).ready(function($) {
             $.each(data.custom_fields, function(key, value) {
                 if (value && value !== '') {
                     html += '<tr>';
-                    html += '<th>' + escapeHtml(key) + '</th>';
-                    html += '<td>' + formatFieldValue(value) + '</td>';
+                    html += '<th>' + formatHeaderName(key) + '</th>';
+                    html += '<td>' + formatFieldValue(key, value) + '</td>';
                     html += '</tr>';
                 }
             });
@@ -147,21 +208,26 @@ jQuery(document).ready(function($) {
             html += '</div>';
         }
 
-        // Payload Data Section
-        if (data.payload && Object.keys(data.payload).length > 0) {
-            html += '<div class="details-section">';
-            html += '<h4>' + archeus_booking_l10n.payload_data + '</h4>';
-            html += '<pre class="payload-data">' + escapeHtml(JSON.stringify(data.payload, null, 2)) + '</pre>';
-            html += '</div>';
-        }
+        // Payload Data is hidden from display but kept in database
 
         html += '</div>';
         $modalBody.html(html);
     }
 
     // Format field value for display
-    function formatFieldValue(value) {
+    function formatFieldValue(key, value) {
+        if (!value && value !== 0) return '';
+
+        // Special handling for file path fields
+        var fileFields = ['bukti_vaksinasi', 'foto', 'gambar', 'file', 'attachment', 'dokumen'];
+        if (typeof value === 'string' && fileFields.some(function(field) {
+            return key.toLowerCase().includes(field) || field.includes(key.toLowerCase());
+        })) {
+            return formatFilePath(value);
+        }
+
         if (Array.isArray(value)) {
+            if (value.length === 0) return '';
             return '<ul><li>' + value.map(function(v) { return escapeHtml(String(v)); }).join('</li><li>') + '</ul>';
         } else if (typeof value === 'object' && value !== null) {
             return '<pre>' + escapeHtml(JSON.stringify(value, null, 2)) + '</pre>';
@@ -170,44 +236,9 @@ jQuery(document).ready(function($) {
         }
     }
 
-    // Escape HTML to prevent XSS
-    function escapeHtml(text) {
-        var map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-    }
-
     // Show error message
     function showError(message) {
         $modalBody.html('<div class="error-message">' + escapeHtml(message) + '</div>');
-    }
-
-    // Localization defaults
-    if (typeof archeus_booking_l10n === 'undefined') {
-        window.archeus_booking_l10n = {
-            basic_info: 'Basic Information',
-            history_id: 'History ID',
-            original_booking_id: 'Original Booking ID',
-            customer_name: 'Customer Name',
-            customer_email: 'Customer Email',
-            booking_date: 'Booking Date',
-            booking_time: 'Booking Time',
-            service_type: 'Service Type',
-            status: 'Status',
-            flow_name: 'Flow Name',
-            moved_at: 'Moved At',
-            moved_by: 'Moved By',
-            notes_section: 'Notes',
-            completion_notes: 'Completion Notes',
-            rejection_reason: 'Rejection Reason',
-            custom_fields: 'Custom Fields',
-            payload_data: 'Payload Data'
-        };
     }
 
 });

@@ -1994,6 +1994,38 @@ class Booking_Database {
 
         $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
 
+        // Clean fields and payload - remove duplicate fields that are stored as separate columns in history table
+        $cleaned_fields = $booking->fields;
+        $cleaned_payload = $booking->payload;
+
+        if (!empty($booking->fields)) {
+            $fields_data = json_decode($booking->fields, true);
+            if (is_array($fields_data)) {
+                // Remove fields that are stored as separate columns in history table or not needed by admin
+                unset($fields_data['time_slot']);
+                unset($fields_data['flow_name']);
+                unset($fields_data['service_type']);
+                unset($fields_data['status']);
+                unset($fields_data['flow_id']);
+                unset($fields_data['schedule_id']); // Not needed by admin in history
+                $cleaned_fields = json_encode($fields_data);
+            }
+        }
+
+        if (!empty($booking->payload)) {
+            $payload_data = json_decode($booking->payload, true);
+            if (is_array($payload_data)) {
+                // Remove fields that are stored as separate columns in history table or not needed by admin
+                unset($payload_data['time_slot']);
+                unset($payload_data['flow_name']);
+                unset($payload_data['service_type']);
+                unset($payload_data['status']);
+                unset($payload_data['flow_id']);
+                unset($payload_data['schedule_id']); // Not needed by admin in history
+                $cleaned_payload = json_encode($payload_data);
+            }
+        }
+
         // Prepare history data
         $history_data = array(
             'original_booking_id' => intval($booking_id),
@@ -2005,8 +2037,8 @@ class Booking_Database {
             'status' => sanitize_text_field($booking->status),
             'flow_id' => !empty($booking->flow_id) ? intval($booking->flow_id) : null,
             'flow_name' => !empty($booking->flow_name) ? sanitize_text_field($booking->flow_name) : null,
-            'fields' => !empty($booking->fields) ? $booking->fields : null,
-            'payload' => !empty($booking->payload) ? $booking->payload : null,
+            'fields' => !empty($cleaned_fields) ? $cleaned_fields : null,
+            'payload' => !empty($cleaned_payload) ? $cleaned_payload : null,
             'rejection_reason' => !empty($rejection_reason) ? sanitize_textarea_field($rejection_reason) : null,
             'moved_by' => !empty($moved_by) ? intval($moved_by) : null,
             'moved_at' => current_time('mysql')

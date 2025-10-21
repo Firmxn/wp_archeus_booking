@@ -849,7 +849,7 @@ class Booking_Admin {
             <p><strong>ID Reservasi:</strong> {booking_id}</p>
             <p><strong>Layanan:</strong> {service_type}</p>
             <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
             <p><strong>Email:</strong> {customer_email}</p>
         </div>
 
@@ -877,7 +877,7 @@ class Booking_Admin {
             <p><strong>ID Reservasi:</strong> {booking_id}</p>
             <p><strong>Layanan:</strong> {service_type}</p>
             <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
             <p><strong>Email:</strong> {customer_email}</p>
         </div>
 
@@ -905,7 +905,7 @@ class Booking_Admin {
             <p><strong>ID Reservasi:</strong> {booking_id}</p>
             <p><strong>Layanan:</strong> {service_type}</p>
             <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
             <p><strong>Email:</strong> {customer_email}</p>
         </div>
 
@@ -933,7 +933,7 @@ class Booking_Admin {
             <p><strong>ID Reservasi:</strong> {booking_id}</p>
             <p><strong>Layanan:</strong> {service_type}</p>
             <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
             <p><strong>Email:</strong> {customer_email}</p>
         </div>
 
@@ -961,7 +961,7 @@ class Booking_Admin {
             <p><strong>ID Reservasi:</strong> {booking_id}</p>
             <p><strong>Layanan:</strong> {service_type}</p>
             <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
             <p><strong>Email:</strong> {customer_email}</p>
         </div>
 
@@ -989,7 +989,7 @@ class Booking_Admin {
             <p><strong>ID Reservasi:</strong> {booking_id}</p>
             <p><strong>Layanan:</strong> {service_type}</p>
             <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time} {time_slot}</p>
+            <p><strong>Waktu:</strong> {booking_time}</p>
             <p><strong>Email Pelanggan:</strong> {customer_email}</p>
         </div>
 
@@ -1122,7 +1122,7 @@ class Booking_Admin {
                                     wp_editor($customer_confirmation_content, $editor_id, $settings);
                                     ?>
                                     <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                 </td>
                             </tr>
                         </table>
@@ -1188,7 +1188,7 @@ class Booking_Admin {
                                     wp_editor($admin_notification_content, $editor_id, $settings);
                                     ?>
                                     <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {admin_website}, {admin_email}, {booking_id}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                    {customer_name}, {customer_email}, {booking_date}, {booking_time}, {service_type}, {company_name}, {admin_website}, {admin_email}, {booking_id}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                 </td>
                             </tr>
                         </table>
@@ -1251,7 +1251,7 @@ class Booking_Admin {
                                         wp_editor($pending_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1284,7 +1284,7 @@ class Booking_Admin {
                                         wp_editor($approved_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1317,7 +1317,7 @@ class Booking_Admin {
                                         wp_editor($rejected_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1350,7 +1350,7 @@ class Booking_Admin {
                                         wp_editor($completed_email_content, $editor_id, $settings);
                                         ?>
                                         <p class="description"><strong><?php _e('Tags yang tersedia:', 'archeus-booking'); ?></strong><br>
-                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {time_slot}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
+                                        {customer_name}, {customer_email}, {booking_id}, {booking_date}, {booking_time}, {service_type}, {company_name}, {company_url}, {admin_website}, {greeting}, {email_title}, {current_date}, {current_time}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -2344,7 +2344,6 @@ class Booking_Admin {
             'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
             'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
             'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
-            'time_slot' => !empty($booking->booking_time) ? $booking->booking_time : '',
             'status' => $status,
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
@@ -2408,7 +2407,6 @@ class Booking_Admin {
             'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
             'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
             'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
-            'time_slot' => !empty($booking->booking_time) ? $booking->booking_time : '',
             'status' => $status,
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
