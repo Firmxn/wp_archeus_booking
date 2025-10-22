@@ -719,24 +719,16 @@ public function create_form($name, $fields = array()) {
         global $wpdb;
         $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
 
-        // Debug log before update
-        error_log('Updating form ID: ' . $form_id);
-        error_log('Fields being saved: ' . print_r($fields, true));
-
         $result = $wpdb->update(
             $forms_table,
             array(
                 'name' => sanitize_text_field($name),
-                'description' => sanitize_textarea_field($description),
                 'fields' => maybe_serialize($fields)
             ),
             array('id' => intval($form_id)),
-            array('%s', '%s', '%s'),
+            array('%s', '%s'),
             array('%d')
         );
-
-        // Debug log result
-        error_log('Update result: ' . ($result !== false ? 'success' : 'failed'));
 
         return $result !== false;
     }

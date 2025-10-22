@@ -3264,15 +3264,9 @@ class Booking_Admin {
         // Process fields - use field_keys_input for the new/updated keys
         $fields = array();
         if (isset($_POST['field_keys_input']) && is_array($_POST['field_keys_input'])) {
-            error_log('Form Update Debug - Processing fields array');
-            error_log('Form Update Debug - field_keys_input: ' . print_r($_POST['field_keys_input'], true));
-            error_log('Form Update Debug - field_keys (old): ' . (isset($_POST['field_keys']) ? print_r($_POST['field_keys'], true) : 'NOT SET'));
-            error_log('Form Update Debug - field_required array: ' . (isset($_POST['field_required']) ? print_r($_POST['field_required'], true) : 'NOT SET'));
 
             foreach ($_POST['field_keys_input'] as $old_key => $new_key) {
                 if (empty($new_key)) continue;
-
-                error_log('Form Update Debug - Processing: old_key=' . $old_key . ', new_key=' . $new_key);
 
                 // Process the new key (sanitization)
                 $new_key = strtolower($new_key);
@@ -3327,8 +3321,7 @@ class Booking_Admin {
         }
 
         $booking_db = new Booking_Database();
-        $slug_to_use = !empty($slug) ? $slug : 'form-' . uniqid();
-        $result = $booking_db->update_form($form_id, $name, $slug_to_use, $description, $fields);
+        $result = $booking_db->update_form($form_id, $name, $description, $fields);
 
         if ($result) {
             wp_send_json_success(array(
