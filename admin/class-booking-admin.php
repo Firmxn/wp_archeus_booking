@@ -33,6 +33,8 @@ class Booking_Admin {
         add_action('wp_ajax_get_history_details', array($this, 'handle_get_history_details'));
         add_action('admin_post_export_history_excel', array($this, 'handle_export_history_excel'));
         add_action('admin_post_nopriv_export_history_excel', array($this, 'handle_export_history_excel'));
+        add_action('admin_post_export_history_csv', array($this, 'handle_export_history_csv'));
+        add_action('admin_post_nopriv_export_history_csv', array($this, 'handle_export_history_csv'));
 
 
         add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
@@ -4675,8 +4677,9 @@ class Booking_Admin {
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Today', 'archeus-booking'); ?></a>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-1 day')), 'date_to' => date('Y-m-d', strtotime('-1 day'))))); ?>" class="button"><?php _e('Yesterday', 'archeus-booking'); ?></a>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-6 days')), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Last 7 Days', 'archeus-booking'); ?></a>
-                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-29 days')), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Last 30 Days', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('first day of last month')), 'date_to' => date('Y-m-d', strtotime('last day of last month'))))); ?>" class="button"><?php _e('Last Month', 'archeus-booking'); ?></a>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-01'), 'date_to' => date('Y-m-t')))); ?>" class="button"><?php _e('This Month', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-01-01'), 'date_to' => date('Y-12-31')))); ?>" class="button"><?php _e('This Year', 'archeus-booking'); ?></a>
                     </div>
 
                     <!-- Baris 3: Filter, Reset, Export to HTML -->
@@ -4687,18 +4690,20 @@ class Booking_Admin {
                             <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
                         </div>
 
-                        <!-- Export button -->
-                        <div>
-                            <button type="button" class="button export-excel-button">
-                                <!-- <span class="dashicons dashicons-download"></span> -->
+                        <!-- Export buttons -->
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" class="button export-html-button">
                                 <?php _e('Export to HTML', 'archeus-booking'); ?>
+                            </button>
+                            <button type="button" class="button export-excel-button">
+                                <?php _e('Export to Excel', 'archeus-booking'); ?>
                             </button>
                         </div>
                     </div>
                 </form>
 
                 <!-- History Table -->
-                <table class="wp-list-table widefat fixed striped">
+                <table class="wp-list-table widefat fixed striped" style="margin-top: 1rem;">
                     <thead>
                         <tr>
                             <th scope="col"><?php _e('ID', 'archeus-booking'); ?></th>
@@ -5019,7 +5024,7 @@ class Booking_Admin {
             <?php
             // No additional CSS or JS loaded - using WordPress default styles
 
-            // Add export form for CSV download
+            // Add export forms for HTML and CSV download
             ?>
             <form id="export-history-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display: none;">
                 <?php wp_nonce_field('booking_history_nonce', 'nonce'); ?>
@@ -5031,6 +5036,18 @@ class Booking_Admin {
                 <input type="hidden" name="flow_id" id="export-flow-id" value="">
                 <input type="hidden" name="orderby" id="export-orderby" value="">
                 <input type="hidden" name="order" id="export-order" value="">
+            </form>
+
+            <form id="export-history-csv-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display: none;">
+                <?php wp_nonce_field('booking_history_nonce', 'nonce'); ?>
+                <input type="hidden" name="action" value="export_history_csv">
+                <input type="hidden" name="status" id="export-csv-status" value="">
+                <input type="hidden" name="s" id="export-csv-search" value="">
+                <input type="hidden" name="date_from" id="export-csv-date-from" value="">
+                <input type="hidden" name="date_to" id="export-csv-date-to" value="">
+                <input type="hidden" name="flow_id" id="export-csv-flow-id" value="">
+                <input type="hidden" name="orderby" id="export-csv-orderby" value="">
+                <input type="hidden" name="order" id="export-csv-order" value="">
             </form>
             <?php
 
@@ -6384,6 +6401,201 @@ class Booking_Admin {
         } catch (Exception $e) {
             error_log('Export error: ' . $e->getMessage());
             wp_die(__('Export failed: ', 'archeus-booking') . $e->getMessage());
+        }
+    }
+
+    /**
+     * Handle XLSX export for booking history using PhpSpreadsheet
+     */
+    public function handle_export_history_csv() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'booking_history_nonce')) {
+            die('Security check failed');
+        }
+
+        if (!current_user_can('manage_options')) {
+            die('You do not have permission to perform this action');
+        }
+
+        try {
+            // Include PhpSpreadsheet autoloader
+            require_once plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+
+            $booking_db = new Booking_Database();
+
+            // Get filter parameters from POST
+            $status = isset($_POST['status']) && !empty($_POST['status']) ? sanitize_text_field($_POST['status']) : null;
+            $flow_id = isset($_POST['flow_id']) && !empty($_POST['flow_id']) ? intval($_POST['flow_id']) : null;
+            $search = isset($_POST['s']) && !empty($_POST['s']) ? sanitize_text_field($_POST['s']) : '';
+            $date_from = isset($_POST['date_from']) && !empty($_POST['date_from']) ? sanitize_text_field($_POST['date_from']) : '';
+            $date_to = isset($_POST['date_to']) && !empty($_POST['date_to']) ? sanitize_text_field($_POST['date_to']) : '';
+            $orderby = isset($_POST['orderby']) && !empty($_POST['orderby']) ? sanitize_text_field($_POST['orderby']) : 'moved_at';
+            $order = isset($_POST['order']) && !empty($_POST['order']) ? sanitize_text_field($_POST['order']) : 'DESC';
+
+            // Get history data grouped by flow
+            if ($flow_id !== null) {
+                // Get data for specific flow
+                $history_data = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow_id);
+
+                if (empty($history_data)) {
+                    wp_die('No history data found for the selected filters');
+                }
+
+                // Group by flow (single flow in this case)
+                $grouped_data = array();
+                foreach ($history_data as $item) {
+                    $flow_name = !empty($item->flow_name) ? $item->flow_name : 'Unknown Flow';
+                    if (!isset($grouped_data[$flow_name])) {
+                        $grouped_data[$flow_name] = array();
+                    }
+                    $grouped_data[$flow_name][] = $item;
+                }
+            } else {
+                // Get all flows data
+                global $wpdb;
+                $flows_table = $wpdb->prefix . 'archeus_booking_flows';
+                $flows = $wpdb->get_results("SELECT id, name FROM $flows_table ORDER BY name ASC");
+
+                $grouped_data = array();
+                foreach ($flows as $flow) {
+                    $flow_history = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow->id);
+
+                    if (!empty($flow_history)) {
+                        $grouped_data[$flow->name] = $flow_history;
+                    }
+                }
+            }
+
+            if (empty($grouped_data)) {
+                wp_die('No history data found');
+            }
+
+            // Use PhpSpreadsheet classes
+            if (!class_exists('\\PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
+                throw new Exception('PhpSpreadsheet not found. Please run: composer require phpoffice/phpspreadsheet');
+            }
+
+            // Create new Spreadsheet object
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheetIndex = 0;
+
+            // Process each flow as separate sheet
+            foreach ($grouped_data as $flow_name => $flow_items) {
+                if ($sheetIndex > 0) {
+                    // Create new sheet for each flow
+                    $sheet = $spreadsheet->createSheet();
+                } else {
+                    // Use first sheet
+                    $sheet = $spreadsheet->getActiveSheet();
+                }
+
+                // Set sheet title (truncate if too long)
+                $sheetTitle = substr($flow_name, 0, 31);
+                $sheet->setTitle($sheetTitle);
+
+                // Get all custom fields for this flow
+                $all_custom_fields = array();
+                foreach ($flow_items as $item) {
+                    $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
+                    if (is_array($custom_fields)) {
+                        $all_custom_fields = array_unique(array_merge($all_custom_fields, array_keys($custom_fields)));
+                    }
+                }
+                sort($all_custom_fields);
+
+                // Create header array
+                $headers = array(
+                    'History ID',
+                    'Original Booking ID',
+                    'Flow Name',
+                    'Customer Name',
+                    'Customer Email',
+                    'Booking Date',
+                    'Booking Time',
+                    'Service Type',
+                    'Status',
+                    'Rejection Reason',
+                    'Created At'
+                );
+
+                // Add custom field headers
+                foreach ($all_custom_fields as $field_key) {
+                    $headers[] = ucwords(str_replace('_', ' ', $field_key));
+                }
+
+                // Write headers
+                $colIndex = 1;
+                foreach ($headers as $header) {
+                    $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                    $sheet->setCellValue($columnLetter . '1', $header);
+                    $colIndex++;
+                }
+
+                // Write data rows
+                $rowIndex = 2;
+                foreach ($flow_items as $item) {
+                    $colIndex = 1;
+
+                    // Standard fields
+                    $dataRow = array(
+                        $item->id,
+                        $item->original_booking_id,
+                        !empty($item->flow_name) ? $item->flow_name : 'Unknown Flow',
+                        $item->customer_name,
+                        $item->customer_email,
+                        date('Y-m-d', strtotime($item->booking_date)),
+                        $item->booking_time,
+                        $item->service_type,
+                        ucfirst($item->status),
+                        $item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '',
+                        date('Y-m-d H:i:s', strtotime($item->moved_at))
+                    );
+
+                    // Add custom field values
+                    $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
+                    foreach ($all_custom_fields as $field_key) {
+                        $value = isset($custom_fields[$field_key]) ? $custom_fields[$field_key] : '';
+
+                        // Format file paths to show only filename
+                        if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '\\') !== false)) {
+                            $value = basename($value);
+                        }
+
+                        $dataRow[] = $value;
+                    }
+
+                    // Write data to cells
+                    foreach ($dataRow as $cellValue) {
+                        $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                        $sheet->setCellValue($columnLetter . $rowIndex, $cellValue);
+                        $colIndex++;
+                    }
+
+                    $rowIndex++;
+                }
+
+                $sheetIndex++;
+            }
+
+            // Generate XLSX file
+            $filename = 'booking-history-' . date('Y-m-d') . '.xlsx';
+
+            // Set headers for XLSX file download
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+            header('Pragma: public');
+            header('Expires: 0');
+
+            // Write file to output
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save('php://output');
+            exit;
+
+        } catch (Exception $e) {
+            error_log('XLSX Export error: ' . $e->getMessage());
+            error_log('XLSX Export error trace: ' . $e->getTraceAsString());
+            wp_die('XLSX Export failed: ' . $e->getMessage() . '<br><br>Please check if PhpSpreadsheet is properly installed by running: composer require phpoffice/phpspreadsheet');
         }
     }
 

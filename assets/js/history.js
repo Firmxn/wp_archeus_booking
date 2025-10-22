@@ -229,12 +229,12 @@ jQuery(document).ready(function($) {
         $modalBody.html('<div class="error-message">' + escapeHtml(message) + '</div>');
     }
 
-    // Export history to Excel
-    function exportHistoryToExcel() {
-        console.log('Export to Excel clicked');
+    // Export history to HTML
+    function exportHistoryToHTML() {
+        console.log('Export to HTML clicked');
 
         // Show loading state
-        var $exportButton = $('.export-excel-button');
+        var $exportButton = $('.export-html-button');
         var originalText = $exportButton.html();
         $exportButton.html('<span class="dashicons dashicons-update spinning"></span> Exporting...');
         $exportButton.prop('disabled', true);
@@ -268,7 +268,51 @@ jQuery(document).ready(function($) {
         }, 3000);
     }
 
-    // Initialize export button click handler
+    // Export history to Excel
+    function exportHistoryToExcel() {
+        console.log('Export to Excel clicked');
+
+        // Show loading state
+        var $exportButton = $('.export-excel-button');
+        var originalText = $exportButton.html();
+        $exportButton.html('<span class="dashicons dashicons-update spinning"></span> Exporting...');
+        $exportButton.prop('disabled', true);
+
+        // Set hidden form fields with current filter values
+        $('#export-csv-status').val($('#status').val());
+        $('#export-csv-search').val($('#s').val());
+        $('#export-csv-date-from').val($('#date_from').val());
+        $('#export-csv-date-to').val($('#date_to').val());
+        $('#export-csv-flow-id').val($('#flow_id').val());
+        $('#export-csv-orderby').val($('#orderby').val());
+        $('#export-csv-order').val($('#order').val());
+
+        console.log('Excel Export parameters:', {
+            status: $('#status').val(),
+            flow_id: $('#flow_id').val(),
+            search: $('#s').val(),
+            date_from: $('#date_from').val(),
+            date_to: $('#date_to').val(),
+            orderby: $('#orderby').val(),
+            order: $('#order').val()
+        });
+
+        // Submit form for direct download
+        $('#export-history-csv-form').submit();
+
+        // Restore button after a delay
+        setTimeout(function() {
+            $exportButton.html(originalText);
+            $exportButton.prop('disabled', false);
+        }, 3000);
+    }
+
+    // Initialize export button click handlers
+    $(document).on('click', '.export-html-button', function(e) {
+        e.preventDefault();
+        exportHistoryToHTML();
+    });
+
     $(document).on('click', '.export-excel-button', function(e) {
         e.preventDefault();
         exportHistoryToExcel();
