@@ -749,6 +749,7 @@ class Booking_Admin {
                         <table class="widefat">
                             <thead>
                                 <tr>
+                                    <th><?php _e('NO', 'archeus-booking'); ?></th>
                                     <th><?php _e('Nama', 'archeus-booking'); ?></th>
                                     <th><?php _e('Jumlah Field', 'archeus-booking'); ?></th>
                                     <!-- <th><?php _e('Penggunaan', 'archeus-booking'); ?></th> -->
@@ -756,8 +757,9 @@ class Booking_Admin {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($forms as $form): ?>
+                                <?php $index = 0; foreach ($forms as $form): ?>
                                     <tr>
+                                        <td><?php echo $index + 1; ?></td>
                                         <td><?php echo esc_html($form->name); ?></td>
                                         <td><?php 
                                             $fields = $form->fields ? maybe_unserialize($form->fields) : array();
@@ -777,7 +779,7 @@ class Booking_Admin {
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php $index++; endforeach; ?>
                             </tbody>
                         </table>
                     <?php endif; ?>
@@ -1711,7 +1713,7 @@ class Booking_Admin {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <th class="col-id"><?php _e('ID', 'archeus-booking'); ?></th>
+                        <th class="col-id"><?php _e('NO', 'archeus-booking'); ?></th>
                         <th class="col-name"><?php _e('Nama', 'archeus-booking'); ?></th>
                         <th><?php _e('Tanggal', 'archeus-booking'); ?></th>
                         <th><?php _e('Waktu', 'archeus-booking'); ?></th>
@@ -1724,10 +1726,10 @@ class Booking_Admin {
                 <tbody id="bookings-table-body">
                     <?php if (empty($bookings)): ?>
                         <tr class="no-data"><td colspan="8" class="no-data-cell"><?php _e('Data tidak tersedia atau data kosong.', 'archeus-booking'); ?></td></tr>
-                    <?php else: foreach ($bookings as $booking): 
+                    <?php else: $index = 0; foreach ($bookings as $booking):
                     ?>
                     <tr data-id="<?php echo $booking->id; ?>">
-                        <td class="col-id"><?php echo $booking->id; ?></td>
+                        <td class="col-id"><?php echo ($current_page - 1) * $per_page + $index + 1; ?></td>
                         <td class="col-name" title="<?php echo esc_attr($booking->customer_name ?? ''); ?>"><?php echo esc_html($booking->customer_name ?? ''); ?></td>
                         <td><?php echo date('M j, Y', strtotime($booking->booking_date)); ?></td>
                         <td><?php echo esc_html($booking->booking_time); ?></td>
@@ -1763,7 +1765,7 @@ class Booking_Admin {
                             </div>
                         </td>
                     </tr>
-                    <?php endforeach; ?>
+                    <?php $index++; endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -4425,7 +4427,7 @@ class Booking_Admin {
                         <table class="wp-list-table widefat fixed striped">
                             <thead>
                                 <tr>
-                                    <th><?php _e('ID', 'archeus-booking'); ?></th>
+                                    <th><?php _e('NO', 'archeus-booking'); ?></th>
                                     <th><?php _e('Nama Layanan', 'archeus-booking'); ?></th>
                                     <th><?php _e('Deskripsi', 'archeus-booking'); ?></th>
                                     <th><?php _e('Harga', 'archeus-booking'); ?></th>
@@ -4434,9 +4436,9 @@ class Booking_Admin {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($services as $service): ?>
+                                <?php $index = 0; foreach ($services as $service): ?>
                                     <tr>
-                                        <td><?php echo esc_html($service->id); ?></td>
+                                        <td><?php echo $index + 1; ?></td>
                                         <td><strong><?php echo esc_html($service->name); ?></strong></td>
                                         <td><?php echo wp_trim_words(esc_html($service->description), 10); ?></td>
                                         <td><?php echo $service->price > 0 ? 'Rp ' . number_format($service->price, 0, ',', '.') : __('Gratis', 'archeus-booking'); ?></td>
@@ -4454,7 +4456,7 @@ class Booking_Admin {
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php $index++; endforeach; ?>
                             </tbody>
                         </table>
                     <?php endif; ?>
@@ -4481,7 +4483,7 @@ class Booking_Admin {
             $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
             $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
             $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
-            $orderby = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : 'moved_at';
+            $orderby = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : 'created_at';
             $order = isset($_GET['order']) ? strtoupper(sanitize_text_field($_GET['order'])) : 'DESC';
 
             // Validate date format and logic
@@ -4691,7 +4693,7 @@ class Booking_Admin {
                 <table class="wp-list-table widefat fixed striped" style="margin-top: 1rem;">
                     <thead>
                         <tr>
-                            <th scope="col"><?php _e('ID', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('NO', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Customer Name', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Customer Email', 'archeus-booking'); ?></th>
                             <th scope="col">
@@ -4714,9 +4716,9 @@ class Booking_Admin {
                                 </a>
                             </th>
                             <th scope="col">
-                                <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'moved_at', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
-                                    <?php _e('Moved At', 'archeus-booking'); ?>
-                                    <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'moved_at') : ?>
+                                <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'created_at', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
+                                    <?php _e('Created At', 'archeus-booking'); ?>
+                                    <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'created_at') : ?>
                                         <span class="sorting-indicator"><?php echo isset($_GET['order']) && $_GET['order'] === 'ASC' ? '▲' : '▼'; ?></span>
                                     <?php endif; ?>
                                 </a>
@@ -4726,9 +4728,9 @@ class Booking_Admin {
                     </thead>
                     <tbody>
                         <?php if (!empty($history_data)) : ?>
-                            <?php foreach ($history_data as $item) : ?>
+                            <?php $index = 0; foreach ($history_data as $item) : ?>
                                 <tr>
-                                    <td><?php echo esc_html($item->id); ?></td>
+                                    <td><?php echo ($page - 1) * $per_page + $index + 1; ?></td>
                                     <td><?php echo esc_html($item->customer_name); ?></td>
                                     <td><?php echo esc_html($item->customer_email); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
@@ -4736,14 +4738,14 @@ class Booking_Admin {
                                     <td><?php echo esc_html($item->service_type); ?></td>
                                     <td><?php echo esc_html(!empty($item->flow_name) ? $item->flow_name : '-'); ?></td>
                                     <td><?php echo esc_html(ucfirst($item->status)); ?></td>
-                                    <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))); ?></td>
+                                    <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->created_at))); ?></td>
                                     <td>
                                         <button class="view-history-details button" data-history-id="<?php echo esc_attr($item->id); ?>" title="<?php esc_attr_e('Lihat Detail', 'archeus-booking'); ?>">
                                             <?php _e('View Details', 'archeus-booking'); ?>
                                         </button>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php $index++; endforeach; ?>
                         <?php else : ?>
                             <tr>
                                 <td colspan="9"><?php _e('No history records found.', 'archeus-booking'); ?></td>
@@ -5321,7 +5323,7 @@ class Booking_Admin {
                         <table class="wp-list-table widefat fixed striped">
                             <thead>
                                 <tr>
-                                    <th><?php _e('ID', 'archeus-booking'); ?></th>
+                                    <th><?php _e('NO', 'archeus-booking'); ?></th>
                                     <th><?php _e('Label', 'archeus-booking'); ?></th>
                                     <th><?php _e('Waktu', 'archeus-booking'); ?></th>
                                     <th><?php _e('Kapasitas', 'archeus-booking'); ?></th>
@@ -5329,9 +5331,9 @@ class Booking_Admin {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($time_slots as $slot): ?>
+                                <?php $index = 0; foreach ($time_slots as $slot): ?>
                                     <tr>
-                                        <td><?php echo esc_html($slot->id); ?></td>
+                                        <td><?php echo $index + 1; ?></td>
                                         <td><strong><?php echo esc_html($slot->time_label); ?></strong></td>
                                         <td><?php echo esc_html($slot->start_time . ' - ' . $slot->end_time); ?></td>
                                         <td><?php echo esc_html($slot->max_capacity); ?></td>
@@ -5348,7 +5350,7 @@ class Booking_Admin {
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php $index++; endforeach; ?>
                             </tbody>
                         </table>
                     <?php endif; ?>
@@ -5703,7 +5705,7 @@ class Booking_Admin {
                         <table class="wp-list-table widefat fixed striped">
                             <thead>
                                 <tr>
-                                    <th><?php _e('ID', 'archeus-booking'); ?></th>
+                                    <th><?php _e('NO', 'archeus-booking'); ?></th>
                                     <th colspan="2"><?php _e('Nama Flow', 'archeus-booking'); ?></th>
                                     <th colspan="4"><?php _e('Deskripsi', 'archeus-booking'); ?></th>
                                     <th colspan="2"><?php _e('Bagian', 'archeus-booking'); ?></th>
@@ -5712,13 +5714,13 @@ class Booking_Admin {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($booking_flows as $flow): 
+                                <?php $index = 0; foreach ($booking_flows as $flow):
                                     $sections = !empty($flow->sections) ? (is_string($flow->sections) ? json_decode($flow->sections, true) : $flow->sections) : array();
                                     if (empty($sections) && !empty($flow->steps)) { $sections = is_string($flow->steps) ? json_decode($flow->steps, true) : $flow->steps; }
                                     $section_count = is_array($sections) ? count($sections) : 0;
                                 ?>
                                     <tr>
-                                        <td><?php echo esc_html($flow->id); ?></td>
+                                        <td><?php echo $index + 1; ?></td>
                                         <td colspan="2"><strong><?php echo esc_html($flow->name); ?></strong></td>
                                         <td colspan="4"><?php echo esc_html($flow->description); ?></td>
                                         <td colspan="2"><?php echo $section_count; ?><?php echo _n('bagian', '', $section_count, 'archeus-booking'); ?></td>
@@ -5736,7 +5738,7 @@ class Booking_Admin {
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php $index++; endforeach; ?>
                             </tbody>
                         </table>
                     <?php endif; ?>
@@ -6293,9 +6295,7 @@ class Booking_Admin {
 
             // Create table header (TH)
             echo '<thead><tr>';
-            echo '<th>' . esc_html(__('History ID', 'archeus-booking')) . '</th>';
-            echo '<th>' . esc_html(__('Original Booking ID', 'archeus-booking')) . '</th>';
-            echo '<th>' . esc_html(__('Flow Name', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('NO', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Customer Name', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Customer Email', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Booking Date', 'archeus-booking')) . '</th>';
@@ -6314,11 +6314,10 @@ class Booking_Admin {
 
             // Create table body (TD)
             echo '<tbody>';
+            $index = 0;
             foreach ($flow_items as $item) {
                 echo '<tr>';
-                echo '<td>' . esc_html($item->id) . '</td>';
-                echo '<td>' . esc_html($item->original_booking_id) . '</td>';
-                echo '<td>' . esc_html(!empty($item->flow_name) ? $item->flow_name : __('Unknown Flow', 'archeus-booking')) . '</td>';
+                echo '<td>' . esc_html($index + 1) . '</td>';
                 echo '<td>' . esc_html($item->customer_name) . '</td>';
                 echo '<td>' . esc_html($item->customer_email) . '</td>';
                 echo '<td>' . esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))) . '</td>';
@@ -6343,6 +6342,7 @@ class Booking_Admin {
                 }
 
                 echo '</tr>';
+                $index++;
             }
             echo '</tbody>';
 
@@ -6479,8 +6479,7 @@ class Booking_Admin {
 
                 // Create header array
                 $headers = array(
-                    'History ID',
-                    'Original Booking ID',
+                    'NO',
                     'Flow Name',
                     'Customer Name',
                     'Customer Email',
@@ -6507,13 +6506,13 @@ class Booking_Admin {
 
                 // Write data rows
                 $rowIndex = 2;
+                $index = 0;
                 foreach ($flow_items as $item) {
                     $colIndex = 1;
 
                     // Standard fields
                     $dataRow = array(
-                        $item->id,
-                        $item->original_booking_id,
+                        $index + 1,
                         !empty($item->flow_name) ? $item->flow_name : 'Unknown Flow',
                         $item->customer_name,
                         $item->customer_email,
@@ -6546,6 +6545,7 @@ class Booking_Admin {
                     }
 
                     $rowIndex++;
+                    $index++;
                 }
 
                 $sheetIndex++;

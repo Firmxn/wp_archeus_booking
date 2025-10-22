@@ -1,4 +1,3 @@
-{time_slot} di email
+
 style validasi file 
 validasi flow name
-id ganti no
