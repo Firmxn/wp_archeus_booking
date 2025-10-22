@@ -2073,7 +2073,7 @@ class Booking_Database {
     /**
      * Get booking history with pagination and search
      */
-    public function get_booking_history($status = null, $page = 1, $per_page = 20, $search = '', $date_from = '', $date_to = '', $order_by = 'moved_at', $order = 'DESC') {
+    public function get_booking_history($status = null, $page = 1, $per_page = 20, $search = '', $date_from = '', $date_to = '', $order_by = 'moved_at', $order = 'DESC', $flow_id = null) {
         global $wpdb;
 
         $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
@@ -2110,6 +2110,12 @@ class Booking_Database {
             $params[] = $date_to;
         }
 
+        // Flow ID filter
+        if (!empty($flow_id)) {
+            $where_clauses[] = "flow_id = %d";
+            $params[] = $flow_id;
+        }
+
         // Add WHERE clause if needed
         if (!empty($where_clauses)) {
             $sql .= ' WHERE ' . implode(' AND ', $where_clauses);
@@ -2117,8 +2123,8 @@ class Booking_Database {
 
         // Add ORDER BY
         $allowed_order_by = array('moved_at', 'booking_date', 'customer_name', 'service_type', 'status');
-        $order_by = in_array($order_by, $allowed_order_by) ? $order_by : 'moved_at';
-        $order = strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
+        $order_by = (!empty($order_by) && in_array($order_by, $allowed_order_by)) ? $order_by : 'moved_at';
+        $order = (!empty($order) && in_array(strtoupper($order), array('ASC', 'DESC'))) ? strtoupper($order) : 'DESC';
         $sql .= " ORDER BY {$order_by} {$order}";
 
         // Add LIMIT
@@ -2238,7 +2244,7 @@ class Booking_Database {
     /**
      * Get total count for history pagination
      */
-    public function get_history_count($status = null, $search = '', $date_from = '', $date_to = '') {
+    public function get_history_count($status = null, $search = '', $date_from = '', $date_to = '', $flow_id = null) {
         global $wpdb;
 
         $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
@@ -2269,6 +2275,12 @@ class Booking_Database {
         if (!empty($date_to)) {
             $where_clauses[] = "booking_date <= %s";
             $params[] = $date_to;
+        }
+
+        // Flow ID filter
+        if (!empty($flow_id)) {
+            $where_clauses[] = "flow_id = %d";
+            $params[] = $flow_id;
         }
 
         $sql = "SELECT COUNT(*) FROM {$history_table}";

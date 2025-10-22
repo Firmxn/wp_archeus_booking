@@ -17,19 +17,7 @@ jQuery(document).ready(function($) {
         return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 
-    function formatFieldValue(value) {
-        if (!value && value !== 0) return '';
-
-        if (Array.isArray(value)) {
-            if (value.length === 0) return '';
-            return '<ul><li>' + value.map(function(v) { return escapeHtml(String(v)); }).join('</li><li>') + '</ul>';
-        } else if (typeof value === 'object') {
-            return '<pre>' + escapeHtml(JSON.stringify(value, null, 2)) + '</pre>';
-        } else {
-            return escapeHtml(String(value));
-        }
-    }
-
+    
     // Extract filename from full path
     function formatFilePath(path) {
         if (!path) return '';
@@ -240,5 +228,50 @@ jQuery(document).ready(function($) {
     function showError(message) {
         $modalBody.html('<div class="error-message">' + escapeHtml(message) + '</div>');
     }
+
+    // Export history to Excel
+    function exportHistoryToExcel() {
+        console.log('Export to Excel clicked');
+
+        // Show loading state
+        var $exportButton = $('.export-excel-button');
+        var originalText = $exportButton.html();
+        $exportButton.html('<span class="dashicons dashicons-update spinning"></span> Exporting...');
+        $exportButton.prop('disabled', true);
+
+        // Set hidden form fields with current filter values
+        $('#export-status').val($('#status').val());
+        $('#export-search').val($('#s').val());
+        $('#export-date-from').val($('#date_from').val());
+        $('#export-date-to').val($('#date_to').val());
+        $('#export-flow-id').val($('#flow_id').val());
+        $('#export-orderby').val($('#orderby').val());
+        $('#export-order').val($('#order').val());
+
+        console.log('Export parameters:', {
+            status: $('#status').val(),
+            flow_id: $('#flow_id').val(),
+            search: $('#s').val(),
+            date_from: $('#date_from').val(),
+            date_to: $('#date_to').val(),
+            orderby: $('#orderby').val(),
+            order: $('#order').val()
+        });
+
+        // Submit form for direct download
+        $('#export-history-form').submit();
+
+        // Restore button after a delay
+        setTimeout(function() {
+            $exportButton.html(originalText);
+            $exportButton.prop('disabled', false);
+        }, 3000);
+    }
+
+    // Initialize export button click handler
+    $(document).on('click', '.export-excel-button', function(e) {
+        e.preventDefault();
+        exportHistoryToExcel();
+    });
 
 });

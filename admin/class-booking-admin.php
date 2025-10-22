@@ -31,6 +31,8 @@ class Booking_Admin {
         add_action('wp_ajax_update_time_slot', array($this, 'handle_time_slot_update'));
         add_action('wp_ajax_get_admin_calendar_data', array($this, 'handle_get_admin_calendar_data'));
         add_action('wp_ajax_get_history_details', array($this, 'handle_get_history_details'));
+        add_action('admin_post_export_history_excel', array($this, 'handle_export_history_excel'));
+        add_action('admin_post_nopriv_export_history_excel', array($this, 'handle_export_history_excel'));
 
 
         add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
@@ -1455,9 +1457,8 @@ class Booking_Admin {
             'nonce' => wp_create_nonce('archeus_booking_admin_nonce')
         ));
 
-        // Load history.css specifically for history page
+        // Load assets specifically for history page
         if ($page === 'archeus-booking-history') {
-            wp_enqueue_style('booking-history-css', ARCHEUS_BOOKING_URL . 'assets/css/history.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
 
             wp_localize_script('booking-history-js', 'ArcheusBookingHistory', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
@@ -4499,6 +4500,7 @@ class Booking_Admin {
             $page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $per_page = 20;
             $status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+            $flow_id = isset($_GET['flow_id']) ? intval($_GET['flow_id']) : '';
             $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
             $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
             $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
@@ -4523,8 +4525,9 @@ class Booking_Admin {
 
             // Get history data
             $history_status = !empty($status) ? $status : null;
-            $history_data = $booking_db->get_booking_history($history_status, $page, $per_page, $search, $date_from, $date_to, $orderby, $order);
-            $total_items = $booking_db->get_history_count($history_status, $search, $date_from, $date_to);
+            $history_flow_id = !empty($flow_id) ? $flow_id : null;
+            $history_data = $booking_db->get_booking_history($history_status, $page, $per_page, $search, $date_from, $date_to, $orderby, $order, $history_flow_id);
+            $total_items = $booking_db->get_history_count($history_status, $search, $date_from, $date_to, $history_flow_id);
             $total_pages = ceil($total_items / $per_page);
 
             // Get history stats
@@ -4610,37 +4613,88 @@ class Booking_Admin {
                 <form method="get" action="">
                     <input type="hidden" name="page" value="archeus-booking-history">
 
-                    <label for="status" class="screen-reader-text"><?php _e('Status:', 'archeus-booking'); ?></label>
-                    <select name="status" id="status">
-                        <option value=""><?php _e('All Status', 'archeus-booking'); ?></option>
-                        <option value="completed" <?php selected($status, 'completed'); ?>><?php _e('Completed', 'archeus-booking'); ?></option>
-                        <option value="rejected" <?php selected($status, 'rejected'); ?>><?php _e('Rejected', 'archeus-booking'); ?></option>
-                    </select>
+                    <!-- Baris 1: All Status, All Flow, Search -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                            <!-- Status dropdown -->
+                            <div>
+                                <label for="status" class="screen-reader-text"><?php _e('Status:', 'archeus-booking'); ?></label>
+                                <select name="status" id="status">
+                                    <option value=""><?php _e('All Status', 'archeus-booking'); ?></option>
+                                    <option value="completed" <?php selected($status, 'completed'); ?>><?php _e('Completed', 'archeus-booking'); ?></option>
+                                    <option value="rejected" <?php selected($status, 'rejected'); ?>><?php _e('Rejected', 'archeus-booking'); ?></option>
+                                </select>
+                            </div>
 
-                    <label for="s" class="screen-reader-text"><?php _e('Search:', 'archeus-booking'); ?></label>
-                    <input type="text" name="s" id="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php esc_attr_e('Search by name, email, or service...', 'archeus-booking'); ?>" class="regular-text">
+                            <!-- Flow dropdown -->
+                            <div>
+                                <label for="flow_id" class="screen-reader-text"><?php _e('Flow:', 'archeus-booking'); ?></label>
+                                <select name="flow_id" id="flow_id" >
+                                    <option value=""><?php _e('All Flows', 'archeus-booking'); ?></option>
+                                    <?php
+                                    // Get available flows from database
+                                    global $wpdb;
+                                    $flows_table = $wpdb->prefix . 'archeus_booking_flows';
+                                    $flows = $wpdb->get_results("SELECT id, name FROM $flows_table ORDER BY name ASC");
 
-                    <span style="margin-left: 10px;">
-                        <label for="date_from" style="margin-right: 5px;"><?php _e('From:', 'archeus-booking'); ?></label>
-                        <input type="date" name="date_from" id="date_from" value="<?php echo esc_attr($date_from); ?>" placeholder="<?php esc_attr_e('From date...', 'archeus-booking'); ?>">
-                    </span>
+                                    if ($flows) {
+                                        foreach ($flows as $flow) {
+                                            echo '<option value="' . esc_attr($flow->id) . '" ' . selected($flow_id, $flow->id, false) . '>' . esc_html($flow->name) . '</option>';
+                                        }
+                                    }
+                                    ?>
+                                </select>
+                            </div>
 
-                    <span style="margin-left: 10px;">
-                        <label for="date_to" style="margin-right: 5px;"><?php _e('To:', 'archeus-booking'); ?></label>
-                        <input type="date" name="date_to" id="date_to" value="<?php echo esc_attr($date_to); ?>" placeholder="<?php esc_attr_e('To date...', 'archeus-booking'); ?>">
-                    </span>
+                            <!-- Search input -->
+                            <div>
+                                <label for="s" class="screen-reader-text"><?php _e('Search:', 'archeus-booking'); ?></label>
+                                <input type="text" name="s" id="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php esc_attr_e('Search by name, email, or service...', 'archeus-booking'); ?>" class="regular-text">
+                            </div>
+                        </div>
 
-                    <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
+                        <!--  From Date, To Date -->
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                            <!-- From date -->
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label for="date_from"><?php _e('From:', 'archeus-booking'); ?></label>
+                                <input type="date" name="date_from" id="date_from" value="<?php echo esc_attr($date_from); ?>" placeholder="<?php esc_attr_e('From date...', 'archeus-booking'); ?>">
+                            </div>
 
-                    <span style="margin-left: 20px;">
+                            <!-- To date -->
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label for="date_to"><?php _e('To:', 'archeus-booking'); ?></label>
+                                <input type="date" name="date_to" id="date_to" value="<?php echo esc_attr($date_to); ?>" placeholder="<?php esc_attr_e('To date...', 'archeus-booking'); ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Baris 2: Quick Filters -->
+                    <div style="margin-bottom: 15px;">
                         <strong><?php _e('Quick Filters:', 'archeus-booking'); ?></strong>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Today', 'archeus-booking'); ?></a>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-1 day')), 'date_to' => date('Y-m-d', strtotime('-1 day'))))); ?>" class="button"><?php _e('Yesterday', 'archeus-booking'); ?></a>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-6 days')), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Last 7 Days', 'archeus-booking'); ?></a>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-29 days')), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Last 30 Days', 'archeus-booking'); ?></a>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-01'), 'date_to' => date('Y-m-t')))); ?>" class="button"><?php _e('This Month', 'archeus-booking'); ?></a>
-                    </span>
+                    </div>
+
+                    <!-- Baris 3: Filter, Reset, Export to HTML -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <!-- Filter dan Reset buttons -->
+                        <div>
+                            <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
+                        </div>
+
+                        <!-- Export button -->
+                        <div>
+                            <button type="button" class="button export-excel-button">
+                                <!-- <span class="dashicons dashicons-download"></span> -->
+                                <?php _e('Export to HTML', 'archeus-booking'); ?>
+                            </button>
+                        </div>
+                    </div>
                 </form>
 
                 <!-- History Table -->
@@ -4660,6 +4714,7 @@ class Booking_Admin {
                             </th>
                             <th scope="col"><?php _e('Time', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Service', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Flow', 'archeus-booking'); ?></th>
                             <th scope="col">
                                 <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'status', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
                                     <?php _e('Status', 'archeus-booking'); ?>
@@ -4689,6 +4744,7 @@ class Booking_Admin {
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
                                     <td><?php echo esc_html($item->booking_time); ?></td>
                                     <td><?php echo esc_html($item->service_type); ?></td>
+                                    <td><?php echo esc_html(!empty($item->flow_name) ? $item->flow_name : '-'); ?></td>
                                     <td><?php echo esc_html(ucfirst($item->status)); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))); ?></td>
                                     <td>
@@ -4700,7 +4756,7 @@ class Booking_Admin {
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="8"><?php _e('No history records found.', 'archeus-booking'); ?></td>
+                                <td colspan="9"><?php _e('No history records found.', 'archeus-booking'); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -4962,6 +5018,21 @@ class Booking_Admin {
 
             <?php
             // No additional CSS or JS loaded - using WordPress default styles
+
+            // Add export form for CSV download
+            ?>
+            <form id="export-history-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display: none;">
+                <?php wp_nonce_field('booking_history_nonce', 'nonce'); ?>
+                <input type="hidden" name="action" value="export_history_excel">
+                <input type="hidden" name="status" id="export-status" value="">
+                <input type="hidden" name="s" id="export-search" value="">
+                <input type="hidden" name="date_from" id="export-date-from" value="">
+                <input type="hidden" name="date_to" id="export-date-to" value="">
+                <input type="hidden" name="flow_id" id="export-flow-id" value="">
+                <input type="hidden" name="orderby" id="export-orderby" value="">
+                <input type="hidden" name="order" id="export-order" value="">
+            </form>
+            <?php
 
       }
 
@@ -5799,7 +5870,7 @@ class Booking_Admin {
                     <tr>
                         <th><?php _e('Pilih Booking Flow', 'archeus-booking'); ?></th>
                         <td>
-                            <select name="flow_id" class="ab-select">
+                            <select name="flow_id">
                                 <?php foreach ($flows as $f): ?>
                                     <option value="<?php echo esc_attr($f->id); ?>"><?php echo esc_html($f->name); ?></option>
                                 <?php endforeach; ?>
@@ -5960,7 +6031,6 @@ class Booking_Admin {
             'status' => $history_item->status,
             'flow_id' => $history_item->flow_id,
             'flow_name' => $history_item->flow_name,
-            'completion_notes' => $history_item->completion_notes,
             'rejection_reason' => $history_item->rejection_reason,
             'moved_at' => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($history_item->moved_at)),
             'custom_fields' => array()
@@ -5997,7 +6067,324 @@ class Booking_Admin {
         wp_send_json_success($data);
     }
 
+    /**
+     * Handle export history to Excel/CSV
+     */
+    public function handle_export_history_excel() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'booking_history_nonce')) {
+            wp_die(__('Security check failed', 'archeus-booking'));
+        }
 
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have permission to perform this action', 'archeus-booking'));
+        }
 
+        try {
+            $booking_db = new Booking_Database();
+
+            // Get filter parameters from POST
+            $status = isset($_POST['status']) && !empty($_POST['status']) ? sanitize_text_field($_POST['status']) : null;
+            $flow_id = isset($_POST['flow_id']) && !empty($_POST['flow_id']) ? intval($_POST['flow_id']) : null;
+            $search = isset($_POST['s']) && !empty($_POST['s']) ? sanitize_text_field($_POST['s']) : '';
+            $date_from = isset($_POST['date_from']) && !empty($_POST['date_from']) ? sanitize_text_field($_POST['date_from']) : '';
+            $date_to = isset($_POST['date_to']) && !empty($_POST['date_to']) ? sanitize_text_field($_POST['date_to']) : '';
+            $orderby = isset($_POST['orderby']) && !empty($_POST['orderby']) ? sanitize_text_field($_POST['orderby']) : 'moved_at';
+            $order = isset($_POST['order']) && !empty($_POST['order']) ? sanitize_text_field($_POST['order']) : 'DESC';
+
+            
+            // Get history data grouped by flow
+            if ($flow_id !== null) {
+                // Get data for specific flow
+                $history_data = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow_id);
+
+                if (empty($history_data)) {
+                    wp_die(__('No history data found for the selected filters', 'archeus-booking'));
+                }
+
+                // Group by flow (single flow in this case)
+                $grouped_data = array();
+                foreach ($history_data as $item) {
+                    $flow_name = !empty($item->flow_name) ? $item->flow_name : __('Unknown Flow', 'archeus-booking');
+                    if (!isset($grouped_data[$flow_name])) {
+                        $grouped_data[$flow_name] = array();
+                    }
+                    $grouped_data[$flow_name][] = $item;
+                }
+            } else {
+                // Get all flows data
+                global $wpdb;
+                $flows_table = $wpdb->prefix . 'archeus_booking_flows';
+                $flows = $wpdb->get_results("SELECT id, name FROM $flows_table ORDER BY name ASC");
+
+                $grouped_data = array();
+                foreach ($flows as $flow) {
+                    $flow_history = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow->id);
+
+                    if (!empty($flow_history)) {
+                        $grouped_data[$flow->name] = $flow_history;
+                    }
+                }
+            }
+
+            if (empty($grouped_data)) {
+                wp_die(__('No history data found', 'archeus-booking'));
+            }
+
+            // Generate HTML table file for Excel with proper table formatting
+            $filename = 'booking-history-' . date('Y-m-d') . '.html';
+
+            // Set headers for HTML file download
+            header('Content-Type: text/html; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+            // Add Excel-specific headers for better formatting
+            header('Cache-Control: max-age=0');
+            header('Pragma: public');
+
+            // Start HTML document with proper table styling
+            echo '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Booking History Export - ' . date_i18n(get_option('date_format')) . '</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 3px solid #0073aa;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .flow-section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        /* Custom scrollbar for better UX */
+        .table-wrapper::-webkit-scrollbar {
+            height: 10px;
+        }
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 5px;
+        }
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        .flow-header {
+            background-color: #0073aa;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        table {
+            min-width: 100%;
+            border-collapse: collapse;
+            box-shadow: none;
+            margin: 0;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+            font-size: 12px;
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        .summary-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+        .summary-table {
+            background-color: #f8f9fa;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .summary-table th {
+            background-color: #0073aa;
+            color: white;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .summary-table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 10px;
+            }
+            .container {
+                box-shadow: none;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Booking History Report</h1>
+        <p><strong>Generated:</strong> ' . date_i18n(get_option('date_format') . ' ' . get_option('time_format')) . '</p>';
+
+        // Write each flow as separate HTML table
+        foreach ($grouped_data as $flow_name => $flow_items) {
+            // Get all custom fields for this flow
+            $all_custom_fields = array();
+            foreach ($flow_items as $item) {
+                $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
+                if (is_array($custom_fields)) {
+                    $all_custom_fields = array_unique(array_merge($all_custom_fields, array_keys($custom_fields)));
+                }
+            }
+            sort($all_custom_fields);
+
+            // Create flow section
+            echo '<div class="flow-section">';
+            echo '<div class="flow-header">' . esc_html(strtoupper($flow_name)) . '</div>';
+
+            // Create table wrapper with horizontal scroll
+            echo '<div class="table-wrapper">';
+
+            // Create HTML table
+            echo '<table>';
+
+            // Create table header (TH)
+            echo '<thead><tr>';
+            echo '<th>' . esc_html(__('History ID', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Original Booking ID', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Flow Name', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Customer Name', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Customer Email', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Booking Date', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Booking Time', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Service Type', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Status', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Rejection Reason', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Created At', 'archeus-booking')) . '</th>';
+
+            // Add custom field headers
+            foreach ($all_custom_fields as $field_key) {
+                echo '<th>' . esc_html(ucwords(str_replace('_', ' ', $field_key))) . '</th>';
+            }
+
+            echo '</tr></thead>';
+
+            // Create table body (TD)
+            echo '<tbody>';
+            foreach ($flow_items as $item) {
+                echo '<tr>';
+                echo '<td>' . esc_html($item->id) . '</td>';
+                echo '<td>' . esc_html($item->original_booking_id) . '</td>';
+                echo '<td>' . esc_html(!empty($item->flow_name) ? $item->flow_name : __('Unknown Flow', 'archeus-booking')) . '</td>';
+                echo '<td>' . esc_html($item->customer_name) . '</td>';
+                echo '<td>' . esc_html($item->customer_email) . '</td>';
+                echo '<td>' . esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))) . '</td>';
+                echo '<td>' . esc_html($item->booking_time) . '</td>';
+                echo '<td>' . esc_html($item->service_type) . '</td>';
+                echo '<td>' . esc_html(ucfirst($item->status)) . '</td>';
+                // Show rejection reason only if status is 'rejected'
+                echo '<td>' . esc_html($item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '') . '</td>';
+                echo '<td>' . esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))) . '</td>';
+
+                // Add custom field values
+                $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
+                foreach ($all_custom_fields as $field_key) {
+                    $value = isset($custom_fields[$field_key]) ? $custom_fields[$field_key] : '';
+
+                    // Format file paths to show only filename
+                    if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '\\') !== false)) {
+                        $value = basename($value);
+                    }
+
+                    echo '<td>' . esc_html($value) . '</td>';
+                }
+
+                echo '</tr>';
+            }
+            echo '</tbody>';
+
+            echo '</table>';
+            echo '</div>'; // end table wrapper
+            echo '</div>'; // end flow section
+        }
+
+        // Add summary section
+        echo '<div class="summary-section">';
+        echo '<h2>📈 Export Summary</h2>';
+        echo '<table class="summary-table">';
+        echo '<tr><th>Export Date</th><td>' . esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'))) . '</td></tr>';
+        echo '<tr><th>Total Flows</th><td>' . esc_html(count($grouped_data)) . '</td></tr>';
+
+        foreach ($grouped_data as $flow_name => $items) {
+            echo '<tr><th>' . esc_html($flow_name . ' Records') . '</th><td>' . esc_html(count($items)) . '</td></tr>';
+        }
+
+        echo '</table>';
+        echo '<p style="text-align: center; margin-top: 20px; color: #666;"><em>Generated by Archeus Booking System</em></p>';
+        echo '</div>'; // end summary section
+
+        echo '</div>'; // end container
+        echo '</body>';
+        echo '</html>';
+
+        exit;
+
+        } catch (Exception $e) {
+            error_log('Export error: ' . $e->getMessage());
+            wp_die(__('Export failed: ', 'archeus-booking') . $e->getMessage());
+        }
+    }
 
 }
