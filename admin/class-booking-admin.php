@@ -498,12 +498,10 @@ class Booking_Admin {
             if (isset($_POST['form_id']) && !empty($_POST['form_id'])) {
                 $form_id = intval($_POST['form_id']);
                 $existing = $booking_db->get_form($form_id);
-                $slug_to_use = ($existing && !empty($existing->slug)) ? $existing->slug : ('form-' . uniqid());
-                $result = $booking_db->update_form($form_id, $name, $slug_to_use, $description, $fields);
+                $result = $booking_db->update_form($form_id, $name, $description, $fields);
                 $message = $result ? __('Formulir berhasil diperbarui.', 'archeus-booking') : __('Gagal memperbarui formulir.', 'archeus-booking');
             } else {
-                $auto_slug = 'form-' . uniqid();
-                $form_id = $booking_db->create_form($name, $auto_slug, $description, $fields);
+                $form_id = $booking_db->create_form($name, $description, $fields);
                 $message = $form_id ? __('Formulir berhasil dibuat.', 'archeus-booking') : __('Gagal membuat formulir.', 'archeus-booking');
             }
             
@@ -3121,13 +3119,9 @@ class Booking_Admin {
         $name = sanitize_text_field($_POST['form_name']);
         $description = sanitize_textarea_field($_POST['form_description']);
 
-        // Debug: log form creation
-        error_log('Form Creation: Creating new form');
-
         // Process fields - use field_keys_input for the new/updated keys
         $fields = array();
         if (isset($_POST['field_keys_input']) && is_array($_POST['field_keys_input'])) {
-            error_log('Form Creation: Using field_keys_input approach');
             $used_keys = array();
 
             foreach ($_POST['field_keys_input'] as $old_key => $new_key_raw) {
@@ -3140,38 +3134,26 @@ class Booking_Admin {
                 if ($new_key === '') { $new_key = $old_key; }
                 if (ctype_digit(substr($new_key, 0, 1))) { $new_key = 'field_' . $new_key; }
 
-                // Apply auto-detection based on label using the correct logic
-                $new_key = $this->auto_detect_field_key($label, $new_key, $used_keys);
+                // Get label and type using the old key (since labels are still indexed by old key)
+                $label = isset($_POST['field_labels'][$old_key]) ? sanitize_text_field($_POST['field_labels'][$old_key]) : $new_key;
+                $type = isset($_POST['field_types'][$old_key]) ? sanitize_text_field($_POST['field_types'][$old_key]) : 'text';
 
                 // Handle key conflicts
                 $base = $new_key; $i = 2; while (isset($used_keys[$new_key])) { $new_key = $base . '_' . $i++; }
                 $used_keys[$new_key] = true;
 
-                // Get label using the old key (since labels are still indexed by old key)
-                $label = isset($_POST['field_labels'][$old_key]) ? sanitize_text_field($_POST['field_labels'][$old_key]) : $new_key;
-                $type = isset($_POST['field_types'][$old_key]) ? sanitize_text_field($_POST['field_types'][$old_key]) : 'text';
 
-                // Debug: log detailed required field data
-                $received_required = isset($_POST['field_required'][$old_key]) ? $_POST['field_required'][$old_key] : 'NOT_SET';
-                $isset_check = isset($_POST['field_required'][$old_key]) ? 'TRUE' : 'FALSE';
-                error_log('Form Creation Debug - Field: ' . $old_key . ' -> ' . $new_key . ', Required isset: ' . $isset_check . ', Value: ' . $received_required);
-
-                // Tambahkan pengecekan lebih detail dengan validasi ketat
+                // Process required field
                 if (isset($_POST['field_required'][$old_key])) {
                     $raw_value = $_POST['field_required'][$old_key];
-                    error_log('Form Creation Debug - Field ' . $old_key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
-
-                    // Konversi ke string untuk memastikan perbandingan yang benar
                     $str_value = (string)$raw_value;
                     if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
                         $required = 1;
                     } else {
                         $required = 0;
                     }
-                    error_log('Form Creation Debug - Field ' . $old_key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
                 } else {
                     $required = 0;
-                    error_log('Form Creation Debug - Field ' . $old_key . ' set to 0 (not in POST)');
                 }
                 $placeholder = isset($_POST['field_placeholders'][$old_key]) ? sanitize_text_field($_POST['field_placeholders'][$old_key]) : '';
 
@@ -3193,12 +3175,9 @@ class Booking_Admin {
                     'options' => $options
                 );
 
-                // Debug: log final field data being saved
-                error_log('Form Creation Debug - Final field data for ' . $new_key . ': ' . print_r($fields[$new_key], true));
-            }
+                }
         } else {
             // Fallback to old method if field_keys_input is not available
-            error_log('Form Creation Debug - field_keys_input not available, using old method');
             if (isset($_POST['field_keys']) && is_array($_POST['field_keys'])) {
                 foreach ($_POST['field_keys'] as $index => $key) {
                     if (empty($key)) continue;
@@ -3218,7 +3197,7 @@ class Booking_Admin {
                         }
                     }
 
-                    $fields[$key] = array(
+                    $fields[$new_key] = array(
                         'label' => $label,
                         'type' => $type,
                         'required' => $required,
@@ -3229,12 +3208,8 @@ class Booking_Admin {
             }
         }
 
-        // Debug: log complete fields array being saved
-        error_log('Form Creation Debug - Complete fields array: ' . print_r($fields, true));
-
         $booking_db = new Booking_Database();
-        $auto_slug = 'form-' . uniqid();
-        $result = $booking_db->create_form($name, $auto_slug, $description, $fields);
+        $result = $booking_db->create_form($name, $fields);
 
         if ($result) {
             wp_send_json_success(array(
@@ -5320,16 +5295,9 @@ class Booking_Admin {
                                     <p class="description"><?php _e('Jumlah maksimal pemesanan yang diizinkan untuk slot waktu ini', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Pengurutan', 'archeus-booking'); ?></th>
-                                <td>
-                                    <p class="description"><?php _e('Slot waktu diurutkan berdasarkan waktu mulai. Fitur seret-untuk-mengurutkan akan ditambahkan pada pembaruan berikutnya.', 'archeus-booking'); ?></p>
-                                </td>
-                            </tr>
+                            </table>
 
-                                                    </table>
-                        
-                        <?php submit_button($edit_slot ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_time_slot'); ?>
+                            <?php submit_button($edit_slot ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'), 'primary', 'save_time_slot'); ?>
                     </form>
                 </div>
                 
@@ -5347,7 +5315,6 @@ class Booking_Admin {
                                     <th><?php _e('Label', 'archeus-booking'); ?></th>
                                     <th><?php _e('Waktu', 'archeus-booking'); ?></th>
                                     <th><?php _e('Kapasitas', 'archeus-booking'); ?></th>
-                                    <th><?php _e('Status', 'archeus-booking'); ?></th>
                                     <th><?php _e('Tindakan', 'archeus-booking'); ?></th>
                                 </tr>
                             </thead>
@@ -5358,9 +5325,6 @@ class Booking_Admin {
                                         <td><strong><?php echo esc_html($slot->time_label); ?></strong></td>
                                         <td><?php echo esc_html($slot->start_time . ' - ' . $slot->end_time); ?></td>
                                         <td><?php echo esc_html($slot->max_capacity); ?></td>
-                                        <td>
-                                            <span style="color: green;"><?php _e('Aktif', 'archeus-booking'); ?></span>
-                                        </td>
                                         <td class="col-actions">
                                             <div class="action-buttons">
                                                 <a href="<?php echo admin_url('admin.php?page=archeus-booking-time-slots&action=edit&slot_id=' . $slot->id); ?>" class="button button-warning edit-button" title="<?php esc_attr_e('Ubah Slot Waktu', 'archeus-booking'); ?>">
@@ -6361,7 +6325,7 @@ class Booking_Admin {
                     $value = isset($custom_fields[$field_key]) ? $custom_fields[$field_key] : '';
 
                     // Format file paths to show only filename
-                    if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '\\') !== false)) {
+                    if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '$fields[$new_key]') !== false)) {
                         $value = basename($value);
                     }
 
@@ -6471,7 +6435,7 @@ class Booking_Admin {
             }
 
             // Use PhpSpreadsheet classes
-            if (!class_exists('\\PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
+            if (!class_exists('$fields[$new_key]PhpOffice$fields[$new_key]PhpSpreadsheet$fields[$new_key]Spreadsheet')) {
                 throw new Exception('PhpSpreadsheet not found. Please run: composer require phpoffice/phpspreadsheet');
             }
 
@@ -6557,7 +6521,7 @@ class Booking_Admin {
                         $value = isset($custom_fields[$field_key]) ? $custom_fields[$field_key] : '';
 
                         // Format file paths to show only filename
-                        if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '\\') !== false)) {
+                        if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '$fields[$new_key]') !== false)) {
                             $value = basename($value);
                         }
 

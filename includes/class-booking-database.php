@@ -49,15 +49,10 @@ class Booking_Database {
         $forms_sql = "CREATE TABLE IF NOT EXISTS {$forms_table} (
             id int(11) NOT NULL AUTO_INCREMENT,
             name varchar(255) NOT NULL,
-            slug varchar(100) NOT NULL,
-            description text NULL,
             fields longtext NULL,
-            is_active tinyint(1) DEFAULT 1,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY slug (slug),
-            KEY is_active (is_active)
+            PRIMARY KEY (id)
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -103,16 +98,14 @@ class Booking_Database {
                 $forms_table,
                 array(
                     'name' => 'Default Booking Form',
-                    'slug' => 'default-booking',
                     'description' => 'Default booking form for general appointments',
                     'fields' => maybe_serialize(array(
                         'booking_date' => array('label' => 'Booking Date', 'type' => 'date', 'required' => 1, 'placeholder' => ''),
                         'booking_time' => array('label' => 'Booking Time', 'type' => 'time', 'required' => 0, 'placeholder' => ''),
                         'service_type' => array('label' => 'Service Type', 'type' => 'select', 'required' => 1, 'placeholder' => '-- Select Service --')
-                    )),
-                    'is_active' => 1
+                    ))
                 ),
-                array('%s', '%s', '%s', '%s', '%d')
+                array('%s', '%s', '%s')
             );
         }
     }
@@ -696,47 +689,33 @@ class Booking_Database {
         return $form;
     }
     
-    /**
-     * Get form by slug
-     */
-    public function get_form_by_slug($slug) {
-        global $wpdb;
-        $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
         
-        $form = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$forms_table} WHERE slug = %s",
-            $slug
-        ));
-        
-        return $form;
-    }
-    
     /**
      * Create new form
      */
-    public function create_form($name, $slug, $description = '', $fields = array()) {
-        global $wpdb;
-        $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
-        
-        $result = $wpdb->insert(
-            $forms_table,
-            array(
-                'name' => sanitize_text_field($name),
-                'slug' => sanitize_title($slug),
-                'description' => sanitize_textarea_field($description),
-                'fields' => maybe_serialize($fields),
-                'is_active' => 1
-            ),
-            array('%s', '%s', '%s', '%s', '%d')
-        );
-        
-        return $result ? $wpdb->insert_id : false;
-    }
+/**
+ * Create new form
+ */
+public function create_form($name, $fields = array()) {
+    global $wpdb;
+    $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
+
+    $result = $wpdb->insert(
+        $forms_table,
+        array(
+            'name' => sanitize_text_field($name),
+            'fields' => maybe_serialize($fields)
+        ),
+        array('%s', '%s')
+    );
+
+    return $result ? $wpdb->insert_id : false;
+}
     
     /**
      * Update form
      */
-    public function update_form($form_id, $name, $slug, $description = '', $fields = array(), $is_active = 1) {
+    public function update_form($form_id, $name, $description = '', $fields = array()) {
         global $wpdb;
         $forms_table = $wpdb->prefix . $this->table_prefix . 'booking_forms';
 
@@ -748,13 +727,11 @@ class Booking_Database {
             $forms_table,
             array(
                 'name' => sanitize_text_field($name),
-                'slug' => sanitize_title($slug),
                 'description' => sanitize_textarea_field($description),
-                'fields' => maybe_serialize($fields),
-                'is_active' => intval($is_active)
+                'fields' => maybe_serialize($fields)
             ),
             array('id' => intval($form_id)),
-            array('%s', '%s', '%s', '%s', '%d'),
+            array('%s', '%s', '%s'),
             array('%d')
         );
 
@@ -1408,11 +1385,9 @@ class Booking_Database {
             name varchar(255) NOT NULL,
             description text NULL,
             sections longtext NULL, -- JSON encoded sections configuration
-            is_active tinyint(1) DEFAULT 1,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY is_active (is_active)
+            PRIMARY KEY (id)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -1465,10 +1440,9 @@ class Booking_Database {
                 array(
                     'name' => 'Default Booking Flow',
                     'description' => 'Default booking flow with date selection, time slot selection, and customer information',
-                    'sections' => json_encode($default_sections),
-                    'is_active' => 1
+                    'sections' => json_encode($default_sections)
                 ),
-                array('%s', '%s', '%s', '%d')
+                array('%s', '%s', '%s')
             );
         }
     }
@@ -1511,10 +1485,9 @@ class Booking_Database {
             array(
                 'name' => sanitize_text_field($name),
                 'description' => sanitize_textarea_field($description),
-                'sections' => json_encode($sections),
-                'is_active' => 1
+                'sections' => json_encode($sections)
             ),
-            array('%s', '%s', '%s', '%d')
+            array('%s', '%s', '%s')
         );
         
         if ($result === false) {

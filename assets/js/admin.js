@@ -1345,16 +1345,15 @@ jQuery(document).ready(function ($) {
 
   // Progressive enhancement: custom dropdown for .ab-dropdown (copied from booking-flow)
   function enhanceAbDropdowns(root) {
-    console.log('enhanceAbDropdowns called with root:', root);
     var $root = root && root.jquery ? root : $(document);
-    var $dropdowns = $root.find("select.ab-dropdown").not('.field-type-select');
-    console.log('Found select.ab-dropdown elements (excluding field-type-select):', $dropdowns.length);
+    var $dropdowns = $root.find("select.ab-dropdown").not('.field-type-select').not('[data-ab-dd]');
+
+    if ($dropdowns.length === 0) return; // No new dropdowns to process
+
     $dropdowns.each(function () {
       var $sel = $(this);
-      console.log('Processing dropdown:', $sel.attr('id'), 'or', $sel.attr('class'));
       if ($sel.data("ab-dd")) return; // already enhanced
       $sel.data("ab-dd", true);
-      console.log('Enhancing dropdown:', $sel.attr('id'));
 
       var selectedText = $sel.find("option:selected").text() || "";
       var $wrap = $('<div class="ab-dd"></div>');
@@ -1384,10 +1383,8 @@ jQuery(document).ready(function ($) {
       $sel.appendTo($wrap); // keep in wrap to trigger change
 
       function closeMenu() {
-        console.log('closeMenu called for:', $sel.attr('id'));
         $wrap.removeClass("open");
         $btn.attr("aria-expanded", "false");
-        console.log('Menu closed, .open class removed');
 
         // Reset positioning when closing dropdown
         if ($wrap.closest('.form-fields-builder').length > 0) {
@@ -1401,34 +1398,10 @@ jQuery(document).ready(function ($) {
         }
       }
       function openMenu() {
-        console.log('openMenu called for:', $sel.attr('id'));
         $wrap.addClass("open");
         $btn.attr("aria-expanded", "true");
-        console.log('Menu opened, .open class added');
 
-        // Debug positioning before positioning function
-        setTimeout(function() {
-          console.log('=== POSITIONING DEBUG ===');
-          console.log('Button position:', $btn.offset());
-          console.log('Button dimensions:', $btn.outerWidth(), 'x', $btn.outerHeight());
-          console.log('Menu position:', $menu.offset());
-          console.log('Menu dimensions:', $menu.outerWidth(), 'x', $menu.outerHeight());
-          console.log('Menu CSS position:', $menu.css('position'));
-          console.log('Menu CSS top:', $menu.css('top'));
-          console.log('Menu CSS left:', $menu.css('left'));
-          console.log('Menu CSS right:', $menu.css('right'));
-          console.log('Menu CSS bottom:', $menu.css('bottom'));
-          console.log('Menu CSS transform:', $menu.css('transform'));
-          console.log('Menu CSS display:', $menu.css('display'));
-          console.log('Menu CSS visibility:', $menu.css('visibility'));
-          console.log('Menu CSS opacity:', $menu.css('opacity'));
-          console.log('Menu z-index:', $menu.css('z-index'));
-          console.log('Menu classes:', $menu.attr('class'));
-          console.log('Parent container:', $wrap.parent());
-          console.log('=== END POSITIONING DEBUG ===');
-
-          positionDropdown($menu, $btn);
-        }, 10);
+        positionDropdown($menu, $btn);
       }
 
       // Smart dropdown positioning to escape overflow containers
@@ -1558,7 +1531,6 @@ jQuery(document).ready(function ($) {
 
   // Initialize dropdowns with proper timing
   $(document).ready(function() {
-    console.log('Document ready, initializing dropdowns...');
     setTimeout(function() {
       enhanceAbDropdowns($(document));
     }, 100);
@@ -1567,10 +1539,16 @@ jQuery(document).ready(function ($) {
   // Observe DOM changes to enhance future selects
   if (window.MutationObserver) {
     var moAll = new MutationObserver(function (muts) {
-      // Try enhancing any new selects
+      // Try enhancing any new selects, but only process elements that don't have ab-dd data yet
       try {
-        enhanceAbDropdowns($(document));
-      } catch (e) {}
+        var $newDropdowns = $("select.ab-dropdown").not('.field-type-select').not('[data-ab-dd]');
+        if ($newDropdowns.length > 0) {
+          console.log('MutationObserver found new dropdowns:', $newDropdowns.length);
+          enhanceAbDropdowns($(document));
+        }
+      } catch (e) {
+        console.error('Error in MutationObserver:', e);
+      }
     });
     moAll.observe(document.body, { childList: true, subtree: true });
   }
@@ -3194,37 +3172,18 @@ jQuery(document).ready(function ($) {
     var formData = new FormData($form[0]);
 
     // Handle array fields manually for proper FormData serialization with sanitization
+    // FIXED: Removed field_keys[] processing to prevent duplication - field_keys_input[] is sufficient
+    /*
     $form.find('input[name^="field_keys["]').each(function() {
       var name = $(this).attr('name');
       var value = sanitizeFieldName($(this).val());
       formData.append(name, value);
     });
-
-    $form.find('input[name^="field_keys_input["]').each(function() {
-      var name = $(this).attr('name');
-      var value = sanitizeFieldName($(this).val());
-      formData.append(name, value);
-    });
-
-    // Debug log untuk field collection
-    console.log('Collecting field data...');
-
-    $form.find('input[name^="field_labels["]').each(function() {
-      var name = $(this).attr('name');
-      var value = sanitizeFieldValue($(this).val());
-      console.log('Field label:', name, '=', value);
-      formData.append(name, value);
-    });
-
-    $form.find('select[name^="field_types["]').each(function() {
-      var name = $(this).attr('name');
-      var value = $(this).val();
-      console.log('Field type:', name, '=', value);
-      formData.append(name, value);
-    });
+    */
 
     // Handle required checkboxes properly - only process once to avoid duplication
-  console.log('Starting required checkbox processing...');
+  // FIXED: Commented out duplicate field processing that was causing field saving issues
+  /*
   $form.find('input[name^="field_keys["]').each(function() {
     var fieldKey = $(this).val();
     var checkboxName = 'field_required[' + fieldKey + ']';
@@ -3243,25 +3202,10 @@ jQuery(document).ready(function ($) {
 
     formData.append(checkboxName, value);
   });
+  */
 
-  // Log entire FormData for debugging
-  console.log('FormData contents being sent:');
-  for (var pair of formData.entries()) {
-    console.log(pair[0] + ': ' + pair[1]);
-  }
-
-    $form.find('input[name^="field_placeholders["]').each(function() {
-      var name = $(this).attr('name');
-      var value = $(this).val();
-      formData.append(name, value);
-    });
-
-    $form.find('textarea[name^="field_options["]').each(function() {
-      var name = $(this).attr('name');
-      var value = $(this).val();
-      formData.append(name, value);
-    });
-
+  
+    
     formData.append('action', isUpdate ? 'update_form' : 'create_form');
     formData.append('nonce', archeus_booking_ajax.nonce);
 
@@ -3287,7 +3231,6 @@ jQuery(document).ready(function ($) {
       processData: false,
       contentType: false,
       success: function(response) {
-        console.log('AJAX response:', response);
         if (response.success) {
           // Show success toast
           showToast(response.data.message, 'success');
