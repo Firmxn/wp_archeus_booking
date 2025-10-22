@@ -4645,8 +4645,18 @@ class Booking_Admin {
                             </div>
                         </div>
                     </div>
+                    <div style="display: flex; justify-content: right; align-items: center; margin-bottom: 15px;">
+                        <!-- Filter dan Reset buttons -->
+                        <div>
+                            <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
+                        </div>
+                        <div>
 
-                    <!-- Baris 2: Quick Filters -->
+                        </div>
+                    </div>
+
+                    <!-- Baris 3: Quick Filters -->
                     <div style="margin-bottom: 15px;">
                         <strong><?php _e('Quick Filters:', 'archeus-booking'); ?></strong>
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Today', 'archeus-booking'); ?></a>
@@ -4657,13 +4667,13 @@ class Booking_Admin {
                         <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-01-01'), 'date_to' => date('Y-12-31')))); ?>" class="button"><?php _e('This Year', 'archeus-booking'); ?></a>
                     </div>
 
-                    <!-- Baris 3: Filter, Reset, Export to HTML -->
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <!-- Baris 4: Filter, Reset, Export to HTML -->
+                    <div style="display: flex; justify-content: right; align-items: center; margin-bottom: 15px;">
                         <!-- Filter dan Reset buttons -->
-                        <div>
+                        <!-- <div>
                             <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
                             <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
-                        </div>
+                        </div> -->
 
                         <!-- Export buttons -->
                         <div style="display: flex; gap: 10px;">
@@ -6435,7 +6445,7 @@ class Booking_Admin {
             }
 
             // Use PhpSpreadsheet classes
-            if (!class_exists('$fields[$new_key]PhpOffice$fields[$new_key]PhpSpreadsheet$fields[$new_key]Spreadsheet')) {
+            if (!class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
                 throw new Exception('PhpSpreadsheet not found. Please run: composer require phpoffice/phpspreadsheet');
             }
 

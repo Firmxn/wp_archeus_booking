@@ -429,9 +429,17 @@ jQuery(document).ready(function($) {
                 var valid = true;
                 var firstError = null;
                 var requiredFields = sectionElement.find('input[required], select[required], textarea[required]');
+                console.log('=== Form Validation Debug ===');
                 console.log('Found required fields:', requiredFields.length);
                 requiredFields.each(function() {
-                    console.log('Required field:', $(this).attr('name'), 'type:', $(this).attr('type'), 'required:', $(this).attr('required'));
+                    var $field = $(this);
+                    console.log('Required field:', {
+                        name: $field.attr('name'),
+                        type: $field.attr('type'),
+                        required: $field.attr('required'),
+                        value: $field.val(),
+                        tagName: this.tagName
+                    });
                 });
 
                 requiredFields.each(function() {
@@ -444,6 +452,43 @@ jQuery(document).ready(function($) {
                         // For file inputs, check if any file is selected
                         isEmpty = !$field[0].files || $field[0].files.length === 0;
                         console.log('File field empty:', isEmpty);
+
+                        // Additional file validation
+                        if (!isEmpty) {
+                            var file = $field[0].files[0];
+                            var maxSize = 5 * 1024 * 1024; // 5MB
+                            var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+                            var allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
+
+                            // Check file size
+                            if (file.size > maxSize) {
+                                valid = false;
+                                alert('Ukuran file terlalu besar. Maksimal 5MB.');
+                                var $errorTarget = $field.closest('.file-upload');
+                                $errorTarget.addClass('error');
+                                return false;
+                            }
+
+                            // Check file type
+                            if (!allowedTypes.includes(file.type)) {
+                                valid = false;
+                                alert('Tipe file tidak diizinkan. Hanya JPG, PNG, GIF, dan PDF.');
+                                var $errorTarget = $field.closest('.file-upload');
+                                $errorTarget.addClass('error');
+                                return false;
+                            }
+
+                            // Check file extension
+                            var fileExtension = file.name.split('.').pop().toLowerCase();
+                            if (!allowedExtensions.includes(fileExtension)) {
+                                valid = false;
+                                alert('Ekstensi file tidak diizinkan. Hanya JPG, PNG, GIF, dan PDF.');
+                                var $errorTarget = $field.closest('.file-upload');
+                                $errorTarget.addClass('error');
+                                return false;
+                            }
+                        }
+
                         // For file inputs, add error class to the parent .file-upload container
                         var $errorTarget = $field.closest('.file-upload');
                     } else if ($field.is('select')) {

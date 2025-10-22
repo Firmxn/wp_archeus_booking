@@ -858,16 +858,21 @@ class Booking_Public {
         $allowed_extensions = array('jpg', 'jpeg', 'png', 'gif', 'pdf');
         $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
+        // Check file extension
         if (!in_array($file_extension, $allowed_extensions)) {
+            error_log('File upload validation failed: Extension not allowed - ' . $file_extension);
             return false;
         }
-        
+
+        // Check file type
         if (!in_array($file_type, $allowed_types)) {
+            error_log('File upload validation failed: MIME type not allowed - ' . $file_type);
             return false;
         }
-        
+
         // Validate file size (5MB limit)
         if ($file['size'] > 5 * 1024 * 1024) {
+            error_log('File upload validation failed: File too large - ' . ($file['size'] / 1024 / 1024) . 'MB');
             return false;
         }
         
