@@ -3155,6 +3155,11 @@ class Booking_Admin {
                 } else {
                     $required = 0;
                 }
+
+                // Auto-enforce required for customer_name and customer_email fields
+                if ($new_key === 'customer_name' || $new_key === 'customer_email') {
+                    $required = 1;
+                }
                 $placeholder = isset($_POST['field_placeholders'][$old_key]) ? sanitize_text_field($_POST['field_placeholders'][$old_key]) : '';
 
                 $options = array();
@@ -3283,7 +3288,6 @@ class Booking_Admin {
                 // Strict validation for required field - use OLD key for required lookup
                 if (isset($_POST['field_required'][$old_key])) {
                     $raw_value = $_POST['field_required'][$old_key];
-                    error_log('Form Update Debug - Field ' . $old_key . ' -> ' . $new_key . ' raw value before processing: ' . $raw_value . ' (type: ' . gettype($raw_value) . ')');
 
                     $str_value = (string)$raw_value;
                     if ($str_value === '1' || $str_value === 'true' || $str_value === 'on') {
@@ -3291,10 +3295,13 @@ class Booking_Admin {
                     } else {
                         $required = 0;
                     }
-                    error_log('Form Update Debug - Field ' . $old_key . ' -> ' . $new_key . ' processed as: ' . $required . ' (from raw: "' . $raw_value . '")');
                 } else {
                     $required = 0;
-                    error_log('Form Update Debug - Field ' . $old_key . ' -> ' . $new_key . ' not found in field_required array, setting to 0');
+                }
+
+                // Auto-enforce required for customer_name and customer_email fields
+                if ($new_key === 'customer_name' || $new_key === 'customer_email') {
+                    $required = 1;
                 }
 
                 $placeholder = isset($_POST['field_placeholders'][$old_key]) ? sanitize_text_field($_POST['field_placeholders'][$old_key]) : '';
