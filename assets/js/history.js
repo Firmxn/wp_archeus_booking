@@ -91,7 +91,7 @@ jQuery(document).ready(function($) {
     console.log('Modal element found:', $modal.length > 0 ? 'Yes' : 'No');
 
     // Open modal when view details button is clicked
-    $(document).on('click', '.view-history-details', function(e) {
+    $(document).on('click', '.view-details-button', function(e) {
         e.preventDefault();
         console.log('View Details button clicked');
 
@@ -316,6 +316,45 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.export-excel-button', function(e) {
         e.preventDefault();
         exportHistoryToExcel();
+    });
+
+    // Clear History functionality
+    $(document).on('click', '.clear-history-button', function(e) {
+        e.preventDefault();
+
+        // Show confirmation dialog
+        if (confirm('Apakah Anda yakin ingin menghapus semua data history? Data yang dihapus tidak dapat dikembalikan.')) {
+            // Show loading state
+            var $button = $(this);
+            var originalText = $button.text();
+            $button.prop('disabled', true).text('Menghapus...');
+
+            // Send AJAX request to clear history
+            $.ajax({
+                url: ArcheusBookingHistory.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'clear_booking_history',
+                    nonce: ArcheusBookingHistory.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message and reload page
+                        alert(response.data.message);
+                        window.location.reload();
+                    } else {
+                        // Show error message
+                        alert(response.data ? response.data.message : 'Gagal menghapus data history.');
+                        $button.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Show error message
+                    alert('Request failed: ' + error);
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        }
     });
 
 });

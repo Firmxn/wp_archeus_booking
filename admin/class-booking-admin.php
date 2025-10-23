@@ -31,6 +31,7 @@ class Booking_Admin {
         add_action('wp_ajax_update_time_slot', array($this, 'handle_time_slot_update'));
         add_action('wp_ajax_get_admin_calendar_data', array($this, 'handle_get_admin_calendar_data'));
         add_action('wp_ajax_get_history_details', array($this, 'handle_get_history_details'));
+        add_action('wp_ajax_clear_booking_history', array($this, 'clear_booking_history'));
         add_action('admin_post_export_history_excel', array($this, 'handle_export_history_excel'));
         add_action('admin_post_nopriv_export_history_excel', array($this, 'handle_export_history_excel'));
         add_action('admin_post_export_history_csv', array($this, 'handle_export_history_csv'));
@@ -1895,6 +1896,34 @@ class Booking_Admin {
         $wpdb->query("TRUNCATE TABLE $table_name");
 
         wp_send_json_success(array('message' => __('Email logs cleared successfully', 'archeus-booking')));
+    }
+
+    public function clear_booking_history() {
+        check_ajax_referer('booking_history_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Permission denied', 'archeus-booking'));
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'archeus_booking_history';
+
+        // Count records before deleting
+        $count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+
+        // Truncate the table
+        $result = $wpdb->query("TRUNCATE TABLE $table_name");
+
+        if ($result !== false) {
+            error_log("Booking history cleared by user " . get_current_user_id() . ". Deleted {$count} records.");
+            wp_send_json_success(array(
+                'message' => sprintf(__('Data history berhasil dihapus. %d record telah dihapus secara permanen.', 'archeus-booking'), intval($count))
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Gagal menghapus data history. Silakan coba lagi.', 'archeus-booking')
+            ));
+        }
     }
 
     /**
@@ -4541,6 +4570,9 @@ class Booking_Admin {
                     );
                 }
             }
+
+            // Enqueue history page specific CSS
+            wp_enqueue_style('booking-history-css', ARCHEUS_BOOKING_URL . 'assets/css/history.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
             ?>
             <div class="wrap">
                 <h1><?php _e('Booking History (Riwayat Reservasi)', 'archeus-booking'); ?></h1>
@@ -4573,10 +4605,12 @@ class Booking_Admin {
                 }
                 ?>
                 <?php if (!empty($active_filters)) : ?>
-                    <p style="background: #e7f3ff; padding: 8px 12px; border-left: 4px solid #00a0d2; margin-bottom: 15px;">
-                        <strong><?php _e('Active Filters:', 'archeus-booking'); ?></strong>
-                        <?php echo implode(' | ', $active_filters); ?>
-                    </p>
+                    <div class="active-filters" style="margin-bottom: 15px;">
+                        <strong style="color: #1e40af;"><?php _e('Active Filters:', 'archeus-booking'); ?></strong>
+                        <?php foreach ($active_filters as $filter) : ?>
+                            <span class="active-filter-tag"><?php echo $filter; ?></span>
+                        <?php endforeach; ?>
+                    </div>
                 <?php endif; ?>
 
                 <!-- Stats Overview -->
@@ -4589,16 +4623,15 @@ class Booking_Admin {
                 <?php endif; ?>
 
                 <!-- Filters -->
-                <form method="get" action="">
+                <form method="get" action="" class="filter-form">
                     <input type="hidden" name="page" value="archeus-booking-history">
 
                     <!-- Baris 1: All Status, All Flow, Search -->
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                    <div class="filter-form-row">
                             <!-- Status dropdown -->
-                            <div>
-                                <label for="status" class="screen-reader-text"><?php _e('Status:', 'archeus-booking'); ?></label>
-                                <select name="status" id="status">
+                            <div class="filter-form-group">
+                                <label for="status" class="filter-form-label"><?php _e('Status:', 'archeus-booking'); ?></label>
+                                <select name="status" id="status" class="filter-form-select">
                                     <option value=""><?php _e('All Status', 'archeus-booking'); ?></option>
                                     <option value="completed" <?php selected($status, 'completed'); ?>><?php _e('Completed', 'archeus-booking'); ?></option>
                                     <option value="rejected" <?php selected($status, 'rejected'); ?>><?php _e('Rejected', 'archeus-booking'); ?></option>
@@ -4606,9 +4639,9 @@ class Booking_Admin {
                             </div>
 
                             <!-- Flow dropdown -->
-                            <div>
-                                <label for="flow_id" class="screen-reader-text"><?php _e('Flow:', 'archeus-booking'); ?></label>
-                                <select name="flow_id" id="flow_id" >
+                            <div class="filter-form-group">
+                                <label for="flow_id" class="filter-form-label"><?php _e('Flow:', 'archeus-booking'); ?></label>
+                                <select name="flow_id" id="flow_id" class="filter-form-select">
                                     <option value=""><?php _e('All Flows', 'archeus-booking'); ?></option>
                                     <?php
                                     // Get available flows from database
@@ -4626,71 +4659,64 @@ class Booking_Admin {
                             </div>
 
                             <!-- Search input -->
-                            <div>
-                                <label for="s" class="screen-reader-text"><?php _e('Search:', 'archeus-booking'); ?></label>
-                                <input type="text" name="s" id="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php esc_attr_e('Search by name, email, or service...', 'archeus-booking'); ?>" class="regular-text">
+                            <div class="filter-form-group">
+                                <label for="s" class="filter-form-label"><?php _e('Search:', 'archeus-booking'); ?></label>
+                                <input type="text" name="s" id="s" value="<?php echo esc_attr($search); ?>" placeholder="<?php esc_attr_e('Search by name, email, or service...', 'archeus-booking'); ?>" class="filter-form-input">
                             </div>
                         </div>
 
                         <!--  From Date, To Date -->
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                        <div class="filter-form-row">
                             <!-- From date -->
-                            <div style="display: flex; align-items: center; gap: 5px;">
-                                <label for="date_from"><?php _e('From:', 'archeus-booking'); ?></label>
-                                <input type="date" name="date_from" id="date_from" value="<?php echo esc_attr($date_from); ?>" placeholder="<?php esc_attr_e('From date...', 'archeus-booking'); ?>">
+                            <div class="filter-form-group">
+                                <label for="date_from" class="filter-form-label"><?php _e('From Date:', 'archeus-booking'); ?></label>
+                                <input type="date" name="date_from" id="date_from" value="<?php echo esc_attr($date_from); ?>" placeholder="<?php esc_attr_e('From date...', 'archeus-booking'); ?>" class="filter-form-input">
                             </div>
 
                             <!-- To date -->
-                            <div style="display: flex; align-items: center; gap: 5px;">
-                                <label for="date_to"><?php _e('To:', 'archeus-booking'); ?></label>
-                                <input type="date" name="date_to" id="date_to" value="<?php echo esc_attr($date_to); ?>" placeholder="<?php esc_attr_e('To date...', 'archeus-booking'); ?>">
+                            <div class="filter-form-group">
+                                <label for="date_to" class="filter-form-label"><?php _e('To Date:', 'archeus-booking'); ?></label>
+                                <input type="date" name="date_to" id="date_to" value="<?php echo esc_attr($date_to); ?>" placeholder="<?php esc_attr_e('To date...', 'archeus-booking'); ?>" class="filter-form-input">
                             </div>
                         </div>
                     </div>
-                    <div style="display: flex; justify-content: right; align-items: center; margin-bottom: 15px;">
-                        <!-- Filter dan Reset buttons -->
-                        <div>
-                            <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
-                            <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
-                        </div>
-                        <div>
 
-                        </div>
+                    <!-- Filter actions inside form -->
+                    <div class="filter-form-actions">
+                        <button type="submit" class="filter-button"><?php _e('Filter', 'archeus-booking'); ?></button>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="reset-button"><?php _e('Reset', 'archeus-booking'); ?></a>
                     </div>
 
                     <!-- Baris 3: Quick Filters -->
-                    <div style="margin-bottom: 15px;">
-                        <strong><?php _e('Quick Filters:', 'archeus-booking'); ?></strong>
-                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Today', 'archeus-booking'); ?></a>
-                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-1 day')), 'date_to' => date('Y-m-d', strtotime('-1 day'))))); ?>" class="button"><?php _e('Yesterday', 'archeus-booking'); ?></a>
-                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-6 days')), 'date_to' => date('Y-m-d')))); ?>" class="button"><?php _e('Last 7 Days', 'archeus-booking'); ?></a>
-                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('first day of last month')), 'date_to' => date('Y-m-d', strtotime('last day of last month'))))); ?>" class="button"><?php _e('Last Month', 'archeus-booking'); ?></a>
-                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-01'), 'date_to' => date('Y-m-t')))); ?>" class="button"><?php _e('This Month', 'archeus-booking'); ?></a>
-                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-01-01'), 'date_to' => date('Y-12-31')))); ?>" class="button"><?php _e('This Year', 'archeus-booking'); ?></a>
+                    <div class="quick-filters">
+                        <strong style="margin-right: 12px;"><?php _e('Quick Filters:', 'archeus-booking'); ?></strong>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')))); ?>" class="quick-filter-button"><?php _e('Today', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-1 day')), 'date_to' => date('Y-m-d', strtotime('-1 day'))))); ?>" class="quick-filter-button"><?php _e('Yesterday', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('-6 days')), 'date_to' => date('Y-m-d')))); ?>" class="quick-filter-button"><?php _e('Last 7 Days', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-d', strtotime('first day of last month')), 'date_to' => date('Y-m-d', strtotime('last day of last month'))))); ?>" class="quick-filter-button"><?php _e('Last Month', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-m-01'), 'date_to' => date('Y-m-t')))); ?>" class="quick-filter-button"><?php _e('This Month', 'archeus-booking'); ?></a>
+                        <a href="<?php echo esc_url(add_query_arg(array('date_from' => date('Y-01-01'), 'date_to' => date('Y-12-31')))); ?>" class="quick-filter-button"><?php _e('This Year', 'archeus-booking'); ?></a>
                     </div>
 
-                    <!-- Baris 4: Filter, Reset, Export to HTML -->
-                    <div style="display: flex; justify-content: right; align-items: center; margin-bottom: 15px;">
-                        <!-- Filter dan Reset buttons -->
-                        <!-- <div>
-                            <button type="submit" class="button button-primary"><?php _e('Filter', 'archeus-booking'); ?></button>
-                            <a href="<?php echo esc_url(admin_url('admin.php?page=archeus-booking-history')); ?>" class="button"><?php _e('Reset', 'archeus-booking'); ?></a>
-                        </div> -->
+                    <!-- Baris 4: Export buttons and Clear History -->
+                    <div class="export-actions" style="margin-bottom: 15px;">
+                        <!-- Clear History button -->
+                            <button type="button" class="clear-history-button">
+                                <?php _e('Clear History', 'archeus-booking'); ?>
+                            </button>
 
                         <!-- Export buttons -->
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" class="button export-html-button">
+                            <button type="button" class="export-html-button">
                                 <?php _e('Export to HTML', 'archeus-booking'); ?>
                             </button>
-                            <button type="button" class="button export-excel-button">
+                            <button type="button" class="export-excel-button">
                                 <?php _e('Export to Excel', 'archeus-booking'); ?>
                             </button>
-                        </div>
                     </div>
                 </form>
 
                 <!-- History Table -->
-                <table class="wp-list-table widefat fixed striped" style="margin-top: 1rem;">
+                <table class="wp-list-table widefat fixed striped" style="margin-top: 1rem; margin-right: 16px;">
                     <thead>
                         <tr>
                             <th scope="col"><?php _e('NO', 'archeus-booking'); ?></th>
@@ -4740,7 +4766,7 @@ class Booking_Admin {
                                     <td><?php echo esc_html(ucfirst($item->status)); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->created_at))); ?></td>
                                     <td>
-                                        <button class="view-history-details button" data-history-id="<?php echo esc_attr($item->id); ?>" title="<?php esc_attr_e('Lihat Detail', 'archeus-booking'); ?>">
+                                        <button class="view-details-button" data-history-id="<?php echo esc_attr($item->id); ?>" title="<?php esc_attr_e('Lihat Detail', 'archeus-booking'); ?>">
                                             <?php _e('View Details', 'archeus-booking'); ?>
                                         </button>
                                     </td>
@@ -5702,7 +5728,7 @@ class Booking_Admin {
                     <?php if (empty($booking_flows)): ?>
                         <p><?php _e('Tidak ada flow pemesanan yang dikonfigurasi. Tambahkan flow pemesanan pertama di atas.', 'archeus-booking'); ?></p>
                     <?php else: ?>
-                        <table class="wp-list-table widefat fixed striped">
+                        <table class="wp-list-table widefat fixed striped" >
                             <thead>
                                 <tr>
                                     <th><?php _e('NO', 'archeus-booking'); ?></th>
