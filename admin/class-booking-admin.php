@@ -6334,7 +6334,7 @@ class Booking_Admin {
                     $value = isset($custom_fields[$field_key]) ? $custom_fields[$field_key] : '';
 
                     // Format file paths to show only filename
-                    if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '$fields[$new_key]') !== false)) {
+                    if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '\\') !== false)) {
                         $value = basename($value);
                     }
 
@@ -6381,196 +6381,340 @@ class Booking_Admin {
     /**
      * Handle XLSX export for booking history using PhpSpreadsheet
      */
-    public function handle_export_history_csv() {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'booking_history_nonce')) {
-            die('Security check failed');
+public function handle_export_history_csv() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'booking_history_nonce')) {
+        die('Security check failed');
+    }
+
+    if (!current_user_can('manage_options')) {
+        die('You do not have permission to perform this action');
+    }
+
+    try {
+        // Include PhpSpreadsheet autoloader
+        require_once plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+
+        $booking_db = new Booking_Database();
+
+        // Get filter parameters from POST
+        $status = isset($_POST['status']) && !empty($_POST['status']) ? sanitize_text_field($_POST['status']) : null;
+        $flow_id = isset($_POST['flow_id']) && !empty($_POST['flow_id']) ? intval($_POST['flow_id']) : null;
+        $search = isset($_POST['s']) && !empty($_POST['s']) ? sanitize_text_field($_POST['s']) : '';
+        $date_from = isset($_POST['date_from']) && !empty($_POST['date_from']) ? sanitize_text_field($_POST['date_from']) : '';
+        $date_to = isset($_POST['date_to']) && !empty($_POST['date_to']) ? sanitize_text_field($_POST['date_to']) : '';
+        $orderby = isset($_POST['orderby']) && !empty($_POST['orderby']) ? sanitize_text_field($_POST['orderby']) : 'moved_at';
+        $order = isset($_POST['order']) && !empty($_POST['order']) ? sanitize_text_field($_POST['order']) : 'DESC';
+
+        // Get history data grouped by flow
+        if ($flow_id !== null) {
+            // Get data for specific flow
+            $history_data = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow_id);
+
+            if (empty($history_data)) {
+                wp_die('No history data found for the selected filters');
+            }
+
+            // Group by flow (single flow in this case)
+            $grouped_data = array();
+            foreach ($history_data as $item) {
+                $flow_name = !empty($item->flow_name) ? $item->flow_name : 'Unknown Flow';
+                if (!isset($grouped_data[$flow_name])) {
+                    $grouped_data[$flow_name] = array();
+                }
+                $grouped_data[$flow_name][] = $item;
+            }
+        } else {
+            // Get all flows data
+            global $wpdb;
+            $flows_table = $wpdb->prefix . 'archeus_booking_flows';
+            $flows = $wpdb->get_results("SELECT id, name FROM $flows_table ORDER BY name ASC");
+
+            $grouped_data = array();
+            foreach ($flows as $flow) {
+                $flow_history = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow->id);
+
+                if (!empty($flow_history)) {
+                    $grouped_data[$flow->name] = $flow_history;
+                }
+            }
         }
 
-        if (!current_user_can('manage_options')) {
-            die('You do not have permission to perform this action');
+        if (empty($grouped_data)) {
+            wp_die('No history data found');
         }
 
-        try {
-            // Include PhpSpreadsheet autoloader
-            require_once plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+        // Use PhpSpreadsheet classes
+        if (!class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+            throw new Exception('PhpSpreadsheet not found. Please run: composer require phpoffice/phpspreadsheet');
+        }
 
-            $booking_db = new Booking_Database();
+        // Create new Spreadsheet object
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheetIndex = 0;
 
-            // Get filter parameters from POST
-            $status = isset($_POST['status']) && !empty($_POST['status']) ? sanitize_text_field($_POST['status']) : null;
-            $flow_id = isset($_POST['flow_id']) && !empty($_POST['flow_id']) ? intval($_POST['flow_id']) : null;
-            $search = isset($_POST['s']) && !empty($_POST['s']) ? sanitize_text_field($_POST['s']) : '';
-            $date_from = isset($_POST['date_from']) && !empty($_POST['date_from']) ? sanitize_text_field($_POST['date_from']) : '';
-            $date_to = isset($_POST['date_to']) && !empty($_POST['date_to']) ? sanitize_text_field($_POST['date_to']) : '';
-            $orderby = isset($_POST['orderby']) && !empty($_POST['orderby']) ? sanitize_text_field($_POST['orderby']) : 'moved_at';
-            $order = isset($_POST['order']) && !empty($_POST['order']) ? sanitize_text_field($_POST['order']) : 'DESC';
-
-            // Get history data grouped by flow
-            if ($flow_id !== null) {
-                // Get data for specific flow
-                $history_data = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow_id);
-
-                if (empty($history_data)) {
-                    wp_die('No history data found for the selected filters');
-                }
-
-                // Group by flow (single flow in this case)
-                $grouped_data = array();
-                foreach ($history_data as $item) {
-                    $flow_name = !empty($item->flow_name) ? $item->flow_name : 'Unknown Flow';
-                    if (!isset($grouped_data[$flow_name])) {
-                        $grouped_data[$flow_name] = array();
-                    }
-                    $grouped_data[$flow_name][] = $item;
-                }
+        // Process each flow as separate sheet
+        foreach ($grouped_data as $flow_name => $flow_items) {
+            // Debug: log flow processing
+            error_log("Processing flow: {$flow_name} with " . count($flow_items) . " items");
+            if ($sheetIndex > 0) {
+                // Create new sheet for each flow
+                $sheet = $spreadsheet->createSheet();
             } else {
-                // Get all flows data
-                global $wpdb;
-                $flows_table = $wpdb->prefix . 'archeus_booking_flows';
-                $flows = $wpdb->get_results("SELECT id, name FROM $flows_table ORDER BY name ASC");
-
-                $grouped_data = array();
-                foreach ($flows as $flow) {
-                    $flow_history = $booking_db->get_booking_history($status, 1, 999999, $search, $date_from, $date_to, $orderby, $order, $flow->id);
-
-                    if (!empty($flow_history)) {
-                        $grouped_data[$flow->name] = $flow_history;
-                    }
-                }
+                // Use first sheet
+                $sheet = $spreadsheet->getActiveSheet();
             }
 
-            if (empty($grouped_data)) {
-                wp_die('No history data found');
+            // Set sheet title (truncate if too long)
+            $sheetTitle = substr($flow_name, 0, 31);
+            $sheet->setTitle($sheetTitle);
+
+            // Get all custom fields for this flow
+            $all_custom_fields = array();
+            foreach ($flow_items as $item) {
+                $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
+                if (is_array($custom_fields)) {
+                    $all_custom_fields = array_unique(array_merge($all_custom_fields, array_keys($custom_fields)));
+                }
+            }
+            sort($all_custom_fields);
+
+            // Create header array
+            $headers = array(
+                'NO',
+                'Customer Name',
+                'Customer Email',
+                'Booking Date',
+                'Booking Time',
+                'Service Type',
+                'Status',
+                'Rejection Reason',
+                'Created At'
+            );
+
+            // Add custom field headers
+            foreach ($all_custom_fields as $field_key) {
+                $headers[] = ucwords(str_replace('_', ' ', $field_key));
             }
 
-            // Use PhpSpreadsheet classes
-            if (!class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
-                throw new Exception('PhpSpreadsheet not found. Please run: composer require phpoffice/phpspreadsheet');
+            // Debug: Validate headers and data
+            if (empty($headers)) {
+                error_log("ERROR: Headers array is empty for flow: {$flow_name}");
+                continue; // Skip this flow
             }
 
-            // Create new Spreadsheet object
-            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-            $sheetIndex = 0;
+            // Add flow name as merged title at the top
+            $totalColumns = count($headers);
+            $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($totalColumns);
 
-            // Process each flow as separate sheet
-            foreach ($grouped_data as $flow_name => $flow_items) {
-                if ($sheetIndex > 0) {
-                    // Create new sheet for each flow
-                    $sheet = $spreadsheet->createSheet();
-                } else {
-                    // Use first sheet
-                    $sheet = $spreadsheet->getActiveSheet();
-                }
+            // Debug: Log column info
+            error_log("Flow: {$flow_name}, Total columns: {$totalColumns}, Last column: {$lastColumn}");
 
-                // Set sheet title (truncate if too long)
-                $sheetTitle = substr($flow_name, 0, 31);
-                $sheet->setTitle($sheetTitle);
+            // Clear the entire sheet first - ensure clean sheet
+            $sheet->setCellValue('A1', ''); // Clear A1
+            for ($col = 1; $col <= $totalColumns; $col++) {
+                $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                $sheet->setCellValue($columnLetter . '1', ''); // Clear row 1
+                $sheet->setCellValue($columnLetter . '2', ''); // Clear row 2
+            }
 
-                // Get all custom fields for this flow
-                $all_custom_fields = array();
-                foreach ($flow_items as $item) {
-                    $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
-                    if (is_array($custom_fields)) {
-                        $all_custom_fields = array_unique(array_merge($all_custom_fields, array_keys($custom_fields)));
-                    }
-                }
-                sort($all_custom_fields);
+            // Create flow name title spanning 2 rows
+            $displayFlowName = !empty($flow_name) ? $flow_name : 'Booking Data';
+            error_log("Setting flow name title: '{$displayFlowName}' with {$totalColumns} columns");
 
-                // Create header array
-                $headers = array(
-                    'NO',
-                    'Flow Name',
-                    'Customer Name',
-                    'Customer Email',
-                    'Booking Date',
-                    'Booking Time',
-                    'Service Type',
-                    'Status',
-                    'Rejection Reason',
-                    'Created At'
+            // Set title in both row 1 and row 2, then merge them
+            $sheet->setCellValue('A1', $displayFlowName);
+            if ($totalColumns > 1) {
+                $lastColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($totalColumns);
+                // Merge across 2 rows for title
+                $sheet->mergeCells("A1:{$lastColumn}2");
+            }
+
+            // Style the merged title (spanning 2 rows)
+            $titleStyle = $sheet->getStyle('A1');
+            $titleStyle->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $titleStyle->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            $titleStyle->getFont()->setBold(true);
+            $titleStyle->getFont()->setSize(16); // Slightly larger for 2-row title
+            $titleStyle->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE));
+
+            // Write headers (starting from row 3, since title now spans rows 1-2)
+            $colIndex = 1;
+            foreach ($headers as $header) {
+                $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                $sheet->setCellValue($columnLetter . '3', $header);
+                $colIndex++;
+            }
+
+            // Write data rows (starting from row 4, since title spans rows 1-2 and headers are in row 3)
+            $rowIndex = 4;
+            $index = 0;
+
+            // Debug: Validate flow items
+            if (empty($flow_items)) {
+                error_log("WARNING: No items found for flow: {$flow_name}");
+                continue;
+            }
+
+            foreach ($flow_items as $item) {
+                $colIndex = 1;
+
+                // Standard fields
+                $dataRow = array(
+                    $index + 1,
+                    $item->customer_name,
+                    $item->customer_email,
+                    date('Y-m-d', strtotime($item->booking_date)),
+                    $item->booking_time,
+                    $item->service_type,
+                    ucfirst($item->status),
+                    $item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '',
+                    date('Y-m-d H:i:s', strtotime($item->moved_at))
                 );
 
-                // Add custom field headers
+                // Add custom field values
+                $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
                 foreach ($all_custom_fields as $field_key) {
-                    $headers[] = ucwords(str_replace('_', ' ', $field_key));
+                    $value = isset($custom_fields[$field_key]) ? $custom_fields[$field_key] : '';
+
+                    // Format file paths to show only filename
+                    if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '\\') !== false)) {
+                        $value = basename($value);
+                    }
+
+                    $dataRow[] = $value;
                 }
 
-                // Write headers
-                $colIndex = 1;
-                foreach ($headers as $header) {
+                // Write data to cells
+                foreach ($dataRow as $cellValue) {
                     $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
-                    $sheet->setCellValue($columnLetter . '1', $header);
+                    $sheet->setCellValue($columnLetter . $rowIndex, $cellValue);
                     $colIndex++;
                 }
 
-                // Write data rows
-                $rowIndex = 2;
-                $index = 0;
-                foreach ($flow_items as $item) {
-                    $colIndex = 1;
-
-                    // Standard fields
-                    $dataRow = array(
-                        $index + 1,
-                        !empty($item->flow_name) ? $item->flow_name : 'Unknown Flow',
-                        $item->customer_name,
-                        $item->customer_email,
-                        date('Y-m-d', strtotime($item->booking_date)),
-                        $item->booking_time,
-                        $item->service_type,
-                        ucfirst($item->status),
-                        $item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '',
-                        date('Y-m-d H:i:s', strtotime($item->moved_at))
-                    );
-
-                    // Add custom field values
-                    $custom_fields = !empty($item->fields) ? json_decode($item->fields, true) : array();
-                    foreach ($all_custom_fields as $field_key) {
-                        $value = isset($custom_fields[$field_key]) ? $custom_fields[$field_key] : '';
-
-                        // Format file paths to show only filename
-                        if (is_string($value) && (strpos($value, '/') !== false || strpos($value, '$fields[$new_key]') !== false)) {
-                            $value = basename($value);
-                        }
-
-                        $dataRow[] = $value;
-                    }
-
-                    // Write data to cells
-                    foreach ($dataRow as $cellValue) {
-                        $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
-                        $sheet->setCellValue($columnLetter . $rowIndex, $cellValue);
-                        $colIndex++;
-                    }
-
-                    $rowIndex++;
-                    $index++;
-                }
-
-                $sheetIndex++;
+                $rowIndex++;
+                $index++;
             }
 
-            // Generate XLSX file
-            $filename = 'booking-history-' . date('Y-m-d') . '.xlsx';
+            // -----------------------
+            // Styling & formatting per sheet
+            // -----------------------
+            $lastRow = $rowIndex - 1;
+            $dataRange = "A3:{$lastColumn}{$lastRow}";
 
-            // Set headers for XLSX file download
-            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            header('Content-Disposition: attachment; filename="' . $filename . '"');
-            header('Cache-Control: max-age=0');
-            header('Pragma: public');
-            header('Expires: 0');
+            // Header row (row 3) style: bold, center, background
+            $headerRange = "A3:{$lastColumn}3";
+            $sheet->getStyle($headerRange)->getFont()->setBold(true);
+            $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle($headerRange)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            $sheet->getRowDimension(3)->setRowHeight(24);
+            $sheet->getStyle($headerRange)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FFEFEFEF');
 
-            // Write file to output
+            // Title area style (rows 1-2) background
+            $titleRange = "A1:{$lastColumn}2";
+            $sheet->getStyle($titleRange)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FF54b335'); // Dark green background
+
+            // Set row heights for title area
+            $sheet->getRowDimension(1)->setRowHeight(30);
+            $sheet->getRowDimension(2)->setRowHeight(30);
+
+            // Borders for title area (rows 1-2) - only bottom border
+            $titleBorderStyle = [
+                'borders' => [
+                    'bottom' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['argb' => 'FFFFFFFF'], // White border
+                    ],
+                ],
+            ];
+            $sheet->getStyle($titleRange)->applyFromArray($titleBorderStyle);
+
+            // Borders for header and data rows (starting from row 3)
+            if ($lastRow >= 3) {
+                $dataBorderStyle = [
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => 'FF666666'],
+                        ],
+                    ],
+                ];
+                $sheet->getStyle($dataRange)->applyFromArray($dataBorderStyle);
+            }
+
+            // Wrap text for entire table (helps long rejection reasons / custom fields)
+            if ($lastRow >= 3) {
+                $sheet->getStyle($dataRange)->getAlignment()->setWrapText(true);
+            }
+
+            // Align data rows: left + middle vertical alignment for readability
+            if ($lastRow >= 4) {
+                $dataRowsRange = "A4:{$lastColumn}{$lastRow}";
+                $sheet->getStyle($dataRowsRange)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+                $sheet->getStyle($dataRowsRange)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            }
+
+            // Set number/date formats for columns we know (Booking Date in column D, Created At in column I)
+            // Adjust indexes if your header order changes or extra custom fields push indexes — these assume original header positions
+            try {
+                // Booking Date = column D (4), Created At = column I (9)
+                $sheet->getStyle('D3:D' . $lastRow)->getNumberFormat()->setFormatCode('yyyy-mm-dd');
+                $sheet->getStyle('I3:I' . $lastRow)->getNumberFormat()->setFormatCode('yyyy-mm-dd hh:mm:ss');
+            } catch (\Exception $e) {
+                // ignore if columns not present (defensive)
+                error_log("Date formatting error: " . $e->getMessage());
+            }
+
+            // Auto-size columns (best-effort)
+            if (isset($totalColumns) && $totalColumns > 0) {
+                for ($i = 1; $i <= $totalColumns; $i++) {
+                    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+                    $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+                }
+            } else {
+                error_log("WARNING: totalColumns not properly set for auto-size in flow: {$flow_name}");
+            }
+
+            // Freeze panes so header always visible (freeze above row 4: title area + header stay)
+            $sheet->freezePane('A4');
+
+            $sheetIndex++;
+        }
+
+        // Generate XLSX file
+        $filename = 'booking-history-' . date('Y-m-d') . '.xlsx';
+
+        // Debug: Validate spreadsheet object
+        if (!isset($spreadsheet) || empty($spreadsheet->getAllSheets())) {
+            error_log("ERROR: No sheets were created in the spreadsheet");
+            wp_die('No data available for export. Please check if there are booking records.');
+        }
+
+        // Set headers for XLSX file download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Pragma: public');
+        header('Expires: 0');
+
+        // Write file to output
+        try {
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
             $writer->save('php://output');
             exit;
-
-        } catch (Exception $e) {
-            error_log('XLSX Export error: ' . $e->getMessage());
-            error_log('XLSX Export error trace: ' . $e->getTraceAsString());
-            wp_die('XLSX Export failed: ' . $e->getMessage() . '<br><br>Please check if PhpSpreadsheet is properly installed by running: composer require phpoffice/phpspreadsheet');
+        } catch (\Exception $e) {
+            error_log("Writer error: " . $e->getMessage());
+            wp_die('Failed to generate Excel file: ' . $e->getMessage());
         }
+
+    } catch (Exception $e) {
+        error_log('XLSX Export error: ' . $e->getMessage());
+        error_log('XLSX Export error trace: ' . $e->getTraceAsString());
+        wp_die('XLSX Export failed: ' . $e->getMessage() . '<br><br>Please check if PhpSpreadsheet is properly installed by running: composer require phpoffice/phpspreadsheet');
     }
+}
+
 
 }
