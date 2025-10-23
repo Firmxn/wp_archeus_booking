@@ -4733,6 +4733,7 @@ class Booking_Admin {
                             </th>
                             <th scope="col"><?php _e('Waktu', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Layanan', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Harga', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Flow', 'archeus-booking'); ?></th>
                             <th scope="col">
                                 <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'status', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
@@ -4763,6 +4764,7 @@ class Booking_Admin {
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
                                     <td><?php echo esc_html($item->booking_time); ?></td>
                                     <td><?php echo esc_html($item->service_type); ?></td>
+                                    <td><?php echo esc_html(!empty($item->price) ? 'Rp ' . number_format($item->price, 2, ',', '.') : '-'); ?></td>
                                     <td><?php echo esc_html(!empty($item->flow_name) ? $item->flow_name : '-'); ?></td>
                                     <td><?php echo esc_html(ucfirst($item->status)); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->created_at))); ?></td>
@@ -4775,7 +4777,7 @@ class Booking_Admin {
                             <?php $index++; endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="9"><?php _e('No history records found.', 'archeus-booking'); ?></td>
+                                <td colspan="10"><?php _e('No history records found.', 'archeus-booking'); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -6048,6 +6050,7 @@ class Booking_Admin {
             'booking_date' => date_i18n(get_option('date_format'), strtotime($history_item->booking_date)),
             'booking_time' => $history_item->booking_time,
             'service_type' => $history_item->service_type,
+            'price' => !empty($history_item->price) ? floatval($history_item->price) : 0.00,
             'status' => $history_item->status,
             'flow_id' => $history_item->flow_id,
             'flow_name' => $history_item->flow_name,
@@ -6328,6 +6331,7 @@ class Booking_Admin {
             echo '<th>' . esc_html(__('Booking Date', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Booking Time', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Service Type', 'archeus-booking')) . '</th>';
+            echo '<th>' . esc_html(__('Price', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Status', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Rejection Reason', 'archeus-booking')) . '</th>';
             echo '<th>' . esc_html(__('Created At', 'archeus-booking')) . '</th>';
@@ -6350,6 +6354,7 @@ class Booking_Admin {
                 echo '<td>' . esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))) . '</td>';
                 echo '<td>' . esc_html($item->booking_time) . '</td>';
                 echo '<td>' . esc_html($item->service_type) . '</td>';
+                echo '<td>' . esc_html(!empty($item->price) ? 'Rp ' . number_format($item->price, 2, ',', '.') : '-') . '</td>';
                 echo '<td>' . esc_html(ucfirst($item->status)) . '</td>';
                 // Show rejection reason only if status is 'rejected'
                 echo '<td>' . esc_html($item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '') . '</td>';
@@ -6514,6 +6519,7 @@ public function handle_export_history_csv() {
                 'Booking Date',
                 'Booking Time',
                 'Service Type',
+                'Price',
                 'Status',
                 'Rejection Reason',
                 'Created At'
@@ -6594,6 +6600,7 @@ public function handle_export_history_csv() {
                     date('Y-m-d', strtotime($item->booking_date)),
                     $item->booking_time,
                     $item->service_type,
+                    !empty($item->price) ? number_format($item->price, 2, ',', '.') : '0,00',
                     ucfirst($item->status),
                     $item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '',
                     date('Y-m-d H:i:s', strtotime($item->moved_at))
@@ -6683,12 +6690,13 @@ public function handle_export_history_csv() {
                 $sheet->getStyle($dataRowsRange)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
             }
 
-            // Set number/date formats for columns we know (Booking Date in column D, Created At in column I)
+            // Set number/date formats for columns we know (Booking Date in column D, Price in column G, Created At in column J)
             // Adjust indexes if your header order changes or extra custom fields push indexes — these assume original header positions
             try {
-                // Booking Date = column D (4), Created At = column I (9)
+                // Booking Date = column D (4), Price = column G (7), Created At = column J (10)
                 $sheet->getStyle('D3:D' . $lastRow)->getNumberFormat()->setFormatCode('yyyy-mm-dd');
-                $sheet->getStyle('I3:I' . $lastRow)->getNumberFormat()->setFormatCode('yyyy-mm-dd hh:mm:ss');
+                $sheet->getStyle('G3:G' . $lastRow)->getNumberFormat()->setFormatCode('#,##0.00');
+                $sheet->getStyle('J3:J' . $lastRow)->getNumberFormat()->setFormatCode('yyyy-mm-dd hh:mm:ss');
             } catch (\Exception $e) {
                 // ignore if columns not present (defensive)
                 error_log("Date formatting error: " . $e->getMessage());

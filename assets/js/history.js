@@ -61,6 +61,7 @@ jQuery(document).ready(function($) {
         booking_date: 'Tanggal Pemesanan',
         booking_time: 'Waktu Pemesanan',
         service_type: 'Jenis Layanan',
+        price: 'Harga Layanan',
         status: 'Status',
         moved_at: ' Tanggal Perubahan',
         rejection_reason: 'Alasan Penolakan',
@@ -161,6 +162,7 @@ jQuery(document).ready(function($) {
         html += '<tr><th>' + archeus_booking_l10n.booking_date + '</th><td>' + escapeHtml(data.booking_date) + '</td></tr>';
         html += '<tr><th>' + archeus_booking_l10n.booking_time + '</th><td>' + escapeHtml(data.booking_time) + '</td></tr>';
         html += '<tr><th>' + archeus_booking_l10n.service_type + '</th><td>' + escapeHtml(data.service_type) + '</td></tr>';
+        html += '<tr><th>' + archeus_booking_l10n.price + '</th><td>' + (data.price ? 'Rp ' + parseFloat(data.price).toLocaleString('id-ID') : '-') + '</td></tr>';
         html += '<tr><th>' + archeus_booking_l10n.status + '</th><td><span class="status-badge status-' + data.status + '">' + escapeHtml(data.status.charAt(0).toUpperCase() + data.status.slice(1)) + '</span></td></tr>';
 
         // Flow Name is hidden from display but kept in database

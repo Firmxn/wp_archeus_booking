@@ -1070,7 +1070,7 @@ jQuery(document).ready(function ($) {
           var previewId = "bv-preview-" + bookingId;
 
           // Prioritized fields for custom layout
-          var prioritizedFields = ['customer_name', 'customer_email', 'service_type', 'booking_time'];
+          var prioritizedFields = ['customer_name', 'customer_email', 'service_type', 'price', 'booking_time'];
           var processedFields = [];
 
           // First row: customer_name and customer_email
@@ -1082,13 +1082,21 @@ jQuery(document).ready(function ($) {
             processedFields.push('customer_name', 'customer_email');
           }
 
-          // Second row: service_type and booking_time
-          if (data.service_type || data.booking_time) {
+          // Second row: service_type and price
+          if (data.service_type || data.price) {
             html += "<tr>";
             html += "<td><strong>Layanan:</strong> " + (data.service_type || "-") + "</td>";
-            html += "<td><strong>Waktu:</strong> " + (data.booking_time || "-") + "</td>";
+            html += "<td><strong>Harga:</strong> " + (data.price ? 'Rp ' + parseFloat(data.price).toLocaleString('id-ID') : "-") + "</td>";
             html += "</tr>";
-            processedFields.push('service_type', 'booking_time');
+            processedFields.push('service_type', 'price');
+          }
+
+          // Third row: booking_time (standalone if service_type took price slot)
+          if (data.booking_time && processedFields.indexOf('booking_time') === -1) {
+            html += "<tr>";
+            html += "<td colspan='2'><strong>Waktu:</strong> " + (data.booking_time || "-") + "</td>";
+            html += "</tr>";
+            processedFields.push('booking_time');
           }
 
           // Filter and categorize remaining keys

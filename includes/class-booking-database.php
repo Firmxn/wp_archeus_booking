@@ -31,6 +31,7 @@ class Booking_Database {
             booking_date date NOT NULL,
             booking_time varchar(50) NOT NULL,
             service_type varchar(255) NOT NULL,
+            price decimal(10,2) DEFAULT 0.00,
             status varchar(50) NOT NULL DEFAULT 'pending',
             flow_id int(11) NULL,
             flow_name varchar(255) NULL,
@@ -69,6 +70,7 @@ class Booking_Database {
             booking_date date NOT NULL,
             booking_time varchar(50) NOT NULL,
             service_type varchar(255) NOT NULL,
+            price decimal(10,2) DEFAULT 0.00,
             status varchar(50) NOT NULL,
             flow_id int(11) NULL,
             flow_name varchar(255) NULL,
@@ -84,6 +86,9 @@ class Booking_Database {
             KEY status (status)
         ) $charset_collate;";
         dbDelta($history_sql);
+
+        // Add price column to existing tables if not exists
+        $this->add_price_column_if_not_exists();
 
         // Create services table
         $this->create_services_table();
@@ -301,6 +306,9 @@ class Booking_Database {
         $service_type = isset($data['service_type']) ? sanitize_text_field($data['service_type']) : '';
         $status = isset($data['status']) ? sanitize_text_field($data['status']) : 'pending';
 
+        // Get service price
+        $price = $this->get_service_price_by_name($service_type);
+
         // Get flow_id
         $flow_id = null;
         $flows = $this->get_booking_flows();
@@ -329,6 +337,7 @@ class Booking_Database {
             'booking_date'   => $booking_date,
             'booking_time'   => $booking_time,
             'service_type'   => $service_type,
+            'price'          => $price,
             'status'         => $status,
             'flow_id'        => $flow_id,
             'flow_name'      => $flow_name,
@@ -337,7 +346,7 @@ class Booking_Database {
         );
 
         // Build formats
-        $formats = array('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s');
+        $formats = array('%s', '%s', '%s', '%s', '%s', '%f', '%s', '%d', '%s', '%s', '%s');
 
         // Enable error reporting for debugging
         $wpdb->show_errors = true;
@@ -978,6 +987,21 @@ public function create_form($name, $fields = array()) {
         return $services;
     }
     
+    /**
+     * Get service price by service type name
+     */
+    public function get_service_price_by_name($service_name) {
+        global $wpdb;
+        $services_table = $wpdb->prefix . $this->table_prefix . 'booking_services';
+
+        $price = $wpdb->get_var($wpdb->prepare(
+            "SELECT price FROM {$services_table} WHERE name = %s LIMIT 1",
+            $service_name
+        ));
+
+        return $price !== null ? floatval($price) : 0.00;
+    }
+
     /**
      * Get service by ID
      */
@@ -1999,6 +2023,7 @@ public function create_form($name, $fields = array()) {
             'booking_date' => sanitize_text_field($booking->booking_date),
             'booking_time' => sanitize_text_field($booking->booking_time),
             'service_type' => sanitize_text_field($booking->service_type),
+            'price' => !empty($booking->price) ? floatval($booking->price) : 0.00,
             'status' => sanitize_text_field($booking->status),
             'flow_id' => !empty($booking->flow_id) ? intval($booking->flow_id) : null,
             'flow_name' => !empty($booking->flow_name) ? sanitize_text_field($booking->flow_name) : null,
@@ -2312,5 +2337,45 @@ public function create_form($name, $fields = array()) {
         }
 
         return $moved_count;
+    }
+
+    /**
+     * Add price column to booking and booking_history tables if not exists
+     */
+    private function add_price_column_if_not_exists() {
+        global $wpdb;
+
+        $bookings_table = $wpdb->prefix . $this->table_prefix . 'booking';
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+
+        // Check if price column exists in bookings table
+        $bookings_column = $wpdb->get_results($wpdb->prepare(
+            "SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = %s
+            AND TABLE_NAME = %s
+            AND COLUMN_NAME = 'price'",
+            DB_NAME,
+            $bookings_table
+        ));
+
+        if (empty($bookings_column)) {
+            $wpdb->query("ALTER TABLE {$bookings_table} ADD COLUMN price decimal(10,2) DEFAULT 0.00 AFTER service_type");
+        }
+
+        // Check if price column exists in history table
+        $history_column = $wpdb->get_results($wpdb->prepare(
+            "SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = %s
+            AND TABLE_NAME = %s
+            AND COLUMN_NAME = 'price'",
+            DB_NAME,
+            $history_table
+        ));
+
+        if (empty($history_column)) {
+            $wpdb->query("ALTER TABLE {$history_table} ADD COLUMN price decimal(10,2) DEFAULT 0.00 AFTER service_type");
+        }
     }
 }
