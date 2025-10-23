@@ -40,9 +40,9 @@ class Booking_Admin {
 
         add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
 
-        // Add debugging page
-        add_action('admin_menu', array($this, 'add_debug_menu'));
-        add_action('wp_ajax_clear_email_logs', array($this, 'clear_email_logs'));
+        // Add debugging page - DISABLED
+        // add_action('admin_menu', array($this, 'add_debug_menu'));
+        // add_action('wp_ajax_clear_email_logs', array($this, 'clear_email_logs'));
 
   
         // Add language initialization
@@ -1869,35 +1869,35 @@ class Booking_Admin {
   
   
     /**
-     * Add debug menu
+     * Add debug menu - DISABLED
      */
-    public function add_debug_menu() {
-        add_submenu_page(
-            'archeus-booking-management',
-            __('Email Debug Log', 'archeus-booking'),
-            __('Email Debug', 'archeus-booking'),
-            'manage_options',
-            'archeus-booking-debug',
-            array($this, 'debug_page')
-        );
-    }
+    // public function add_debug_menu() {
+    //     add_submenu_page(
+    //         'archeus-booking-management',
+    //         __('Email Debug Log', 'archeus-booking'),
+    //         __('Email Debug', 'archeus-booking'),
+    //         'manage_options',
+    //         'archeus-booking-debug',
+    //         array($this, 'debug_page')
+    //     );
+    // }
 
     /**
-     * Clear email logs
+     * Clear email logs - DISABLED
      */
-    public function clear_email_logs() {
-        check_ajax_referer('clear_email_logs_nonce', 'nonce');
+    // public function clear_email_logs() {
+    //     check_ajax_referer('clear_email_logs_nonce', 'nonce');
 
-        if (!current_user_can('manage_options')) {
-            wp_die(__('Permission denied', 'archeus-booking'));
-        }
+    //     if (!current_user_can('manage_options')) {
+    //         wp_die(__('Permission denied', 'archeus-booking'));
+    //     }
 
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'archeus_email_logs';
-        $wpdb->query("TRUNCATE TABLE $table_name");
+    //     global $wpdb;
+    //     $table_name = $wpdb->prefix . 'archeus_email_logs';
+    //     $wpdb->query("TRUNCATE TABLE $table_name");
 
-        wp_send_json_success(array('message' => __('Email logs cleared successfully', 'archeus-booking')));
-    }
+    //     wp_send_json_success(array('message' => __('Email logs cleared successfully', 'archeus-booking')));
+    // }
 
     public function clear_booking_history() {
         check_ajax_referer('booking_history_nonce', 'nonce');
@@ -1928,168 +1928,54 @@ class Booking_Admin {
     }
 
     /**
-     * Debug page
+     * Debug page - DISABLED
+     * This function has been completely disabled to prevent critical errors
      */
-    public function debug_page() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'archeus_email_logs';
-
-        // Create table if not exists
-        $this->create_email_logs_table();
-
-        // Get logs
-        $logs = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC LIMIT 100");
-
-        ?>
-        <div class="wrap">
-            <h1 class="title-page"><?php _e('Email Debug Log', 'archeus-booking'); ?></h1>
-
-            <div class="notice notice-info">
-                <h4><?php _e('How to Debug Email Issues', 'archeus-booking'); ?></h4>
-                <ol>
-                    <li><?php _e('Open browser developer tools (F12) and go to Console tab', 'archeus-booking'); ?></li>
-                    <li><?php _e('Try to approve/reject a booking', 'archeus-booking'); ?></li>
-                    <li><?php _e('Look for "Archeus:" messages in console', 'archeus-booking'); ?></li>
-                    <li><?php _e('Check this page for email activity logs', 'archeus-booking'); ?></li>
-                    <li><?php _e('Test email configuration in Email Settings page', 'archeus-booking'); ?></li>
-                </ol>
-            </div>
-
-            <div class="tablenav top">
-                <div class="alignleft actions">
-                    <button type="button" id="clear-logs-btn" class="button action">
-                        <?php _e('Clear All Logs', 'archeus-booking'); ?>
-                    </button>
-                </div>
-            </div>
-
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th><?php _e('Time', 'archeus-booking'); ?></th>
-                        <th><?php _e('Booking ID', 'archeus-booking'); ?></th>
-                        <th><?php _e('Status', 'archeus-booking'); ?></th>
-                        <th><?php _e('Email', 'archeus-booking'); ?></th>
-                        <th><?php _e('Result', 'archeus-booking'); ?></th>
-                        <th><?php _e('Details', 'archeus-booking'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($logs)) : ?>
-                        <?php foreach ($logs as $log) : ?>
-                            <tr>
-                                <td><?php echo $log->created_at; ?></td>
-                                <td><?php echo $log->booking_id; ?></td>
-                                <td><span class="status-<?php echo $log->status; ?>"><?php echo $log->status; ?></span></td>
-                                <td><?php echo $log->email; ?></td>
-                                <td>
-                                    <?php if ($log->success) : ?>
-                                        <span class="success"><?php _e('Success', 'archeus-booking'); ?></span>
-                                    <?php else : ?>
-                                        <span class="error"><?php _e('Failed', 'archeus-booking'); ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><?php echo esc_html($log->message); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else : ?>
-                        <tr>
-                            <td colspan="6"><?php _e('No email logs found', 'archeus-booking'); ?></td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <script>
-        jQuery(document).ready(function($) {
-            $('#clear-logs-btn').click(function() {
-                showDeleteConfirm('<?php _e('Are you sure you want to clear all email logs?', 'archeus-booking'); ?>', '', function() {
-                    $.ajax({
-                        url: ajaxurl,
-                        type: 'POST',
-                        data: {
-                            action: 'clear_email_logs',
-                            nonce: '<?php echo wp_create_nonce('clear_email_logs_nonce'); ?>'
-                        },
-                        success: function() {
-                            location.reload();
-                        }
-                    });
-                });
-            });
-        });
-        </script>
-
-        <style>
-        .status-approved { color: #28a745; font-weight: bold; }
-        .status-rejected { color: #dc3545; font-weight: bold; }
-        .success { color: #28a745; }
-        .error { color: #dc3545; }
-
-        /* Auto-detected field styles */
-        .auto-detected-key {
-            background-color: #f8f9fa !important;
-            border-color: #dee2e6 !important;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .form-field-row[data-auto-detected="true"] .remove-field {
-            display: none !important;
-        }
-
-        .form-field-row[data-auto-detected="true"] {
-            background-color: #f8f9fa;
-        }
-
-        .auto-detected-row {
-            background-color: #f8f9fa !important;
-        }
-        </style>
-        <?php
-    }
+    // public function debug_page() {
+    //     // Function content removed - was causing PHP syntax errors
+    //     // HTML/JS/CSS content in PHP comments was not parseable
+    // }
 
     /**
-     * Create email logs table
+     * Create email logs table - DISABLED
      */
-    private function create_email_logs_table() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'archeus_email_logs';
-        $charset_collate = $wpdb->get_charset_collate();
+    // private function create_email_logs_table() {
+    //     global $wpdb;
+    //     $table_name = $wpdb->prefix . 'archeus_email_logs';
+    //     $charset_collate = $wpdb->get_charset_collate();
 
-        $sql = "CREATE TABLE $table_name (
-            id int(11) NOT NULL AUTO_INCREMENT,
-            booking_id int(11) NOT NULL,
-            status varchar(20) NOT NULL,
-            email varchar(255) NOT NULL,
-            success tinyint(1) NOT NULL,
-            message text NOT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY  (id)
-        ) $charset_collate;";
+    //     $sql = "CREATE TABLE $table_name (
+    //         id int(11) NOT NULL AUTO_INCREMENT,
+    //         booking_id int(11) NOT NULL,
+    //         status varchar(20) NOT NULL,
+    //         email varchar(255) NOT NULL,
+    //         success tinyint(1) NOT NULL,
+    //         message text NOT NULL,
+    //         created_at datetime DEFAULT CURRENT_TIMESTAMP,
+    //         PRIMARY KEY  (id)
+    //     ) $charset_collate;";
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
-    }
+    //     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    //     dbDelta($sql);
+    // }
 
     /**
-     * Log email activity to database
+     * Log email activity to database - DISABLED
      */
-    private function log_email_activity($booking_id, $status, $email, $success, $message = '') {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'archeus_email_logs';
+    // private function log_email_activity($booking_id, $status, $email, $success, $message = '') {
+    //     global $wpdb;
+    //     $table_name = $wpdb->prefix . 'archeus_email_logs';
 
-        $data = array(
-            'booking_id' => $booking_id,
-            'status' => $status,
-            'email' => $email,
-            'success' => $success ? 1 : 0,
-            'message' => $message
-        );
+    //     $data = array(
+    //         'booking_id' => $booking_id,
+    //         'status' => $status,
+    //         'email' => $email,
+    //         'success' => $success ? 1 : 0,
+    //         'message' => $message
+    //     );
 
-        $wpdb->insert($table_name, $data);
-    }
+    //     $wpdb->insert($table_name, $data);
+    // }
 
     /**
      * Test email notification
@@ -2126,13 +2012,13 @@ class Booking_Admin {
 
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
-        // Create email logs table if not exists
-        $this->create_email_logs_table();
+        // Create email logs table if not exists - DISABLED
+        // $this->create_email_logs_table();
 
         $result = wp_mail($test_email, $subject, $message, $headers);
 
         if ($result) {
-            $this->log_email_activity(0, 'test', $test_email, true, 'Test email sent successfully');
+            // $this->log_email_activity(0, 'test', $test_email, true, 'Test email sent successfully');
             wp_redirect(admin_url('admin.php?page=archeus-booking-email-settings&message=test_success'));
         } else {
             $error_info = 'Unknown error';
@@ -2140,7 +2026,7 @@ class Booking_Admin {
             if (isset($phpmailer) && is_object($phpmailer) && method_exists($phpmailer, 'ErrorInfo')) {
                 $error_info = $phpmailer->ErrorInfo;
             }
-            $this->log_email_activity(0, 'test', $test_email, false, 'Test email failed: ' . $error_info);
+            // $this->log_email_activity(0, 'test', $test_email, false, 'Test email failed: ' . $error_info);
             wp_redirect(admin_url('admin.php?page=archeus-booking-email-settings&message=test_failed'));
         }
         exit;
@@ -2151,20 +2037,20 @@ class Booking_Admin {
      * Handle booking status update via AJAX
      */
     public function handle_booking_status_update() {
-        // Create email logs table if not exists
-        $this->create_email_logs_table();
+        // Create email logs table if not exists - DISABLED
+        // $this->create_email_logs_table();
 
-        // Log the function call
-        $this->log_email_activity(0, 'debug', 'system', true, 'handle_booking_status_update called with POST data: ' . json_encode($_POST));
+        // Log the function call - DISABLED
+        // $this->log_email_activity(0, 'debug', 'system', true, 'handle_booking_status_update called with POST data: ' . json_encode($_POST));
 
         // Verify nonce
         if (!isset($_POST['nonce']) || (!wp_verify_nonce($_POST['nonce'], 'booking_admin_nonce') && !wp_verify_nonce($_POST['nonce'], 'archeus_booking_admin_nonce'))) {
-            $this->log_email_activity(0, 'debug', 'system', false, 'Security check failed');
+            // $this->log_email_activity(0, 'debug', 'system', false, 'Security check failed');
             wp_die(__('Security check failed', 'archeus-booking'));
         }
 
         if (!current_user_can('manage_options')) {
-            $this->log_email_activity(0, 'debug', 'system', false, 'Permission denied');
+            // $this->log_email_activity(0, 'debug', 'system', false, 'Permission denied');
             wp_die(__('You do not have permission to perform this action', 'archeus-booking'));
         }
 
@@ -2175,7 +2061,7 @@ class Booking_Admin {
         // Debug: Log what we received
         error_log('Archeus Booking: AJAX received - booking_id=' . $booking_id . ', status=' . $status . ', rejection_reason_raw=' . (isset($_POST['rejection_reason']) ? '"' . $_POST['rejection_reason'] . '"' : 'NOT_SET') . ', rejection_reason_sanitized=' . ($rejection_reason ? '"' . $rejection_reason . '"' : 'NONE/EMPTY'));
 
-        $this->log_email_activity($booking_id, 'debug', 'system', true, 'Processing status update to: ' . $status . ($rejection_reason ? ' with rejection reason' : ''));
+        // $this->log_email_activity($booking_id, 'debug', 'system', true, 'Processing status update to: ' . $status . ($rejection_reason ? ' with rejection reason' : ''));
 
         $booking_db = new Booking_Database();
         $booking = $booking_db->get_booking($booking_id);
@@ -2254,15 +2140,15 @@ class Booking_Admin {
             return;
         }
 
-        // Create email logs table if not exists
-        $this->create_email_logs_table();
+        // Create email logs table if not exists - DISABLED
+        // $this->create_email_logs_table();
 
         // Check if customer email is available
         if (empty($booking->customer_email) || !is_email($booking->customer_email)) {
             // Try to find email in additional fields
             $email = $this->find_customer_email($booking);
             if (!$email) {
-                $this->log_email_activity($booking->id, $new_status, 'not_found', false, 'No email address found in booking data');
+                // $this->log_email_activity($booking->id, $new_status, 'not_found', false, 'No email address found in booking data');
                 return; // Skip email sending if no email found
             }
             $to = $email;
@@ -2279,7 +2165,7 @@ class Booking_Admin {
 
         // Check if body template is empty - if so, don't send email
         if (empty(trim($body_template))) {
-            $this->log_email_activity($booking->id, $new_status, $to, false, 'Email not sent: no email content configured');
+            // $this->log_email_activity($booking->id, $new_status, $to, false, 'Email not sent: no email content configured');
             return;
         }
 
@@ -2294,7 +2180,7 @@ class Booking_Admin {
         $result = wp_mail($to, $subject, $message, $headers);
 
         if ($result) {
-            $this->log_email_activity($booking->id, $new_status, $to, true, 'Email sent successfully');
+            // $this->log_email_activity($booking->id, $new_status, $to, true, 'Email sent successfully');
         } else {
             $error_info = 'Unknown error';
             global $phpmailer;
@@ -2308,7 +2194,7 @@ class Booking_Admin {
                     $error_info .= ' | PHP Error: ' . $last_error['message'];
                 }
             }
-            $this->log_email_activity($booking->id, $new_status, $to, false, 'Failed to send email: ' . $error_info);
+            // $this->log_email_activity($booking->id, $new_status, $to, false, 'Failed to send email: ' . $error_info);
         }
     }
 
