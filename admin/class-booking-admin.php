@@ -1453,6 +1453,7 @@ class Booking_Admin {
 
         wp_enqueue_style('booking-admin-css', ARCHEUS_BOOKING_URL . 'assets/css/admin.css', array(), ARCHEUS_BOOKING_VERSION);
         wp_enqueue_style('booking-dashboard-css', ARCHEUS_BOOKING_URL . 'assets/css/dashboard.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
+        wp_enqueue_style('booking-hide-footer-css', ARCHEUS_BOOKING_URL . 'assets/css/hide-footer.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
                 // Styles consolidated into admin.css
         
         wp_localize_script('booking-admin-js', 'archeus_booking_ajax', array(
@@ -4574,8 +4575,8 @@ class Booking_Admin {
             // Enqueue history page specific CSS
             wp_enqueue_style('booking-history-css', ARCHEUS_BOOKING_URL . 'assets/css/history.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
             ?>
-            <div class="wrap">
-                <h1><?php _e('Booking History (Riwayat Reservasi)', 'archeus-booking'); ?></h1>
+            <div class="">
+                <h1 class="title-page"><?php _e('Booking History (Riwayat Reservasi)', 'archeus-booking'); ?></h1>
 
                 <!-- Active Filters Display -->
                 <?php
@@ -4720,18 +4721,18 @@ class Booking_Admin {
                     <thead>
                         <tr>
                             <th scope="col"><?php _e('NO', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Customer Name', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Customer Email', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Nama Pemesan', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Email', 'archeus-booking'); ?></th>
                             <th scope="col">
                                 <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'booking_date', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
-                                    <?php _e('Date', 'archeus-booking'); ?>
+                                    <?php _e('Tanggal', 'archeus-booking'); ?>
                                     <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'booking_date') : ?>
                                         <span class="sorting-indicator"><?php echo isset($_GET['order']) && $_GET['order'] === 'ASC' ? '▲' : '▼'; ?></span>
                                     <?php endif; ?>
                                 </a>
                             </th>
-                            <th scope="col"><?php _e('Time', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Service', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Waktu', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Layanan', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Flow', 'archeus-booking'); ?></th>
                             <th scope="col">
                                 <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'status', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
@@ -4743,13 +4744,13 @@ class Booking_Admin {
                             </th>
                             <th scope="col">
                                 <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'created_at', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
-                                    <?php _e('Created At', 'archeus-booking'); ?>
+                                    <?php _e('Tanggal Perubahan', 'archeus-booking'); ?>
                                     <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'created_at') : ?>
                                         <span class="sorting-indicator"><?php echo isset($_GET['order']) && $_GET['order'] === 'ASC' ? '▲' : '▼'; ?></span>
                                     <?php endif; ?>
                                 </a>
                             </th>
-                            <th scope="col"><?php _e('Actions', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('Aksi', 'archeus-booking'); ?></th>
                         </tr>
                     </thead>
                     <tbody>

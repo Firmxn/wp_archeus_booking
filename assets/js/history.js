@@ -55,16 +55,16 @@ jQuery(document).ready(function($) {
 
     // Initialize localization object
     var archeus_booking_l10n = window.archeus_booking_l10n || {
-        basic_info: 'Basic Information',
-        customer_name: 'Customer Name',
-        customer_email: 'Customer Email',
-        booking_date: 'Booking Date',
-        booking_time: 'Booking Time',
-        service_type: 'Service Type',
+        basic_info: 'Informasi Dasar',
+        customer_name: 'Nama Pemesan',
+        customer_email: 'Email',
+        booking_date: 'Tanggal Pemesanan',
+        booking_time: 'Waktu Pemesanan',
+        service_type: 'Jenis Layanan',
         status: 'Status',
-        moved_at: 'Created At',
-        rejection_reason: 'Rejection Reason',
-        custom_fields: 'Custom Fields',
+        moved_at: ' Tanggal Perubahan',
+        rejection_reason: 'Alasan Penolakan',
+        custom_fields: 'Data Tambahan',
         close: 'Close',
         loading: 'Loading...',
         error: 'Error'
