@@ -20,7 +20,8 @@
   --available-color: #edfbe2;
   --holiday-color: rgba(245, 158, 11, 0.1);
   --limited-color: rgba(59, 130, 246, 0.2);
-  --past-color: #e2e3e5;
+  --past-color: #e2e3e560;
+  --full-color: #ef4444;
 }
 
 /* admin */
@@ -79,10 +80,6 @@
 
   .booking-admin-page .calendar-day.available:hover {
     transform: scale(1.02) !important;
-  }
-
-  .booking-admin-page .day-number {
-    font-size: 10px !important;
   }
 
   .booking-admin-page .booking-count {
@@ -155,22 +152,8 @@
     margin: -1px 0 !important;
   }
 
-  .booking-admin-page .calendar-day {
-    min-height: 32px !important;
-    margin: 1px !important;
-    padding: 1px !important;
-  }
-
   .booking-admin-page .calendar-day.available:hover {
     transform: scale(1.01) !important;
-  }
-
-  .booking-admin-page .day-number {
-    font-size: 9px !important;
-  }
-
-  .booking-admin-page .booking-count {
-    font-size: 6px !important;
   }
 
   .booking-admin-page .calendar-legend {
@@ -251,10 +234,6 @@
 
   .booking-admin-page .calendar-day.available:hover {
     transform: none !important;
-  }
-
-  .booking-admin-page .day-number {
-    font-size: 8px !important;
   }
 
   .booking-admin-page .booking-count {
@@ -351,6 +330,8 @@
     background-color: rgba(243, 244, 246, 0.5);
     border-radius: 6px;
   }
+
+  .booking-admin-page .day-number,
   .section-calendar .day-number {
     font-size: 10px;
   }
@@ -360,7 +341,7 @@
   }
 
   .section-calendar .calendar-legend h4 {
-    font-size: 12px;
+    font-size: 20px !important;
   }
 
   .section-calendar .calendar-legend li {
@@ -376,47 +357,55 @@
 
 /*screen 480 */
 @media (max-width: 480px) {
-  .section-calendar .calendar-legend ul {
-    gap: 8px;
-  }
   .section-calendar .booking-calendar-header {
     padding: 6px !important;
     margin-bottom: 15px !important;
     gap: 2px !important;
   }
   .section-calendar .calendar-nav-btn {
-    width: 40px !important;
-    padding: 4px 8px !important;
-    font-size: 10px !important;
-    line-height: 1.1;
-    border-radius: 4px !important;
+    width: 32px; /* beri sedikit ruang agar tidak mepet */
+    height: 32px; /* buat kotak persegi supaya vertikal center mudah */
+    display: flex;
+    align-items: center; /* center vertikal */
+    justify-content: center; /* center horizontal */
+    padding: 0; /* padding nol agar icon betul di tengah */
+    margin: 4px !important;
+    font-size: 16px !important;
+    box-sizing: border-box;
+    border-radius: 2px !important;
   }
   .section-calendar .current-month {
     font-size: 1em;
     margin: 0;
     line-height: 1.1;
     font-weight: 600;
+    font-size: 18px !important;
   }
   .section-calendar .booking-calendar {
     width: 100% !important;
     margin: 0 auto !important;
     border-radius: 4px;
+    padding: 0px !important;
   }
   .section-calendar .calendar-weekdays {
     padding: 6px 0;
-    margin-bottom: 8px;
+    margin-bottom: 0px !important;
     font-size: 11px;
   }
   .section-calendar .calendar-days {
-    gap: 4px;
-    padding: 0.7rem !important;
-    margin: -1px 0;
+    gap: 4px !important;
+    padding: 0.2rem !important;
+    margin: 0 !important;
   }
+
+  .booking-admin-page .calendar-day,
   .section-calendar .calendar-day {
-    min-height: 32px;
-    margin: 1px;
-    padding: 1px;
+    min-height: 32px !important;
+    margin: 1px !important;
+    padding: 1px !important;
+    font-size: 10px !important;
   }
+
   .section-calendar .calendar-day.available:hover {
     transform: scale(1.01);
   }
@@ -433,17 +422,19 @@
     margin-bottom: 8px;
   }
 
+  .booking-admin-page .day-number,
   .section-calendar .day-number {
-    font-size: 9px;
+    font-size: 9px !important;
   }
 
+  .booking-admin-page .booking-count,
   .section-calendar .booking-count {
-    font-size: 6px;
+    font-size: 6px !important;
   }
 
   .section-calendar .calendar-legend {
     margin: 15px 0 !important;
-    padding: 10px !important;
+    padding: 14px 24px !important;
     background-color: rgba(243, 244, 246, 0.5);
     border-radius: 6px;
   }
@@ -451,9 +442,14 @@
   .section-calendar .calendar-legend h4 {
     font-size: 11px;
   }
-
+  .section-calendar .calendar-legend ul {
+    gap: 8px !important;
+    flex-direction: column !important;
+  }
   .section-calendar .calendar-legend li {
-    font-size: 9px;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    margin-bottom: 0px !important;
   }
 
   .section-calendar .legend-color {
@@ -517,8 +513,9 @@
   .section-calendar .booking-calendar-container > * {
     margin-bottom: 6px;
   }
-  .section-calendar .day-number {
-    font-size: 8px;
+  .section-calendar .day-number,
+  .booking-admin-page .day-number {
+    font-size: 8px !important;
   }
 
   .section-calendar .booking-count {
@@ -604,8 +601,8 @@
 .legend-color,
 .section-calendar .legend-color {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   border-radius: 4px;
   margin-right: 6px;
 }
@@ -637,13 +634,14 @@
 
 .legend-color.full,
 .section-calendar .legend-color.full {
-  background-color: rgba(239, 68, 68, 0.2);
+  background-color: var(--full-color);
+  color: white;
 }
 
 .section-calendar .booking-calendar {
   min-width: 60%;
   margin: 0 auto;
-  border-radius: var(--border-radius);
+  border-radius: 10px !important;
   overflow: hidden;
   box-shadow: var(--box-shadow);
 }
@@ -651,7 +649,7 @@
 .booking-calendar {
   width: 50% !important;
   margin: 0 auto;
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius) !important;
   overflow: hidden;
   box-shadow: var(--box-shadow);
 }
@@ -771,8 +769,8 @@
 
 .calendar-day.full,
 .section-calendar .calendar-day.full {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: var(--danger-color);
+  background-color: var(--full-color);
+  color: white;
 }
 
 .calendar-day.full:hover,
@@ -780,6 +778,29 @@
   cursor: not-allowed;
 }
 
+.calendar-legend li {
+  font-size: 14px !important;
+  color: #4b5563;
+  margin-bottom: 12px !important;
+  /* font-size: 16px; */
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: justify !important;
+}
+
+.calendar-legend li,
+.section-calendar .calendar-legend li {
+  display: flex;
+  align-items: center;
+}
+
+.calendar-legend h4,
+.section-calendar .calendar-legend h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px !important;
+  color: #1f2937;
+}
 /* end merge */
 /* end merge */
 /* end merge */
@@ -789,13 +810,13 @@
 .day-number,
 .section-calendar .day-number {
   font-weight: bold;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.2;
 }
 
 .booking-count,
 .section-calendar .booking-count {
-  font-size: 8px;
+  font-size: 10px;
   display: block;
   margin-top: 2px;
   line-height: 1;
@@ -805,17 +826,9 @@
 .section-calendar .calendar-legend {
   margin: 25px 0;
   padding: 15px;
-  background-color: rgba(243, 244, 246, 0.5);
+  background-color: white;
   border-radius: 4px;
   box-shadow: var(--card-shadow);
-}
-
-.calendar-legend h4,
-.section-calendar .calendar-legend h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #1f2937;
 }
 
 .calendar-legend ul,
@@ -826,14 +839,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
-}
-
-.calendar-legend li,
-.section-calendar .calendar-legend li {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  color: #1f2937;
 }
 
 /* pengguna */

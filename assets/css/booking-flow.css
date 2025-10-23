@@ -49,7 +49,7 @@
 .booking-flow-description {
   color: #4b5563;
   margin-bottom: 16px !important;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1.5;
   text-align: justify !important;
 }
@@ -71,7 +71,7 @@
 .section-description {
   color: #4b5563;
   margin-bottom: 12px !important;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.5;
   text-align: justify !important;
 }
@@ -555,6 +555,7 @@
   text-align: center;
   text-decoration: none;
   color: inherit;
+  font-size: 14px !important;
 }
 
 .time-slot-card:hover {
@@ -933,6 +934,36 @@
   .file-upload.has-file .bf-file-name {
     padding-right: 48px;
   }
+
+  .booking-flow-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin-bottom: 8px !important;
+  text-align: center !important;
+}
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin-bottom: 6px !important;
+}
+
+  .booking-flow-description {
+  color: #4b5563;
+  margin-bottom: 16px !important;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: justify !important;
+}
+
+.section-description {
+  color: #4b5563;
+  margin-bottom: 12px !important;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: justify !important;
+}
 
 }
 

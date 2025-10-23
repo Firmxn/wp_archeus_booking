@@ -3034,6 +3034,13 @@ class Booking_Admin {
         $flow_name = sanitize_text_field($_POST['flow_name']);
         $flow_description = sanitize_textarea_field($_POST['flow_description']);
 
+        // Validate flow name is not empty
+        if (empty(trim($flow_name))) {
+            wp_send_json_error(array(
+                'message' => __('Flow name cannot be empty.', 'archeus-booking')
+            ));
+        }
+
         // Process sections
         $sections = array();
         $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
@@ -3041,12 +3048,28 @@ class Booking_Admin {
                 $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
         $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
 
+        // Check if sections array is empty
+        if (empty($types_arr) || !is_array($types_arr)) {
+            wp_send_json_error(array(
+                'message' => __('Flow must have at least one section.', 'archeus-booking')
+            ));
+        }
+
         if (is_array($types_arr)) {
             foreach ($types_arr as $index => $type) {
                 if (!empty($type)) {
+                    $section_name = sanitize_text_field($names_arr[$index] ?? '');
+
+                    // Validate section name is not empty
+                    if (empty(trim($section_name))) {
+                        wp_send_json_error(array(
+                            'message' => sprintf(__('Section name cannot be empty for section %d.', 'archeus-booking'), $index + 1)
+                        ));
+                    }
+
                     $section = array(
                         'type' => sanitize_text_field($type),
-                        'name' => sanitize_text_field($names_arr[$index] ?? ''),
+                        'name' => $section_name,
                                             );
                     if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
                     if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
@@ -3054,6 +3077,13 @@ class Booking_Admin {
                     $sections[] = $section;
                 }
             }
+        }
+
+        // Check if any valid sections were processed
+        if (empty($sections)) {
+            wp_send_json_error(array(
+                'message' => __('Flow must have at least one valid section.', 'archeus-booking')
+            ));
         }
 
         // Create new flow
@@ -3093,6 +3123,13 @@ class Booking_Admin {
         $flow_name = sanitize_text_field($_POST['flow_name']);
         $flow_description = sanitize_textarea_field($_POST['flow_description']);
 
+        // Validate flow name is not empty
+        if (empty(trim($flow_name))) {
+            wp_send_json_error(array(
+                'message' => __('Flow name cannot be empty.', 'archeus-booking')
+            ));
+        }
+
         // Process sections
         $sections = array();
         $types_arr = isset($_POST['section_types']) ? $_POST['section_types'] : (isset($_POST['step_types']) ? $_POST['step_types'] : array());
@@ -3100,12 +3137,28 @@ class Booking_Admin {
                 $desc_arr  = isset($_POST['section_descriptions']) ? $_POST['section_descriptions'] : (isset($_POST['step_descriptions']) ? $_POST['step_descriptions'] : array());
         $form_ids  = isset($_POST['section_form_ids']) ? $_POST['section_form_ids'] : (isset($_POST['step_form_ids']) ? $_POST['step_form_ids'] : array());
 
+        // Check if sections array is empty
+        if (empty($types_arr) || !is_array($types_arr)) {
+            wp_send_json_error(array(
+                'message' => __('Flow must have at least one section.', 'archeus-booking')
+            ));
+        }
+
         if (is_array($types_arr)) {
             foreach ($types_arr as $index => $type) {
                 if (!empty($type)) {
+                    $section_name = sanitize_text_field($names_arr[$index] ?? '');
+
+                    // Validate section name is not empty
+                    if (empty(trim($section_name))) {
+                        wp_send_json_error(array(
+                            'message' => sprintf(__('Section name cannot be empty for section %d.', 'archeus-booking'), $index + 1)
+                        ));
+                    }
+
                     $section = array(
                         'type' => sanitize_text_field($type),
-                        'name' => sanitize_text_field($names_arr[$index] ?? ''),
+                        'name' => $section_name,
                                             );
                     if (isset($desc_arr[$index])) { $section['section_description'] = sanitize_textarea_field($desc_arr[$index]); }
                     if ($type === 'form') { $section['form_id'] = intval($form_ids[$index] ?? 0); }
@@ -3113,6 +3166,13 @@ class Booking_Admin {
                     $sections[] = $section;
                 }
             }
+        }
+
+        // Check if any valid sections were processed
+        if (empty($sections)) {
+            wp_send_json_error(array(
+                'message' => __('Flow must have at least one valid section.', 'archeus-booking')
+            ));
         }
 
         // Update existing flow
@@ -3150,6 +3210,13 @@ class Booking_Admin {
 
         $name = sanitize_text_field($_POST['form_name']);
         $description = sanitize_textarea_field($_POST['form_description']);
+
+        // Validate form name is not empty
+        if (empty(trim($name))) {
+            wp_send_json_error(array(
+                'message' => __('Form name cannot be empty.', 'archeus-booking')
+            ));
+        }
 
         // Process fields - use field_keys_input for the new/updated keys
         $fields = array();
@@ -3292,6 +3359,13 @@ class Booking_Admin {
         $name = sanitize_text_field($_POST['form_name']);
         $slug = isset($_POST['form_slug']) ? sanitize_title($_POST['form_slug']) : '';
         $description = sanitize_textarea_field($_POST['form_description']);
+
+        // Validate form name is not empty
+        if (empty(trim($name))) {
+            wp_send_json_error(array(
+                'message' => __('Form name cannot be empty.', 'archeus-booking')
+            ));
+        }
 
         // Process fields - use field_keys_input for the new/updated keys
         $fields = array();
@@ -3792,9 +3866,9 @@ class Booking_Admin {
                             <h4><?php echo esc_html__('Keterangan', 'archeus-booking'); ?></h4>
                             <ul>
                                 <li><span class="legend-color available"></span> <?php _e('Tersedia', 'archeus-booking'); ?></li>
+                                <li><span class="legend-color limited"></span> <?php _e('Tersedia Terbatas', 'archeus-booking'); ?></li>
                                 <li><span class="legend-color unavailable"></span> <?php _e('Tidak Tersedia', 'archeus-booking'); ?></li>
                                 <li><span class="legend-color full"></span> <?php _e('Penuh', 'archeus-booking'); ?></li>
-                                <li><span class="legend-color limited"></span> <?php _e('Tersedia Terbatas', 'archeus-booking'); ?></li>
                             </ul>
                         </div>
                     </div>
@@ -5478,7 +5552,7 @@ class Booking_Admin {
                             </tr>
                         </table>
                         
-                        <h3><?php _e('Bagian Flow', 'archeus-booking'); ?></h3>
+                        <h3><?php _e('Section Flow', 'archeus-booking'); ?></h3>
                         <div id="sections-container" class="section-container">
                             <?php
                             $section_count = 0;
@@ -5499,7 +5573,7 @@ class Booking_Admin {
                             if (!$has_sections) {
                                 // Tampilkan pesan instruksi alih-alih bagian default
                                 echo '<div id="no-sections-message" class="no-sections-message">';
-                                echo '<p>' . esc_html__('Belum ada bagian yang dibuat. Tekan tombol "Tambah Bagian" untuk mulai membuat bagian flow.', 'archeus-booking') . '</p>';
+                                echo '<p>' . esc_html__('Belum ada bagian yang dibuat. Tekan tombol "Tambah Section" untuk mulai membuat section flow.', 'archeus-booking') . '</p>';
                                 echo '</div>';
                                 $section_count = 0;
                             }
@@ -5507,7 +5581,7 @@ class Booking_Admin {
                         </div>
                         
                         <div class="button-container-flex">
-                            <button type="button" id="add-section-btn" class="button button-secondary add-section"><span class="dashicons dashicons-plus"></span><?php _e('Tambah Bagian', 'archeus-booking'); ?></button>
+                            <button type="button" id="add-section-btn" class="button button-secondary add-section"><span class="dashicons dashicons-plus"></span><?php _e('Tambah Section', 'archeus-booking'); ?></button>
                         </div>
                         
                         <button type="button" id="save-booking-flow" class="button button-primary"><?php echo $edit_flow ? __('Submit', 'archeus-booking') : __('Submit', 'archeus-booking'); ?></button>
@@ -5666,7 +5740,7 @@ class Booking_Admin {
                             '<button type="button" class="button remove-step"><?php _e('Remove', 'archeus-booking'); ?></button></h4>' +
                                     '<table class="form-table">' +
                                         '<tr>' +
-                                            '<th scope="row"><label><?php _e('Tipe Bagian', 'archeus-booking'); ?></label></th>' +
+                                            '<th scope="row"><label><?php _e('Tipe Section', 'archeus-booking'); ?></label></th>' +
                                             '<td>' +
                                                 '<select name="section_types[]" class="section-type-select ab-select ab-dropdown" style="width: 100%;">' +
                                                     '<option value=""><?php _e('-- Pilih Bagian--', 'archeus-booking'); ?></option>' +
@@ -5678,12 +5752,12 @@ class Booking_Admin {
                                             '</td>' +
                                         '</tr>' +
                                         '<tr class="section-name-row">' +
-                                            '<th scope="row"><label><?php _e('Nama Bagian', 'archeus-booking'); ?></label></th>' +
-                                            '<td><input type="text" name="section_names[]" class="regular-text" placeholder="<?php _e('Masukkan nama bagian', 'archeus-booking'); ?>"></td>' +
+                                            '<th scope="row"><label><?php _e('Nama Section', 'archeus-booking'); ?></label></th>' +
+                                            '<td><input type="text" name="section_names[]" class="regular-text" placeholder="<?php _e('Masukkan nama section', 'archeus-booking'); ?>"></td>' +
                                         '</tr>' +
                                         '<tr class="section-description-row">' +
-                                            '<th scope="row"><label><?php _e('Deskripsi Bagian', 'archeus-booking'); ?></label></th>' +
-                                            '<td><textarea name="section_descriptions[]" rows="2" class="large-text" placeholder="<?php _e('Deskripsi opsional untuk bagian ini', 'archeus-booking'); ?>"></textarea></td>' +
+                                            '<th scope="row"><label><?php _e('Deskripsi Section', 'archeus-booking'); ?></label></th>' +
+                                            '<td><textarea name="section_descriptions[]" rows="2" class="large-text" placeholder="<?php _e('Deskripsi opsional untuk section ini', 'archeus-booking'); ?>"></textarea></td>' +
                                         '</tr>' +
                                         '<tr class="form-id-row" style="display: none;">' +
                                             '<th scope="row"><label><?php _e('Form', 'archeus-booking'); ?></label></th>' +
@@ -5816,7 +5890,7 @@ class Booking_Admin {
                     <th scope="row"><label><?php _e('Section Type', 'archeus-booking'); ?></label></th>
                     <td>
                         <select name="section_types[]" class="section-type-select ab-select" style="width: 100%;">
-                            <option value="" <?php selected($step_type, ''); ?>><?php _e('Pilih tipe bagian', 'archeus-booking'); ?></option>
+                            <option value="" <?php selected($step_type, ''); ?>><?php _e('Pilih tipe section', 'archeus-booking'); ?></option>
                             <option value="calendar" <?php selected($step_type, 'calendar'); ?>><?php _e('Kalender (Pilihan Tanggal)', 'archeus-booking'); ?></option>
                             <option value="services" <?php selected($step_type, 'services'); ?>><?php _e('Pilihan Layanan', 'archeus-booking'); ?></option>
                             <option value="time_slot" <?php selected($step_type, 'time_slot'); ?>><?php _e('Pilihan Slot Waktu', 'archeus-booking'); ?></option>
@@ -5826,11 +5900,11 @@ class Booking_Admin {
                 </tr>
                 <tr class="section-name-row">
                     <th scope="row"><label><?php _e('Section Name', 'archeus-booking'); ?></label></th>
-                    <td><input type="text" name="section_names[]" value="<?php echo esc_attr($step_name); ?>" class="regular-text" placeholder="<?php _e('Masukkan nama bagian', 'archeus-booking'); ?>"></td>
+                    <td><input type="text" name="section_names[]" value="<?php echo esc_attr($step_name); ?>" class="regular-text" placeholder="<?php _e('Masukkan nama section', 'archeus-booking'); ?>"></td>
                 </tr>
                 <tr class="section-description-row">
                     <th scope="row"><label><?php _e('Section Description', 'archeus-booking'); ?></label></th>
-                    <td><textarea name="section_descriptions[]" rows="2" class="large-text" placeholder="<?php _e('Deskripsi opsional untuk bagian ini', 'archeus-booking'); ?>"><?php echo esc_textarea($step_desc); ?></textarea></td>
+                    <td><textarea name="section_descriptions[]" rows="2" class="large-text" placeholder="<?php _e('Deskripsi opsional untuk section ini', 'archeus-booking'); ?>"><?php echo esc_textarea($step_desc); ?></textarea></td>
                 </tr>
                 <tr class="form-id-row" style="<?php echo $step_type === 'form' ? '' : 'display: none;'; ?>">
                     <th scope="row"><label><?php _e('Form', 'archeus-booking'); ?></label></th>

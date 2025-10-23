@@ -251,9 +251,9 @@ class Booking_Shortcodes {
                                         <h4><?php echo esc_html__('Keterangan', 'archeus-booking'); ?></h4>
                                         <ul>
                                             <li><span class="legend-color available"></span> <?php echo esc_html__('Tersedia', 'archeus-booking'); ?></li>
+                                            <li><span class="legend-color limited"></span> <?php echo esc_html__('Tersedia Terbatas', 'archeus-booking'); ?></li>
                                             <li><span class="legend-color unavailable"></span> <?php echo esc_html__('Tidak Tersedia', 'archeus-booking'); ?></li>
                                             <li><span class="legend-color full"></span> <?php echo esc_html__('Penuh', 'archeus-booking'); ?></li>
-                                            <li><span class="legend-color limited"></span> <?php echo esc_html__('Tersedia Terbatas', 'archeus-booking'); ?></li>
                                             <li><span class="legend-color selected-date"></span> <?php echo esc_html__('Tanggal Terpilih', 'archeus-booking'); ?></li>
                                         </ul>
                                     </div>
