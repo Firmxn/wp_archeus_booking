@@ -48,12 +48,25 @@ jQuery(document).ready(function($) {
         return emailRegex.test(email);
     }
 
-    // Validate phone number
+    // Validate phone number - must be 10-13 digits
     function isValidPhone(phone) {
         if (!phone) return false;
         phone = sanitizeString(phone);
-        var phoneRegex = /^[\d\s\-\+\(\)]+$/;
-        return phoneRegex.test(phone);
+        // Remove all non-digit characters (spaces, dashes, plus, parentheses, etc.)
+        var digitsOnly = phone.replace(/[^\d]/g, '');
+        // Check if the cleaned phone number has 10-13 digits
+        var phoneRegex = /^\d{10,13}$/;
+        return phoneRegex.test(digitsOnly);
+    }
+
+    // Validate NIK (Nomor Induk Kependudukan) - must be exactly 16 digits
+    function isValidNIK(nik) {
+        if (!nik) return false;
+        nik = sanitizeString(nik);
+        // Remove any spaces or dashes that might have been entered
+        nik = nik.replace(/[\s\-]/g, '');
+        var nikRegex = /^\d{16}$/;
+        return nikRegex.test(nik);
     }
 
     // Initialize the booking flow
@@ -345,6 +358,59 @@ jQuery(document).ready(function($) {
                 }
             });
 
+            // Validate email fields in direct validation
+            $('.booking-form-fields').find('input[type="email"]').each(function() {
+                var $emailField = $(this);
+                var email = $emailField.val();
+                if (email && !isValidEmail(email)) {
+                    allValid = false;
+                    $emailField.addClass('error');
+                    if (firstError === null) {
+                        firstError = $emailField;
+                    }
+                } else {
+                    $emailField.removeClass('error');
+                }
+            });
+
+            // Validate NIK fields in direct validation (fields with name containing 'nik')
+            $('.booking-form-fields').find('input[name*="nik"], input[name*="NIK"]').each(function() {
+                var $nikField = $(this);
+                var nik = $nikField.val();
+                if (nik && !isValidNIK(nik)) {
+                    allValid = false;
+                    $nikField.addClass('error');
+                    if (firstError === null) {
+                        firstError = $nikField;
+                    }
+                    // Show specific error message for NIK
+                    setTimeout(function() {
+                        alert('NIK harus berjumlah tepat 16 digit.');
+                    }, 100);
+                } else {
+                    $nikField.removeClass('error');
+                }
+            });
+
+            // Validate phone fields in direct validation
+            $('.booking-form-fields').find('input[type="tel"], input[name*="phone"], input[name*="telepon"], input[name*="hp"], input[name*="mobile"]').each(function() {
+                var $phoneField = $(this);
+                var phone = $phoneField.val();
+                if (phone && !isValidPhone(phone)) {
+                    allValid = false;
+                    $phoneField.addClass('error');
+                    if (firstError === null) {
+                        firstError = $phoneField;
+                    }
+                    // Show specific error message for phone
+                    setTimeout(function() {
+                        alert('Nomor telepon harus 10-13 digit.');
+                    }, 100);
+                } else {
+                    $phoneField.removeClass('error');
+                }
+            });
+
             console.log('Direct validation result:', allValid);
 
             if (!allValid) {
@@ -576,6 +642,48 @@ jQuery(document).ready(function($) {
                         }
                     } else {
                         $emailField.removeClass('error');
+                    }
+                });
+
+                // Validate NIK fields if they exist (fields with name containing 'nik')
+                sectionElement.find('input[name*="nik"], input[name*="NIK"]').each(function() {
+                    var $nikField = $(this);
+                    var nik = $nikField.val();
+                    console.log('NIK field value:', nik, 'valid:', isValidNIK(nik));
+                    if (nik && !isValidNIK(nik)) {
+                        valid = false;
+                        $nikField.addClass('error');
+
+                        if (firstError === null) {
+                            firstError = $nikField;
+                        }
+                        // Show specific error message for NIK
+                        setTimeout(function() {
+                            alert('NIK harus berjumlah tepat 16 digit.');
+                        }, 100);
+                    } else {
+                        $nikField.removeClass('error');
+                    }
+                });
+
+                // Validate phone fields if they exist
+                sectionElement.find('input[type="tel"], input[name*="phone"], input[name*="telepon"], input[name*="hp"], input[name*="mobile"]').each(function() {
+                    var $phoneField = $(this);
+                    var phone = $phoneField.val();
+                    console.log('Phone field value:', phone, 'valid:', isValidPhone(phone));
+                    if (phone && !isValidPhone(phone)) {
+                        valid = false;
+                        $phoneField.addClass('error');
+
+                        if (firstError === null) {
+                            firstError = $phoneField;
+                        }
+                        // Show specific error message for phone
+                        setTimeout(function() {
+                            alert('Nomor telepon harus 10-13 digit.');
+                        }, 100);
+                    } else {
+                        $phoneField.removeClass('error');
                     }
                 });
 

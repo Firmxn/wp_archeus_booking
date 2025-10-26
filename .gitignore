@@ -1,9 +1,185 @@
-# WordPress plugin
+# WordPress Plugin - Comprehensive Git Ignore
+# ===============================================
+
+# === DEPENDENCIES ===
+# Composer & npm dependencies (can be regenerated)
 /vendor/
 /node_modules/
+composer.lock
+package.json
+package-lock.json
+yarn.lock
+
+# === BUILD & GENERATED FILES ===
+# Build outputs and compiled assets
+/build/
+/dist/
+*.min.css
+*.min.js
+*.map
+/wp-admin/
+/wp-includes/
+
+# === SYSTEM & EDITOR FILES ===
+# Operating system generated files
 /.DS_Store
+.DS_Store?
+/._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE configuration files
+/.vscode/
+/.idea/
+/.vs/
+/netrwhist/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swo
+*~
+
+# Editor temporary files
+*.tmp
+*.temp
+*.cache
 *.log
-.idea/
-.vscode/
-.claude/
-assets\js\admin.js.backup
+*.bak
+*.backup
+*.orig
+*.old
+*.rej
+*.patch
+
+# === SENSITIVE FILES (SECURITY) ===
+# Environment and configuration files
+.env*
+.env.local
+.env.production
+.env.staging
+.env.development
+wp-config-local.php
+wp-config-dev.php
+config.local.php
+local-config.php
+
+# Private keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+
+# Database files
+*.sql
+*.sqlite
+*.sqlite3
+
+# Temporary upload directories
+/uploads/
+/temp/
+/tmp/
+
+# === BACKUP FILES ===
+# All backup variations
+*.bak
+*.backup
+*.orig
+*.old
+*.save
+*.sav
+*~
+
+# Specific backup files
+admin.js.backup
+*.js.backup
+*.css.backup
+*.php.backup
+
+# === AI & ASSISTANT FILES ===
+# Claude Code - Private configuration only
+.claude/settings.local.json
+.claude/cache/
+.claude/logs/
+.claude/sessions/
+.claude/temp/
+.claude/*.tmp
+.claude/output-*.md
+
+# Other AI tools (if used)
+/.chatgpt/
+/.copilot/
+/.tabnine/
+
+# === WORDPRESS SPECIFIC ===
+# WordPress core files (shouldn't be in plugin)
+/wordpress/
+/wp/
+wp-admin
+wp-includes
+
+# WordPress cache
+/wp-content/cache/
+/wp-content/uploads/cache/
+*.wpkgz
+
+# WordPress debug files
+/debug.log
+wp-content/debug.log
+
+# WordPress temporary
+wp-content/upgrade/
+wp-content/backups/
+wp-content/backup-db/
+
+# === DEVELOPMENT SPECIFIC ===
+# Local development files
+.local/
+.dev/
+/development/
+/tests/coverage/
+/tests/output/
+/phpunit.xml
+
+# Documentation builds
+/docs/build/
+/docs/.vitepress/dist/
+
+# Node.js specific
+.npm
+.node_repl_history
+.coverage
+.nyc_output
+
+# Composer specific
+composer.phar
+
+# === TEMPORARY TRACKING FILES ===
+# Files used for temporary issue tracking
+issue.txt
+TODO.md
+notes.md
+scratch.*
+
+# === ASSET SPECIFIC ===
+# Asset source files (if using build tools)
+/src/scss/
+/src/sass/
+/src/less/
+/src/ts/
+/src/jsx/
+
+# Compiled assets that can be regenerated
+/assets/css/build/
+/assets/js/build/
+/assets/dist/
+
+# Font and media optimization files
+*.woff2
+*.eot
+*.svgz
