@@ -308,7 +308,7 @@
 }
 .booking-flow-container select.ab-select optgroup {
   color: #6b7280;
-  font-weight: 600;
+  font-weight: 400 !important;
 }
 
 /* Placeholder state */
@@ -415,25 +415,70 @@
 .booking-flow-container .form-group input.error,
 .booking-flow-container .form-group select.error,
 .booking-flow-container .form-group textarea.error {
-  border-color: #ef4444 !important;
+  border-color: var(--danger-color) !important;
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+  background: rgba(239, 68, 68, 0.05) !important;
   border-radius: 8px !important;
 }
 
-.booking-flow-container .form-group .file-upload.error {
-  border-color: #ef4444 !important;
+/* input */
+/* .booking-flow-container .form-group input:not(.error),
+.booking-flow-container .form-group select:not(.error),
+.booking-flow-container .form-group textarea:not(.error) {
+  border-color: var(--primary-color); 
+  background: rgba(16, 185, 129, 0.05);
+} */
+
+/* .booking-flow-container .form-group .file-upload.error {
+  border: 2px solid #ef4444 !important;
   background: rgba(239, 68, 68, 0.05) !important;
-  border-style: solid !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+} */
+
+/* Debug test - force red border for any file-upload with error class */
+/* .file-upload.error {
+  border: 3px solid #ff0000 !important;
+  background: #ffeeee !important;
+} */
+
+/* Also target file input with error class inside file-upload container */
+/* Force border on parent when input has error class */
+/* .file-upload input.error {
+  border: 3px solid #ff0000 !important;
+  background: #ffeeee !important;
+} */
+
+/* Force container styling when child input has error */
+.file-upload:has(input.error) {
+  border: 1px solid #ff0000 !important;
+  background: #ffeeee !important;
 }
 
-.booking-flow-container .form-group .file-upload.error .bf-file-name {
+/* Fallback for browsers that don't support :has() */
+.file-upload.has-input-error {
+  border: 1px solid #ff0000 !important;
+  background: #ffeeee !important;
+}
+
+/* .file-upload input.error + .bf-file-btn {
+  border-color: #ff0000 !important;
+  background: #ffeeee !important;
+} */
+
+/* .file-upload input.error + .bf-file-btn + .bf-file-name {
+  border-color: #ff0000 !important;
+  background: #ffeeee !important;
+  color: #ff0000 !important;
+} */
+
+/* .booking-flow-container .form-group .file-upload.error .bf-file-name {
   color: #ef4444 !important;
   border-color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.1) !important;
-}
+} */
 
 .booking-flow-container .form-group .ab-dd.error .ab-dd-toggle {
-  border-color: #ef4444 !important;
+  border-color: var(--danger-color) !important;
   background: rgba(239, 68, 68, 0.05) !important;
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
 }
@@ -534,8 +579,6 @@
   white-space: nowrap;
   border: 0;
 }
-
-
 
 /* Time Slots */
 .time-slots-container {
@@ -713,9 +756,9 @@
 }
 
 .file-upload.has-file {
-  border-color: #10b981;
+  border-color: var(--success-color);
   background: rgba(16, 185, 129, 0.05);
-  border-style: solid;
+  border-style: 1px solid;
 }
 
 .bf-file-input {
@@ -734,7 +777,7 @@
   border: none;
   border-radius: 6px;
   color: white !important;
-  width: 20%;
+  width: 10%;
   padding: 0 !important;
   height: 40px !important;
   line-height: 40px !important;
@@ -754,8 +797,9 @@
 
 .bf-file-name {
   margin-top: 0px;
-  width: 70%;
+  width: 85%;
   font-size: 13px;
+  font-weight: 400 !important;
   padding: 12px;
   height: 40px;
   margin: 0 !important;
@@ -777,11 +821,11 @@
 .file-upload.has-file .bf-file-name {
   color: #10b981;
   border-color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  /* background: rgba(16, 185, 129, 0.1); */
 }
 
 .bf-file-clear {
-  width: 10% !important;
+  width: 5% !important;
   padding: 0 !important;
   background: #9ca3af;
   color: white;
@@ -832,9 +876,7 @@
     grid-template-columns: 1fr;
   }
 
-
   /* Header and navigation styles handled by main responsive rules */
-
 
   .file-upload {
     flex-direction: row;
@@ -845,7 +887,7 @@
   }
 
   .bf-file-btn {
-    width: 20%;
+    width: 15%;
     padding: 0 !important;
     font-size: 12px !important;
     height: 40px !important;
@@ -860,7 +902,7 @@
 
   .bf-file-name {
     margin-top: 0px;
-    width: 60%;
+    width: 78%;
     font-size: 13px;
     padding: 12px;
     height: 40px;
@@ -868,7 +910,7 @@
   }
 
   .bf-file-clear {
-    width: 14% !important;
+    width: 7% !important;
     padding: 0 !important;
     font-size: 12px !important;
     height: 40px !important;
@@ -894,7 +936,7 @@
   }
 
   .bf-file-btn {
-    width: 20%;
+    width: 25%;
     padding: 0 !important;
     font-size: 12px !important;
     height: 30px !important;
@@ -909,7 +951,7 @@
 
   .bf-file-name {
     margin-top: 0px;
-    width: 60%;
+    width: 65%;
     font-size: 13px;
     padding: 12px;
     height: 30px;
@@ -918,7 +960,7 @@
   }
 
   .bf-file-clear {
-    width: 14% !important;
+    width: 10% !important;
     padding: 0 !important;
     font-size: 12px !important;
     height: 30px !important;
@@ -936,35 +978,34 @@
   }
 
   .booking-flow-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--dark-color);
-  margin-bottom: 8px !important;
-  text-align: center !important;
-}
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--dark-color);
-  margin-bottom: 6px !important;
-}
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin-bottom: 8px !important;
+    text-align: center !important;
+  }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin-bottom: 6px !important;
+  }
 
   .booking-flow-description {
-  color: #4b5563;
-  margin-bottom: 16px !important;
-  font-size: 16px;
-  line-height: 1.5;
-  text-align: justify !important;
-}
+    color: #4b5563;
+    margin-bottom: 16px !important;
+    font-size: 16px;
+    line-height: 1.5;
+    text-align: justify !important;
+  }
 
-.section-description {
-  color: #4b5563;
-  margin-bottom: 12px !important;
-  font-size: 14px;
-  line-height: 1.5;
-  text-align: justify !important;
-}
-
+  .section-description {
+    color: #4b5563;
+    margin-bottom: 12px !important;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: justify !important;
+  }
 }
 
 /* Ultra compact styles for smallest mobile screens */
@@ -1006,5 +1047,4 @@
   .file-upload.has-file .bf-file-name {
     padding-right: 42px;
   }
-
 }

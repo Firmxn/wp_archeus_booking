@@ -109,10 +109,18 @@ class Booking_Plugin {
             new Booking_Shortcodes();
         }
         if (class_exists('Booking_Calendar')) {
-            new Booking_Calendar();
+            $booking_calendar = new Booking_Calendar();
+            // Ensure tables are created even if plugin wasn't re-activated after updates
+            if (method_exists($booking_calendar, 'create_tables')) {
+                $booking_calendar->create_tables();
+            }
         }
         if (class_exists('Time_Slots_Manager')) {
-            new Time_Slots_Manager();
+            $time_slots_manager = new Time_Slots_Manager();
+            // Ensure tables are created even if plugin wasn't re-activated after updates
+            if (method_exists($time_slots_manager, 'create_tables')) {
+                $time_slots_manager->create_tables();
+            }
         }
         if (class_exists('Booking_Calendar_Public')) {
             new Booking_Calendar_Public();
@@ -190,10 +198,12 @@ class Booking_Plugin {
         }
         if (class_exists('Booking_Calendar')) {
             $booking_calendar = new Booking_Calendar();
+            // Call create_tables directly to ensure it runs during activation
             $booking_calendar->create_tables();
         }
         if (class_exists('Time_Slots_Manager')) {
             $time_slots_manager = new Time_Slots_Manager();
+            // Call create_tables directly to ensure it runs during activation
             $time_slots_manager->create_tables();
         }
 

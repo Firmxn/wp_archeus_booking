@@ -251,22 +251,9 @@ jQuery(document).ready(function($) {
                 return false;
             }
 
-            // Validate all required form fields - both approaches
-            var formSection = $('.flow-section[data-type="form"]');
-            console.log('Form section found:', formSection.length);
-
-            // Approach 1: Section-based validation
-            if (formSection.length > 0) {
-                console.log('Calling validateCurrentSection for form...');
-                var isFormValid = validateCurrentSection(formSection);
-                console.log('Form validation result:', isFormValid);
-                if (!isFormValid) {
-                    console.log('Form validation failed, stopping submission');
-                    return false;
-                }
-            } else {
-                console.log('No form section found');
-            }
+            // Validate all required form fields - using direct validation approach
+            // NOTE: Section-based validation (Approach 1) is disabled because it has issues with file field validation
+            // Using direct validation (Approach 2) instead which works correctly for all field types including file inputs
 
             // Approach 2: Direct validation of all required fields in the entire form
             console.log('Performing direct validation of all required fields...');
@@ -283,6 +270,14 @@ jQuery(document).ready(function($) {
                     // For file inputs, check if any file is selected
                     isEmpty = !$field[0].files || $field[0].files.length === 0;
                     var $errorTarget = $field.closest('.file-upload');
+
+                    console.log('=== DEBUG FILE FIELD ===');
+                    console.log('File field element:', $field[0]);
+                    console.log('File field jQuery object:', $field);
+                    console.log('Looking for .file-upload container...');
+                    console.log('Container found:', $errorTarget.length);
+                    console.log('Container is:', $errorTarget[0]);
+                    console.log('Field empty:', isEmpty);
                 } else if ($field.is('select')) {
                     // For select, check if value is empty (including placeholder option)
                     // Handle both regular select and enhanced dropdown
@@ -311,8 +306,35 @@ jQuery(document).ready(function($) {
 
                 if (isEmpty) {
                     allValid = false;
+
+                    // Test: Check if jQuery addClass works
+                    console.log('=== TESTING jQuery addClass ===');
+                    console.log('Before addClass:', $errorTarget.attr('class'));
+
                     $errorTarget.addClass('error');
-                    console.log('Field is empty, added error class');
+
+                    // Force CSS style as backup
+                    $errorTarget.css({
+                        'border': '3px solid #ff0000 !important',
+                        'background': '#ffeeee !important'
+                    });
+
+                    console.log('After addClass:', $errorTarget.attr('class'));
+                    console.log('CSS applied:', $errorTarget.attr('style'));
+
+                    // Verify with direct DOM manipulation
+                    setTimeout(function() {
+                        var domElement = $errorTarget[0];
+                        console.log('DOM element classList:', domElement.classList);
+                        console.log('DOM element computed style:', window.getComputedStyle(domElement).border);
+
+                        // Fallback: Also add error class to container if input has error
+                        if ($field.hasClass('error')) {
+                            console.log('=== FALLBACK: Input has error class, adding to container ===');
+                            $errorTarget.addClass('error');
+                            $errorTarget.addClass('has-input-error');
+                        }
+                    }, 100);
 
                     // Store the first error element
                     if (firstError === null) {
@@ -429,8 +451,10 @@ jQuery(document).ready(function($) {
                 var valid = true;
                 var firstError = null;
                 var requiredFields = sectionElement.find('input[required], select[required], textarea[required]');
+                var fileFields = sectionElement.find('input[type="file"][required]');
                 console.log('=== Form Validation Debug ===');
                 console.log('Found required fields:', requiredFields.length);
+                console.log('Found required file fields:', fileFields.length);
                 requiredFields.each(function() {
                     var $field = $(this);
                     console.log('Required field:', {
@@ -452,8 +476,16 @@ jQuery(document).ready(function($) {
                         // For file inputs, check if any file is selected
                         isEmpty = !$field[0].files || $field[0].files.length === 0;
                         console.log('File field empty:', isEmpty);
+                        console.log('File field name:', $field.attr('name'));
+                        console.log('File field files:', $field[0].files);
+                        console.log('File field files length:', $field[0].files ? $field[0].files.length : 'undefined');
 
-                        // Additional file validation
+                        // For file inputs, add error class to the parent .file-upload container
+                        var $errorTarget = $field.closest('.file-upload');
+                        console.log('File upload container found:', $errorTarget.length);
+                        console.log('Container before error:', $errorTarget.attr('class'));
+
+                        // Additional file validation - only if file is selected
                         if (!isEmpty) {
                             var file = $field[0].files[0];
                             var maxSize = 5 * 1024 * 1024; // 5MB
@@ -464,7 +496,6 @@ jQuery(document).ready(function($) {
                             if (file.size > maxSize) {
                                 valid = false;
                                 alert('Ukuran file terlalu besar. Maksimal 5MB.');
-                                var $errorTarget = $field.closest('.file-upload');
                                 $errorTarget.addClass('error');
                                 return false;
                             }
@@ -473,7 +504,6 @@ jQuery(document).ready(function($) {
                             if (!allowedTypes.includes(file.type)) {
                                 valid = false;
                                 alert('Tipe file tidak diizinkan. Hanya JPG, PNG, GIF, dan PDF.');
-                                var $errorTarget = $field.closest('.file-upload');
                                 $errorTarget.addClass('error');
                                 return false;
                             }
@@ -483,14 +513,10 @@ jQuery(document).ready(function($) {
                             if (!allowedExtensions.includes(fileExtension)) {
                                 valid = false;
                                 alert('Ekstensi file tidak diizinkan. Hanya JPG, PNG, GIF, dan PDF.');
-                                var $errorTarget = $field.closest('.file-upload');
                                 $errorTarget.addClass('error');
                                 return false;
                             }
                         }
-
-                        // For file inputs, add error class to the parent .file-upload container
-                        var $errorTarget = $field.closest('.file-upload');
                     } else if ($field.is('select')) {
                         // For select, check if value is empty (including placeholder option)
                         // Handle both regular select and enhanced dropdown
@@ -522,6 +548,10 @@ jQuery(document).ready(function($) {
                         valid = false;
                         $errorTarget.addClass('error');
                         console.log('Added error class to:', $errorTarget);
+                        console.log('Container after error:', $errorTarget.attr('class'));
+                        if ($field.attr('type') === 'file') {
+                            console.log('File field is empty, validation failed');
+                        }
 
                         // Store the first error element
                         if (firstError === null) {
@@ -550,6 +580,7 @@ jQuery(document).ready(function($) {
                 });
 
                 console.log('Form validation result:', valid);
+                console.log('First error element:', firstError ? firstError.attr('name') : 'none');
                 
                 // Scroll to the first error if any
                 if (!valid && firstError !== null) {

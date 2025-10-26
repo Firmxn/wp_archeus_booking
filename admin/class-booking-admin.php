@@ -4535,7 +4535,7 @@ class Booking_Admin {
             // Enqueue history page specific CSS
             wp_enqueue_style('booking-history-css', ARCHEUS_BOOKING_URL . 'assets/css/history.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
             ?>
-            <div class="">
+            <div class="wrap booking-admin-page">
                 <h1 class="title-page"><?php _e('Booking History (Riwayat Reservasi)', 'archeus-booking'); ?></h1>
 
                 <!-- Active Filters Display -->
@@ -4588,7 +4588,7 @@ class Booking_Admin {
                     <input type="hidden" name="page" value="archeus-booking-history">
 
                     <!-- Baris 1: All Status, All Flow, Search -->
-                    <div class="filter-form-row">
+                        <div class="filter-form-row">
                             <!-- Status dropdown -->
                             <div class="filter-form-group">
                                 <label for="status" class="filter-form-label"><?php _e('Status:', 'archeus-booking'); ?></label>
@@ -4640,7 +4640,7 @@ class Booking_Admin {
                                 <input type="date" name="date_to" id="date_to" value="<?php echo esc_attr($date_to); ?>" placeholder="<?php esc_attr_e('To date...', 'archeus-booking'); ?>" class="filter-form-input">
                             </div>
                         </div>
-                    </div>
+                    <!-- </div> -->
 
                     <!-- Filter actions inside form -->
                     <div class="filter-form-actions">
