@@ -37,9 +37,6 @@ class Booking_Admin {
         add_action('admin_post_export_history_csv', array($this, 'handle_export_history_csv'));
         add_action('admin_post_nopriv_export_history_csv', array($this, 'handle_export_history_csv'));
 
-
-        add_action('admin_post_test_email_notification', array($this, 'test_email_notification'));
-
         // Add debugging page - DISABLED
         // add_action('admin_menu', array($this, 'add_debug_menu'));
         // add_action('wp_ajax_clear_email_logs', array($this, 'clear_email_logs'));
@@ -1065,6 +1062,284 @@ class Booking_Admin {
             <form method="post" action="" class="settings-form">
                 <?php wp_nonce_field('save_email_settings', 'email_settings_nonce'); ?>
                 
+                <!-- Available Email Tags Card -->
+                <div class="admin-card email-tags-main">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">
+                            <span class="icon">🏷️</span>
+                            <?php _e('Available Email Tags (Tag yang Tersedia)', 'archeus-booking'); ?>
+                        </h3>
+                    </div>
+                    <div class="admin-card-body">
+                        <p class="description" style="margin-bottom: 20px;">
+                            <?php _e('Gunakan tag berikut dalam email subject dan email content. Klik tombol copy untuk menyalin tag ke clipboard.', 'archeus-booking'); ?>
+                        </p>
+                        
+                        <div class="tags-categories-grid">
+                            <!-- Customer Information Tags -->
+                            <div class="tag-category-card">
+                                <div class="tag-category-header">
+                                    <span class="dashicons dashicons-admin-users"></span>
+                                    <h4><?php _e('Customer Information', 'archeus-booking'); ?></h4>
+                                </div>
+                                <div class="tag-category-body">
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{customer_name}</code>
+                                            <span class="tag-desc"><?php _e('Nama customer', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{customer_name}', this)" title="<?php esc_attr_e('Copy tag', 'archeus-booking'); ?>">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{customer_email}</code>
+                                            <span class="tag-desc"><?php _e('Email customer', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{customer_email}', this)" title="<?php esc_attr_e('Copy tag', 'archeus-booking'); ?>">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Booking Details Tags -->
+                            <div class="tag-category-card">
+                                <div class="tag-category-header">
+                                    <span class="dashicons dashicons-calendar-alt"></span>
+                                    <h4><?php _e('Booking Details', 'archeus-booking'); ?></h4>
+                                </div>
+                                <div class="tag-category-body">
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{booking_id}</code>
+                                            <span class="tag-desc"><?php _e('ID booking', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{booking_id}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{booking_date}</code>
+                                            <span class="tag-desc"><?php _e('Tanggal booking', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{booking_date}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{booking_time}</code>
+                                            <span class="tag-desc"><?php _e('Waktu booking', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{booking_time}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{service_type}</code>
+                                            <span class="tag-desc"><?php _e('Jenis layanan', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{service_type}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{status}</code>
+                                            <span class="tag-desc"><?php _e('Status booking', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{status}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Company Information Tags -->
+                            <div class="tag-category-card">
+                                <div class="tag-category-header">
+                                    <span class="dashicons dashicons-admin-home"></span>
+                                    <h4><?php _e('Company Information', 'archeus-booking'); ?></h4>
+                                </div>
+                                <div class="tag-category-body">
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{company_name}</code>
+                                            <span class="tag-desc"><?php _e('Nama perusahaan/website', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{company_name}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{company_url}</code>
+                                            <span class="tag-desc"><?php _e('URL website', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{company_url}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{admin_website}</code>
+                                            <span class="tag-desc"><?php _e('URL admin WordPress', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{admin_website}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{admin_email}</code>
+                                            <span class="tag-desc"><?php _e('Email admin', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{admin_email}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Date & Time Tags -->
+                            <div class="tag-category-card">
+                                <div class="tag-category-header">
+                                    <span class="dashicons dashicons-clock"></span>
+                                    <h4><?php _e('Current Date & Time', 'archeus-booking'); ?></h4>
+                                </div>
+                                <div class="tag-category-body">
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{current_date}</code>
+                                            <span class="tag-desc"><?php _e('Tanggal saat ini', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{current_date}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{current_time}</code>
+                                            <span class="tag-desc"><?php _e('Waktu saat ini', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{current_time}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{current_datetime}</code>
+                                            <span class="tag-desc"><?php _e('Tanggal & waktu saat ini', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{current_datetime}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Tags -->
+                            <div class="tag-category-card">
+                                <div class="tag-category-header">
+                                    <span class="dashicons dashicons-admin-generic"></span>
+                                    <h4><?php _e('Dynamic Tags', 'archeus-booking'); ?></h4>
+                                </div>
+                                <div class="tag-category-body">
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{greeting}</code>
+                                            <span class="tag-desc"><?php _e('Greeting otomatis (Halo [nama])', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{greeting}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{email_title}</code>
+                                            <span class="tag-desc"><?php _e('Judul email', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{email_title}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Usage Example Section -->
+                        <div class="tag-usage-example">
+                            <div class="example-header">
+                                <span class="dashicons dashicons-editor-code"></span>
+                                <h4><?php _e('Contoh Penerapan (Usage Example)', 'archeus-booking'); ?></h4>
+                            </div>
+                            <div class="example-content">
+                                <div class="example-item">
+                                    <h5><?php _e('Email Subject:', 'archeus-booking'); ?></h5>
+                                    <div class="example-code">
+                                        <code>Konfirmasi Reservasi #{booking_id} untuk {customer_name}</code>
+                                    </div>
+                                    <div class="example-result">
+                                        <span class="result-label"><?php _e('Hasil:', 'archeus-booking'); ?></span>
+                                        <span class="result-text">Konfirmasi Reservasi #12345 untuk John Doe</span>
+                                    </div>
+                                </div>
+
+                                <div class="example-item">
+                                    <h5><?php _e('Email Body:', 'archeus-booking'); ?></h5>
+                                    <div class="example-code">
+<pre><code>&lt;p&gt;{greeting}&lt;/p&gt;
+&lt;p&gt;Terima kasih telah melakukan reservasi di {company_name}.&lt;/p&gt;
+
+&lt;h3&gt;Detail Reservasi:&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;ID Booking: {booking_id}&lt;/li&gt;
+    &lt;li&gt;Layanan: {service_type}&lt;/li&gt;
+    &lt;li&gt;Tanggal: {booking_date}&lt;/li&gt;
+    &lt;li&gt;Waktu: {booking_time}&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Email dikirim pada {current_datetime}&lt;/p&gt;</code></pre>
+                                    </div>
+                                    <div class="example-result">
+                                        <span class="result-label"><?php _e('Hasil:', 'archeus-booking'); ?></span>
+                                        <div class="result-html">
+                                            <p><strong>Halo John Doe,</strong></p>
+                                            <p>Terima kasih telah melakukan reservasi di My Company.</p>
+                                            <h4 style="margin: 15px 0 10px 0;">Detail Reservasi:</h4>
+                                            <ul style="margin: 0;">
+                                                <li>ID Booking: 12345</li>
+                                                <li>Layanan: Consultation</li>
+                                                <li>Tanggal: January 15, 2025</li>
+                                                <li>Waktu: 09:00 - 10:00</li>
+                                            </ul>
+                                            <p>Email dikirim pada January 15, 2025 2:30 pm</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tips Note -->
+                        <div class="tag-tips">
+                            <div class="tips-header">
+                                <span class="dashicons dashicons-info-outline"></span>
+                                <strong><?php _e('Tips Penggunaan:', 'archeus-booking'); ?></strong>
+                            </div>
+                            <ul>
+                                <li><?php _e('Semua tag bersifat case-sensitive (harus persis sama dengan yang tertera)', 'archeus-booking'); ?></li>
+                                <li><?php _e('Format tanggal dan waktu otomatis mengikuti pengaturan WordPress (Settings > General)', 'archeus-booking'); ?></li>
+                                <li><?php _e('Custom field dari form booking dapat digunakan dengan format {nama_field}', 'archeus-booking'); ?></li>
+                                <li><?php _e('Tag dapat digunakan di Email Subject dan Email Content', 'archeus-booking'); ?></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Customer Confirmation Email Card -->
                 <div class="admin-card">
                     <div class="admin-card-header">
@@ -1366,66 +1641,6 @@ class Booking_Admin {
 
             </form>
 
-            <!-- Test Email Section -->
-            <div class="admin-card" style="margin-top: 30px;">
-                <h2><?php _e('Test Email Configuration', 'archeus-booking'); ?></h2>
-                <p><?php _e('Send a test email to verify that your email configuration is working correctly.', 'archeus-booking'); ?></p>
-
-                <!-- Email Configuration Info -->
-                <div class="email-config-info" style="background: #f9f9f9; padding: 15px; margin: 15px 0; border-left: 4px solid #0073aa;">
-                    <h4><?php _e('Current Email Configuration', 'archeus-booking'); ?></h4>
-                    <table class="widefat" style="margin-top: 10px;">
-                        <tr>
-                            <td><strong><?php _e('From Email', 'archeus-booking'); ?></strong></td>
-                            <td><?php echo esc_html(wp_get_current_user()->user_email); ?></td>
-                        </tr>
-                        <tr>
-                            <td><strong><?php _e('Site Name', 'archeus-booking'); ?></strong></td>
-                            <td><?php echo esc_html(get_bloginfo('name')); ?></td>
-                        </tr>
-                        <tr>
-                            <td><strong><?php _e('WordPress Mail Function', 'archeus-booking'); ?></strong></td>
-                            <td><?php echo function_exists('mail') ? __('Available', 'archeus-booking') : __('Not Available', 'archeus-booking'); ?></td>
-                        </tr>
-                        <tr>
-                            <td><strong><?php _e('PHPMailer', 'archeus-booking'); ?></strong></td>
-                            <td><?php echo class_exists('PHPMailer\PHPMailer\PHPMailer') || class_exists('PHPMailer') ? __('Available', 'archeus-booking') : __('Not Available', 'archeus-booking'); ?></td>
-                        </tr>
-                    </table>
-                </div>
-
-                <?php if (isset($_GET['message'])) : ?>
-                    <?php if ($_GET['message'] === 'test_success') : ?>
-                        <div class="notice notice-success is-dismissible">
-                            <p><?php _e('Test email sent successfully! Please check your inbox.', 'archeus-booking'); ?></p>
-                        </div>
-                    <?php elseif ($_GET['message'] === 'test_failed') : ?>
-                        <div class="notice notice-error is-dismissible">
-                            <p><?php _e('Failed to send test email. Please check your email configuration and server logs.', 'archeus-booking'); ?></p>
-                            <p><strong><?php _e('Debug Info:', 'archeus-booking'); ?></strong></p>
-                            <ul>
-                                <li><?php _e('Check your server\'s email configuration', 'archeus-booking'); ?></li>
-                                <li><?php _e('Verify that your hosting allows outgoing emails', 'archeus-booking'); ?></li>
-                                <li><?php _e('Check error logs for more details', 'archeus-booking'); ?></li>
-                            </ul>
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
-
-                <form method="post" action="" class="settings-form">
-                    <?php wp_nonce_field('test_email_notification', 'test_email_nonce'); ?>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row"><?php _e('Test Email Address', 'archeus-booking'); ?></th>
-                            <td>
-                                <input type="email" name="test_email" value="<?php echo esc_attr(get_option('admin_email')); ?>" class="regular-text" required>
-                                <p class="description"><?php _e('Enter the email address where you want to receive the test email.', 'archeus-booking'); ?></p>
-                            </td>
-                        </tr>
-                    </table>
-                    <?php submit_button(__('Send Test Email', 'archeus-booking'), 'secondary', 'test_email_notification'); ?>
-                </form>
-        </div>
         </div>
         <?php
     }
@@ -1451,9 +1666,19 @@ class Booking_Admin {
             wp_enqueue_script('booking-history-js', ARCHEUS_BOOKING_URL . 'assets/js/history.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
         }
 
+        // Load email.js specifically for email settings page
+        if ($page === 'archeus-booking-email') {
+            wp_enqueue_script('booking-email-js', ARCHEUS_BOOKING_URL . 'assets/js/email.js', array(), ARCHEUS_BOOKING_VERSION, false);
+        }
+
         wp_enqueue_style('booking-admin-css', ARCHEUS_BOOKING_URL . 'assets/css/admin.css', array(), ARCHEUS_BOOKING_VERSION);
         wp_enqueue_style('booking-dashboard-css', ARCHEUS_BOOKING_URL . 'assets/css/dashboard.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
         wp_enqueue_style('booking-hide-footer-css', ARCHEUS_BOOKING_URL . 'assets/css/hide-footer.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
+        
+        // Load email.css specifically for email settings page
+        if ($page === 'archeus-booking-email') {
+            wp_enqueue_style('booking-email-css', ARCHEUS_BOOKING_URL . 'assets/css/email.css', array('booking-admin-css'), ARCHEUS_BOOKING_VERSION);
+        }
                 // Styles consolidated into admin.css
         
         wp_localize_script('booking-admin-js', 'archeus_booking_ajax', array(
@@ -1983,61 +2208,6 @@ class Booking_Admin {
 
     //     $wpdb->insert($table_name, $data);
     // }
-
-    /**
-     * Test email notification
-     */
-    public function test_email_notification() {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'archeus-booking'));
-        }
-
-        if (!isset($_POST['test_email_nonce']) || !wp_verify_nonce($_POST['test_email_nonce'], 'test_email_notification')) {
-            wp_die(__('Security check failed', 'archeus-booking'));
-        }
-
-        $test_email = sanitize_email($_POST['test_email']);
-        if (!is_email($test_email)) {
-            wp_die(__('Invalid email address', 'archeus-booking'));
-        }
-
-        $subject = __('Test Email Notification', 'archeus-booking');
-        $message = '<html><body>';
-        $message .= '<div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; padding: 20px;">';
-        $message .= '<h2 style="color: #333;">' . __('Test Email Successful', 'archeus-booking') . '</h2>';
-        $message .= '<p>' . __('If you receive this email, it means the email notification system is working correctly.', 'archeus-booking') . '</p>';
-        $message .= '<p>' . __('This is a test email from your Archeus Booking plugin.', 'archeus-booking') . '</p>';
-        $message .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
-        $message .= '<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">' . __('Sent Time', 'archeus-booking') . '</td>';
-        $message .= '<td style="padding: 8px; border: 1px solid #ddd;">' . current_time('mysql') . '</td></tr>';
-        $message .= '<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">' . __('Site', 'archeus-booking') . '</td>';
-        $message .= '<td style="padding: 8px; border: 1px solid #ddd;">' . get_bloginfo('name') . '</td></tr>';
-        $message .= '</table>';
-        $message .= '<p>' . __('Salam hormat,', 'archeus-booking') . '</p>';
-        $message .= '<p><strong>' . get_bloginfo('name') . '</strong></p>';
-        $message .= '</div></body></html>';
-
-        $headers = array('Content-Type: text/html; charset=UTF-8');
-
-        // Create email logs table if not exists - DISABLED
-        // $this->create_email_logs_table();
-
-        $result = wp_mail($test_email, $subject, $message, $headers);
-
-        if ($result) {
-            // $this->log_email_activity(0, 'test', $test_email, true, 'Test email sent successfully');
-            wp_redirect(admin_url('admin.php?page=archeus-booking-email-settings&message=test_success'));
-        } else {
-            $error_info = 'Unknown error';
-            global $phpmailer;
-            if (isset($phpmailer) && is_object($phpmailer) && method_exists($phpmailer, 'ErrorInfo')) {
-                $error_info = $phpmailer->ErrorInfo;
-            }
-            // $this->log_email_activity(0, 'test', $test_email, false, 'Test email failed: ' . $error_info);
-            wp_redirect(admin_url('admin.php?page=archeus-booking-email-settings&message=test_failed'));
-        }
-        exit;
-    }
 
     
     /**
