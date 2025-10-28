@@ -1156,6 +1156,15 @@ class Booking_Admin {
                                             <span class="dashicons dashicons-clipboard"></span>
                                         </button>
                                     </div>
+                                    <div class="tag-row">
+                                        <div class="tag-info">
+                                            <code class="tag-code">{time_slot}</code>
+                                            <span class="tag-desc"><?php _e('Time slot (jika menggunakan Time Slots Manager)', 'archeus-booking'); ?></span>
+                                        </div>
+                                        <button type="button" class="copy-tag-btn" onclick="copyTagToClipboard('{time_slot}', this)">
+                                            <span class="dashicons dashicons-clipboard"></span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1335,6 +1344,12 @@ class Booking_Admin {
                                 <li><?php _e('Format tanggal dan waktu otomatis mengikuti pengaturan WordPress (Settings > General)', 'archeus-booking'); ?></li>
                                 <li><?php _e('Custom field dari form booking dapat digunakan dengan format {nama_field}', 'archeus-booking'); ?></li>
                                 <li><?php _e('Tag dapat digunakan di Email Subject dan Email Content', 'archeus-booking'); ?></li>
+                                <li><strong><?php _e('Perbedaan {booking_time} vs {time_slot}:', 'archeus-booking'); ?></strong>
+                                    <ul style="margin-top: 5px;">
+                                        <li><code>{booking_time}</code> - <?php _e('Waktu booking (format: "09:00 - 10:00" atau "14:30")', 'archeus-booking'); ?></li>
+                                        <li><code>{time_slot}</code> - <?php _e('Slot waktu lengkap dengan tanggal (format: "2025-01-15 09:00-10:00"). Hanya tersedia jika menggunakan Time Slots Manager.', 'archeus-booking'); ?></li>
+                                    </ul>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -2503,6 +2518,7 @@ class Booking_Admin {
             'booking_date' => !empty($booking->booking_date) ? date_i18n(get_option('date_format'), strtotime($booking->booking_date)) : '',
             'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
             'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
+            'time_slot' => !empty($booking->time_slot) ? $booking->time_slot : '',
             'status' => $status,
             'company_name' => get_bloginfo('name'),
             'company_url' => get_bloginfo('url'),
