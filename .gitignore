@@ -75,10 +75,15 @@ local-config.php
 *.crt
 *.csr
 
-# Database files
+# Database files (exports, dumps, backups)
 *.sql
 *.sqlite
 *.sqlite3
+*.db
+*_backup.sql
+*_dump.sql
+wp_*.sql
+database_*.sql
 
 # Temporary upload directories
 /uploads/
@@ -103,6 +108,7 @@ admin.js.backup
 
 # === AI & ASSISTANT FILES ===
 # Claude Code - Private configuration only
+.claude/
 .claude/settings.local.json
 .claude/cache/
 .claude/logs/
@@ -110,6 +116,11 @@ admin.js.backup
 .claude/temp/
 .claude/*.tmp
 .claude/output-*.md
+
+# MCP (Model Context Protocol) configuration
+.mcp.json
+mcp.json
+*.mcp.json
 
 # Other AI tools (if used)
 /.chatgpt/
@@ -162,9 +173,14 @@ composer.phar
 # === TEMPORARY TRACKING FILES ===
 # Files used for temporary issue tracking
 issue.txt
+issues.txt
 TODO.md
+NOTES.md
 notes.md
+notes.txt
 scratch.*
+temp.*
+debug.*
 
 # === ASSET SPECIFIC ===
 # Asset source files (if using build tools)
