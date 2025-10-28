@@ -1709,8 +1709,6 @@ class Booking_Admin {
                     <option value=""><?php _e('Semua Status', 'archeus-booking'); ?></option>
                     <option value="pending"><?php _e('Menunggu (Pending)', 'archeus-booking'); ?></option>
                     <option value="approved"><?php _e('Disetujui (Approved)', 'archeus-booking'); ?></option>
-                    <option value="completed"><?php _e('Selesai (Completed)', 'archeus-booking'); ?></option>
-                    <option value="rejected"><?php _e('Ditolak (Rejected)', 'archeus-booking'); ?></option>
                 </select>
                 
                 <button id="refresh-bookings" class="button ab-icon-btn" aria-label="<?php esc_attr_e('Muat Ulang', 'archeus-booking'); ?>" title="<?php esc_attr_e('Muat Ulang', 'archeus-booking'); ?>">
