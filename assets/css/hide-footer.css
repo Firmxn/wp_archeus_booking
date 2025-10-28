@@ -1,0 +1,96 @@
+/* Hide WordPress Footer for Archeus Booking Plugin */
+
+/* Hide the entire WordPress footer section */
+#wpfooter {
+    display: none !important;
+}
+
+/* Alternative selectors for different WordPress themes */
+#footer {
+    display: none !important;
+}
+
+#colophon {
+    display: none !important;
+}
+
+.site-footer {
+    display: none !important;
+}
+
+.footer {
+    display: none !important;
+}
+
+/* Remove any extra space that might be left after hiding footer */
+body.admin-page {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Ensure content area extends to bottom when footer is hidden */
+.wrap {
+    min-height: calc(100vh - 100px) !important;
+}
+
+/* For different WordPress admin color schemes */
+.admin-color-blue #wpfooter,
+.admin-color-coffee #wpfooter,
+.admin-color-ectoplasm #wpfooter,
+.admin-color-light #wpfooter,
+.admin-color-midnight #wpfooter,
+.admin-color-modern #wpfooter,
+.admin-color-sunrise #wpfooter {
+    display: none !important;
+}
+
+/* Ensure page doesn't have unnecessary whitespace */
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+}
+
+/* Alternative method - use visibility instead of display */
+#wpfooter[role="contentinfo"] {
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Remove footer upgrade notice specifically */
+#footer-upgrade {
+    display: none !important;
+}
+
+/* Remove footer thank you message */
+#footer-thankyou {
+    display: none !important;
+}
+
+/* Clear any potential floating elements */
+.clear {
+    display: none !important;
+}
+
+/* Hide footer in all WordPress contexts */
+#wpadminbar ~ #wpfooter,
+#adminmenuwrap ~ #wpfooter,
+#adminmenuback ~ #wpfooter {
+    display: none !important;
+}
+
+/* Hide footer in mobile responsive views */
+@media (max-width: 782px) {
+    #wpfooter {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
+
+/* Additional hide for footer in iframe contexts if used */
+iframe #wpfooter {
+    display: none !important;
+}

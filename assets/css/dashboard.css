@@ -1,0 +1,198 @@
+/*
+ * Archeus Booking Dashboard CSS
+ * Pagination styles for dashboard
+ */
+
+/* ============================================
+   PAGINATION STYLES
+   ============================================ */
+
+   :root{
+    --primary-color: #54b335;
+    --primary-color-hover: #357622;
+    --success-color: #ecfdf5;
+   }
+/* Tablenav container */
+.tablenav {
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.tablenav.bottom {
+    margin-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 15px;
+}
+
+/* Pagination container */
+.tablenav-pages {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Displaying items count */
+.displaying-num {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    margin-right: 15px;
+    padding: 6px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.total-type-count {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+/* Pagination links container */
+.pagination-links {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-wrap: wrap;
+}
+
+/* Pagination buttons */
+.pagination-links .button,
+.pagination-links .page-numbers,
+.pagination-links .first-page,
+.pagination-links .prev-page,
+.pagination-links .next-page,
+.pagination-links .last-page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    margin: 0 2px;
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #555;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 1px 2px var(--success-color);
+}
+
+.pagination-links .button:hover,
+.pagination-links .page-numbers:hover,
+.pagination-links .first-page:hover,
+.pagination-links .prev-page:hover,
+.pagination-links .next-page:hover,
+.pagination-links .last-page:hover {
+    background: #f8f9fa;
+    border-color: var(--primary-color-hover);
+    color: var(--primary-color-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pagination-links .button:focus,
+.pagination-links .page-numbers:focus,
+.pagination-links .first-page:focus,
+.pagination-links .prev-page:focus,
+.pagination-links .next-page:focus,
+.pagination-links .last-page:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--success-color);
+}
+
+/* Current page */
+.pagination-links .paging-input {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    margin: 0 2px;
+    background: var(--primary-color);
+    color: #fff;
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: default;
+    box-shadow: 0 2px 4px var(--success-color);
+}
+
+/* Navigation arrows */
+.pagination-links .first-page::before {
+    content: "⏮";
+    font-size: 12px;
+}
+
+.pagination-links .prev-page::before {
+    content: "◀";
+    font-size: 12px;
+}
+
+.pagination-links .next-page::after {
+    content: "▶";
+    font-size: 12px;
+}
+
+.pagination-links .last-page::after {
+    content: "⏭";
+    font-size: 12px;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 782px) {
+    .tablenav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .tablenav-pages {
+        justify-content: center;
+        order: -1;
+    }
+
+    .pagination-links {
+        justify-content: center;
+    }
+
+    .wp-list-table.widefat {
+        font-size: 13px;
+    }
+
+    .wp-list-table.widefat th,
+    .wp-list-table.widefat td {
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 600px) {
+    .pagination-links .button,
+    .pagination-links .page-numbers,
+    .pagination-links .paging-input {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .displaying-num {
+        font-size: 12px;
+        text-align: center;
+    }
+}

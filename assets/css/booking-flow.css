@@ -1,0 +1,1050 @@
+/**
+ * Booking Flow CSS - Modern UI
+ * Version: 1.0.0
+ */
+
+:root {
+  --primary-color: #54b335; /* A more modern blue */
+  --primary-hover: #3b56c4;
+  --secondary-color: #6c757d;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+  --light-color: #f3f4f6;
+  --dark-color: #1f2937;
+  --border-color: #e2e8f0;
+
+  --button-primary-hover: #357622;
+
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+/* General Container */
+.booking-flow-container {
+  max-width: 100%;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: none;
+  border-radius: var(--border-radius);
+  background: #fff;
+  box-shadow: var(--box-shadow);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+}
+
+.booking-flow-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin-bottom: 8px !important;
+  text-align: center !important;
+}
+
+.booking-flow-description {
+  color: #4b5563;
+  margin-bottom: 16px !important;
+  font-size: 18px;
+  line-height: 1.5;
+  text-align: justify !important;
+}
+
+/* Section Styling */
+.flow-section {
+  display: block;
+  margin-bottom: 2rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin-bottom: 6px !important;
+}
+
+.section-description {
+  color: #4b5563;
+  margin-bottom: 12px !important;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: justify !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Styling */
+.booking-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+/* Full width untuk textarea dan file upload */
+.form-group:has(textarea),
+.form-group:has(.file-upload),
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Fallback untuk browser yang tidak mendukung :has() */
+.form-group textarea,
+.form-group .file-upload,
+.form-group.full-width {
+  width: 100%;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+/* Apply WordPress admin styles to booking flow inputs */
+.booking-flow-container input[type='text'],
+.booking-flow-container input[type='email'],
+.booking-flow-container input[type='number'],
+.booking-flow-container input[type='date'],
+.booking-flow-container input[type='time'],
+.booking-flow-container input[type='password'],
+.booking-flow-container input[type='search'],
+.booking-flow-container input[type='url'],
+.booking-flow-container input[type='tel'],
+.booking-flow-container select,
+/* .booking-flow-container textarea, */
+.booking-flow-container .widefat input,
+.booking-flow-container .widefat select,
+/* .booking-flow-container .widefat textarea, */
+.booking-flow-container .form-group input,
+.booking-flow-container .form-group select
+/* .booking-flow-container .form-group textarea  */ {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  height: 40px !important;
+  min-height: 40px !important;
+  transition: all 0.25s ease;
+  background-color: #ffffff;
+  color: #111827;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+/* Special case for textarea */
+.booking-flow-container textarea,
+.booking-flow-container .widefat textarea,
+.booking-flow-container .form-group textarea {
+  min-height: auto !important;
+  resize: vertical !important;
+  padding: 12px !important;
+}
+
+/* Focus states untuk booking flow */
+.booking-flow-container input:focus,
+.booking-flow-container select:focus,
+.booking-flow-container textarea:focus,
+.booking-flow-container .widefat input:focus,
+.booking-flow-container .widefat select:focus,
+.booking-flow-container .widefat textarea:focus,
+.booking-flow-container .form-group input:focus,
+.booking-flow-container .form-group select:focus,
+.booking-flow-container .form-group textarea:focus {
+  border-color: #8b92a9 !important;
+  box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3) !important;
+  outline: none;
+}
+
+/* Checkbox dan Radio styles */
+.booking-flow-container input[type="checkbox"],
+.booking-flow-container input[type="radio"],
+.booking-flow-container .widefat input[type="checkbox"],
+.booking-flow-container .widefat input[type="radio"],
+.booking-flow-container .form-group input[type="checkbox"],
+.booking-flow-container .form-group input[type="radio"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  box-sizing: border-box;
+  width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  max-width: 20px !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  background-color: #fff !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  vertical-align: middle !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  background-image: none !important;
+  accent-color: unset !important;
+}
+
+.booking-flow-container input[type="checkbox"]::before,
+.booking-flow-container input[type="radio"]::before {
+  content: none !important;
+}
+
+/* Custom checkbox styling */
+.booking-flow-container input[type="checkbox"]:checked,
+.booking-flow-container .widefat input[type="checkbox"]:checked,
+.booking-flow-container .form-group input[type="checkbox"]:checked {
+  background-color: #54b335 !important;
+  border-color: #54b335 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 12px 12px !important;
+}
+
+/* Radio button styling */
+.booking-flow-container input[type="radio"],
+.booking-flow-container .widefat input[type="radio"],
+.booking-flow-container .form-group input[type="radio"] {
+  border-radius: 50% !important;
+}
+
+.booking-flow-container input[type="radio"]:checked,
+.booking-flow-container .widefat input[type="radio"]:checked,
+.booking-flow-container .form-group input[type="radio"]:checked {
+  background-color: #54b335 !important;
+  border-color: #54b335 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Ccircle fill='white' cx='4' cy='4' r='3'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 8px 8px !important;
+}
+
+/* Hover states */
+.booking-flow-container input[type="checkbox"]:hover,
+.booking-flow-container input[type="radio"]:hover,
+.booking-flow-container .widefat input[type="checkbox"]:hover,
+.booking-flow-container .widefat input[type="radio"]:hover,
+.booking-flow-container .form-group input[type="checkbox"]:hover,
+.booking-flow-container .form-group input[type="radio"]:hover {
+  border-color: #54b335 !important;
+  box-shadow: 0 0 0 2px rgba(84, 179, 53, 0.2) !important;
+}
+
+/* Focus states */
+.booking-flow-container input[type="checkbox"]:focus,
+.booking-flow-container input[type="radio"]:focus {
+  outline: 2px solid #54b335 !important;
+  outline-offset: 2px !important;
+}
+
+/* Custom Select Box Styles - Same as Admin */
+.booking-flow-container .ab-select,
+.booking-flow-container select.ab-select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  padding: 8px 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  line-height: 1.4 !important;
+  box-shadow: none !important;
+  transition: all 0.25s ease !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 2h1.4L6 6.6 10.6 2H12z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 8px !important;
+  padding-right: 40px !important;
+}
+
+.booking-flow-container .ab-select:focus,
+.booking-flow-container select.ab-select:focus {
+  border-color: #8b92a9 !important;
+  box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3) !important;
+  outline: none !important;
+}
+
+/* Option styling untuk browser yang mendukung */
+.booking-flow-container select.ab-select option {
+  background: #ffffff;
+  color: #111827;
+}
+.booking-flow-container select.ab-select option:hover,
+.booking-flow-container select.ab-select option:focus {
+  background: rgba(84, 179, 53, 0.12) !important;
+  color: #111827 !important;
+}
+.booking-flow-container select.ab-select option:active {
+  background: rgba(84, 179, 53, 0.18) !important;
+  color: #111827 !important;
+}
+.booking-flow-container select.ab-select option:checked {
+  background: #54b335 !important;
+  color: #ffffff !important;
+}
+.booking-flow-container select.ab-select optgroup {
+  color: #6b7280;
+  font-weight: 400 !important;
+}
+
+/* Placeholder state */
+.booking-flow-container .ab-select.is-placeholder {
+  color: #6b7280 !important;
+}
+
+/* Custom Dropdown Styles */
+.booking-flow-container .ab-dd {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 160px;
+}
+
+.booking-flow-container .ab-dd .ab-dd-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  padding: 8px 12px;
+  background: #fff;
+  color: #111827;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.booking-flow-container .ab-dd .ab-dd-toggle:focus {
+  outline: none;
+  border-color: #8b92a9;
+  box-shadow: 0 0 0 1px rgba(139, 146, 169, 0.3);
+}
+
+.booking-flow-container .ab-dd .ab-dd-caret {
+  margin-left: 8px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.booking-flow-container .ab-dd.open .ab-dd-caret {
+  transform: rotate(180deg);
+}
+
+.booking-flow-container .ab-dd .ab-dd-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-height: 260px;
+  overflow: auto;
+  z-index: 99999;
+  display: none;
+}
+
+.booking-flow-container .ab-dd.open .ab-dd-menu {
+  display: block;
+}
+
+.booking-flow-container .ab-dd .ab-dd-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #111827;
+  font-size: 14px;
+  transition: background-color 0.15s ease;
+}
+
+.booking-flow-container .ab-dd .ab-dd-item:hover,
+.booking-flow-container .ab-dd .ab-dd-item:focus {
+  background: rgba(84, 179, 53, 0.12);
+}
+
+.booking-flow-container .ab-dd .ab-dd-item.is-selected {
+  background: #54b335;
+  color: #fff;
+}
+
+.booking-flow-container .ab-hidden-select {
+  display: none !important;
+}
+
+.booking-flow-container select.ab-hidden-select {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Error states */
+.booking-flow-container .form-group input.error,
+.booking-flow-container .form-group select.error,
+.booking-flow-container .form-group textarea.error {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+  border-radius: 8px !important;
+}
+
+/* input */
+/* .booking-flow-container .form-group input:not(.error),
+.booking-flow-container .form-group select:not(.error),
+.booking-flow-container .form-group textarea:not(.error) {
+  border-color: var(--primary-color); 
+  background: rgba(16, 185, 129, 0.05);
+} */
+
+/* .booking-flow-container .form-group .file-upload.error {
+  border: 2px solid #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+} */
+
+/* Debug test - force red border for any file-upload with error class */
+/* .file-upload.error {
+  border: 3px solid #ff0000 !important;
+  background: #ffeeee !important;
+} */
+
+/* Also target file input with error class inside file-upload container */
+/* Force border on parent when input has error class */
+/* .file-upload input.error {
+  border: 3px solid #ff0000 !important;
+  background: #ffeeee !important;
+} */
+
+/* Force container styling when child input has error */
+.file-upload:has(input.error) {
+  border: 1px solid #ff0000 !important;
+  background: #ffeeee !important;
+}
+
+/* Fallback for browsers that don't support :has() */
+.file-upload.has-input-error {
+  border: 1px solid #ff0000 !important;
+  background: #ffeeee !important;
+}
+
+/* .file-upload input.error + .bf-file-btn {
+  border-color: #ff0000 !important;
+  background: #ffeeee !important;
+} */
+
+/* .file-upload input.error + .bf-file-btn + .bf-file-name {
+  border-color: #ff0000 !important;
+  background: #ffeeee !important;
+  color: #ff0000 !important;
+} */
+
+/* .booking-flow-container .form-group .file-upload.error .bf-file-name {
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+} */
+
+.booking-flow-container .form-group .ab-dd.error .ab-dd-toggle {
+  border-color: var(--danger-color) !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+}
+
+.required {
+  color: var(--danger-color);
+  margin-left: 0.25rem;
+}
+
+/* Button Styling - Override WordPress button styles */
+.booking-flow-container .submit-booking-btn.button.button-primary {
+  display: block;
+  width: 100%;
+  padding: 0 12px !important;
+  background: #54b335 !important;
+  color: white !important;
+  border: 1px solid #54b335 !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  height: 40px !important;
+  line-height: 1.4 !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.booking-flow-container .submit-booking-btn.button.button-primary:hover {
+  background: var(--button-primary-hover) !important;
+  border-color: var(--button-primary-hover) !important;
+  color: white !important;
+}
+
+.booking-flow-container .submit-booking-btn.button.button-primary:focus {
+  outline: 1px solid #54b335 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px rgba(84, 179, 53, 0.2) !important;
+}
+
+/* Service Cards */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.service-card {
+  display: block;
+  padding: 1.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  color: inherit;
+}
+
+.service-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+}
+
+.service-card.selected {
+  border-color: var(--primary-color);
+  background: rgba(74, 108, 247, 0.05);
+}
+
+.service-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--dark-color);
+}
+
+.service-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0.5rem 0;
+}
+
+.service-duration {
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Time Slots */
+.time-slots-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.time-slot-card {
+  display: block;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  font-size: 14px !important;
+}
+
+.time-slot-card:hover {
+  border-color: var(--primary-color);
+}
+
+.time-slot-card.selected {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+}
+
+.time-slot-card h5 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Loading States */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: black;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--light-color);
+  border-top: 5px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success/Error Messages */
+.success-message,
+.error-message {
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.success-message {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 2rem 2rem;
+  margin: 2rem 0;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+  position: relative;
+  overflow: hidden;
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.success-message::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/><path d="M30 50 L45 65 L70 35" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+    no-repeat center;
+  background-size: 200px 200px;
+  opacity: 0.1;
+}
+
+.success-message::after {
+  content: "✓";
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.2);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* Empty State */
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--secondary-color);
+}
+
+/* Notice Message */
+.notice {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  border: 1px solid #fcd34d;
+}
+
+/* Custom File Upload */
+.file-upload {
+  /* position: relative; */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
+  padding: 12px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  min-height: 64px;
+}
+
+.file-upload:hover {
+  border-color: #54b335;
+  background: rgba(84, 179, 53, 0.02);
+}
+
+.file-upload.has-file {
+  border-color: var(--success-color);
+  background: rgba(16, 185, 129, 0.05);
+  border-style: 1px solid;
+}
+
+.bf-file-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 14px;
+}
+
+.bf-file-btn {
+  background: var(--primary-color) !important;
+  cursor: pointer !important;
+  border: none;
+  border-radius: 6px;
+  color: white !important;
+  width: 10%;
+  padding: 0 !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  align-self: center !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bf-file-btn:hover {
+  background: var(--button-primary-hover) !important;
+}
+
+.bf-file-name {
+  margin-top: 0px;
+  width: 85%;
+  font-size: 13px;
+  font-weight: 400 !important;
+  padding: 12px;
+  height: 40px;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  text-align: left !important;
+  align-self: center !important;
+  cursor: pointer !important;
+  border: none;
+  border-radius: 6px;
+  color: black;
+  background: white;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.file-upload.has-file .bf-file-name {
+  color: #10b981;
+  border-color: #10b981;
+  /* background: rgba(16, 185, 129, 0.1); */
+}
+
+.bf-file-clear {
+  width: 5% !important;
+  padding: 0 !important;
+  background: #9ca3af;
+  color: white;
+  font-size: 12px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  align-self: center !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  cursor: pointer !important;
+  border: none !important;
+  border-radius: 6px !important;
+}
+
+.bf-file-clear:hover {
+  background: #6b7280;
+}
+
+.bf-file-clear::before {
+  content: "×";
+  font-weight: normal;
+  font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .booking-flow-container {
+    /* margin: 1rem; */
+    padding: 1rem;
+  }
+
+  .booking-form-fields {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .time-slots-container {
+    grid-template-columns: 1fr;
+  }
+
+  /* Header and navigation styles handled by main responsive rules */
+
+  .file-upload {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .bf-file-btn {
+    width: 15%;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    align-self: center !important;
+  }
+
+  .bf-file-name {
+    margin-top: 0px;
+    width: 78%;
+    font-size: 13px;
+    padding: 12px;
+    height: 40px;
+    text-align: left;
+  }
+
+  .bf-file-clear {
+    width: 7% !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    align-self: center !important;
+  }
+}
+
+/* Additional responsive styles for smaller screens */
+@media (max-width: 480px) {
+  /* File Upload responsive styles for mobile */
+  .file-upload {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 8px;
+    min-height: auto;
+  }
+
+  .bf-file-btn {
+    width: 25%;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    align-self: center !important;
+  }
+
+  .bf-file-name {
+    margin-top: 0px;
+    width: 65%;
+    font-size: 13px;
+    padding: 12px;
+    height: 30px;
+    line-height: 30px !important;
+    text-align: left;
+  }
+
+  .bf-file-clear {
+    width: 10% !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    align-self: center !important;
+  }
+
+  .file-upload.has-file .bf-file-name {
+    padding-right: 48px;
+  }
+
+  .booking-flow-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin-bottom: 8px !important;
+    text-align: center !important;
+  }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin-bottom: 6px !important;
+  }
+
+  .booking-flow-description {
+    color: #4b5563;
+    margin-bottom: 16px !important;
+    font-size: 16px;
+    line-height: 1.5;
+    text-align: justify !important;
+  }
+
+  .section-description {
+    color: #4b5563;
+    margin-bottom: 12px !important;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: justify !important;
+  }
+}
+
+/* Ultra compact styles for smallest mobile screens */
+@media (max-width: 320px) {
+  /* File Upload responsive styles for ultra small mobile */
+  .file-upload {
+    padding: 12px;
+    gap: 0.5rem;
+  }
+
+  .bf-file-btn {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    text-align: center !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .bf-file-name {
+    font-size: 12px;
+    padding: 10px;
+    height: 40px;
+  }
+
+  .bf-file-clear {
+    width: 32px;
+    height: 32px;
+    top: 6px;
+    right: 6px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    line-height: 32px !important;
+  }
+
+  .file-upload.has-file .bf-file-name {
+    padding-right: 42px;
+  }
+}

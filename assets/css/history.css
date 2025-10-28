@@ -1,0 +1,423 @@
+/* Clear History Button Styles */
+.clear-history-button {
+  background-color: #dc2626 !important;
+  color: white !important;
+  border: 1px solid #b91c1c !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+}
+
+.clear-history-button:hover {
+  background-color: #b91c1c !important;
+  border-color: #991b1b !important;
+}
+
+.clear-history-button:focus {
+  outline: 1px solid #991b1b !important;
+  outline-offset: 1px !important;
+}
+
+.clear-history-button:disabled {
+  background-color: #e5e7eb !important;
+  border-color: #d1d5db !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+/* Export Buttons Styles */
+.export-html-button,
+.export-excel-button {
+  background-color: #059669 !important;
+  color: white !important;
+  border: 1px solid #047857 !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+  margin: 0 4px !important;
+}
+
+.export-html-button {
+  background-color: #1d4ed8 !important;
+  border-color: #1e40af !important;
+}
+
+.export-excel-button:hover {
+  background-color: #047857 !important;
+  border-color: #065f46 !important;
+}
+
+.export-html-button:hover {
+  background-color: #1e40af !important;
+  border-color: #1e3a8a !important;
+}
+
+.export-excel-button:focus {
+  outline: 1px solid #065f46 !important;
+  outline-offset: 1px !important;
+}
+
+.export-html-button:focus {
+  outline: 1px solid #1e3a8a !important;
+  outline-offset: 1px !important;
+}
+
+.export-html-button:disabled,
+.export-excel-button:disabled {
+  background-color: #e5e7eb !important;
+  border-color: #d1d5db !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+/* Button group styling */
+.export-button-group {
+  display: inline-flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+}
+
+/* Export button container */
+.export-actions {
+  display: flex !important;
+  gap: 12px !important;
+  justify-content: flex-end !important;
+  margin: 16px 0 !important;
+  flex-wrap: wrap !important;
+  margin-right: 16px !important;
+}
+
+/* Filter Buttons Styles */
+.filter-button {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+  margin-right: 8px !important;
+}
+
+.reset-button {
+  background-color: #dc2626 !important;
+  color: white !important;
+  border: 1px solid #b91c1c !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+}
+
+.filter-button:hover {
+  background-color: #e5e7eb !important;
+  border-color: #9ca3af !important;
+}
+
+.reset-button:hover {
+  background-color: #b91c1c !important;
+  border-color: #991b1b !important;
+}
+
+.filter-button:focus {
+  outline: 1px solid #9ca3af !important;
+  outline-offset: 1px !important;
+}
+
+.reset-button:focus {
+  outline: 1px solid #991b1b !important;
+  outline-offset: 1px !important;
+}
+
+.filter-button:disabled,
+.reset-button:disabled {
+  background-color: #e5e7eb !important;
+  border-color: #d1d5db !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+/* Filter and Action Buttons Container */
+.filter-actions {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
+  margin: 16px 0 !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+}
+
+/* Quick Filters Buttons */
+.quick-filters {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  margin: 16px 0 !important;
+  flex-wrap: wrap !important;
+}
+
+.quick-filter-button {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+  margin: 0 4px !important;
+}
+
+.quick-filter-button:hover {
+  background-color: #e5e7eb !important;
+  border-color: #9ca3af !important;
+}
+
+.quick-filter-button:focus {
+  outline: 1px solid #9ca3af !important;
+  outline-offset: 1px !important;
+}
+
+/* View Details Button */
+.view-details-button {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border: 1px solid #2563eb !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  line-height: 1.4 !important;
+  cursor: pointer !important;
+  margin: 0 4px !important;
+}
+
+.view-details-button:hover {
+  background-color: #2563eb !important;
+  border-color: #1d4ed8 !important;
+}
+
+.view-details-button:focus {
+  outline: 1px solid #1d4ed8 !important;
+  outline-offset: 1px !important;
+}
+
+.view-details-button:disabled {
+  background-color: #e5e7eb !important;
+  border-color: #d1d5db !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+.filter-button-group {
+  display: inline-flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+/* Filter form container */
+.filter-form {
+  background: #ffffff !important;
+  border: 1px solid #f3f4f6 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  margin: 16px 0 !important;
+  box-shadow: none !important;
+}
+
+.filter-form-row {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 16px !important;
+  margin-bottom: 16px !important;
+  align-items: end !important;
+}
+
+.filter-form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.filter-form-label {
+  font-weight: 600 !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+
+.filter-form-input,
+.filter-form-select {
+  border: 1px solid #d1d5db !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  color: #111827 !important;
+  background-color: white !important;
+}
+
+.filter-form-input:focus,
+.filter-form-select:focus {
+  outline: 1px solid #3b82f6 !important;
+  outline-offset: 1px !important;
+  border-color: #3b82f6 !important;
+}
+
+.filter-form-actions {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+  margin-top: 16px !important;
+  margin-right: 20px !important;
+}
+
+/* Active filters display */
+.active-filters {
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 6px !important;
+  padding: 12px 16px !important;
+  margin: 16px 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.active-filter-tag {
+  background: #dbeafe !important;
+  border: 1px solid #93c5fd !important;
+  border-radius: 20px !important;
+  padding: 4px 12px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #1e40af !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.active-filter-tag .remove-filter {
+  background: none !important;
+  border: none !important;
+  color: #1e40af !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+}
+
+.active-filter-tag .remove-filter:hover {
+  background: #1e40af !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 782px) {
+  .clear-history-button,
+  .export-html-button,
+  .export-excel-button,
+  .filter-button,
+  .reset-button,
+  .quick-filter-button,
+  .view-details-button {
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+
+  .export-actions {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .export-button-group {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  .filter-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .filter-button-group {
+    width: 100% !important;
+    justify-content: stretch !important;
+  }
+
+  .filter-button,
+  .reset-button {
+    flex: 1 !important;
+    min-width: auto !important;
+  }
+
+  .filter-form-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .filter-form-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .filter-form-actions .filter-button,
+  .filter-form-actions .reset-button {
+    width: 100% !important;
+  }
+
+  .active-filters {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  .active-filter-tag {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .quick-filters {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .quick-filter-button {
+    width: 100% !important;
+    margin: 2px 0 !important;
+  }
+}
