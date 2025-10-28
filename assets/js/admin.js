@@ -1014,7 +1014,20 @@ jQuery(document).ready(function ($) {
             "id",
             "time_slot",
             "fields",  // Exclude 'fields' as custom fields are now individual properties
+            "booking_date_formatted",
+            "booking_time_formatted",
+            "created_at_formatted",
+            "updated_at_formatted"
           ];
+
+          // Function to get formatted value if available, otherwise use raw value
+          function getFormattedValue(key, data) {
+            var formattedKey = key + '_formatted';
+            if (data[formattedKey]) {
+              return data[formattedKey];
+            }
+            return data[key];
+          }
 
           // Function to get user-friendly field labels
           function getFieldLabel(key) {
@@ -1102,7 +1115,7 @@ jQuery(document).ready(function ($) {
           // Third row: booking_time (standalone if service_type took price slot)
           if (data.booking_time && processedFields.indexOf('booking_time') === -1) {
             html += "<tr>";
-            html += "<td colspan='2'><strong>Waktu:</strong> " + (data.booking_time || "-") + "</td>";
+            html += "<td colspan='2'><strong>Waktu:</strong> " + (data.booking_time_formatted || data.booking_time || "-") + "</td>";
             html += "</tr>";
             processedFields.push('booking_time');
           }
@@ -1148,7 +1161,7 @@ jQuery(document).ready(function ($) {
           // Process remaining keys in pairs, except for address and file fields
           for (var i = 0; i < filteredKeys.length; i++) {
             var k = filteredKeys[i];
-            var v = data[k];
+            var v = getFormattedValue(k, data);  // Use formatted value if available
 
             // Handle special fields as full-width rows
             if (k === "alamat") {
@@ -1179,7 +1192,7 @@ jQuery(document).ready(function ($) {
               ) {
                 // Current field
                 var k2 = filteredKeys[i + 1];
-                var v2 = data[k2];
+                var v2 = getFormattedValue(k2, data);  // Use formatted value if available
 
                 html += "<tr>";
                 html +=
@@ -1915,10 +1928,10 @@ jQuery(document).ready(function ($) {
         customerName +
         "</td>" +
         "<td>" +
-        formatDate(booking.booking_date) +
+        (booking.booking_date_formatted || formatDate(booking.booking_date)) +
         "</td>" +
         "<td>" +
-        (booking.booking_time || "") +
+        (booking.booking_time_formatted || booking.booking_time || "") +
         "</td>" +
         "<td>" +
         booking.service_type +
@@ -1946,7 +1959,7 @@ jQuery(document).ready(function ($) {
         "</div>" +
         "</td>" +
         "<td>" +
-        formatDateFull(booking.created_at) +
+        (booking.created_at_formatted || formatDateFull(booking.created_at)) +
         "</td>" +
         '<td class="col-actions">' +
         '<div class="action-buttons">' +

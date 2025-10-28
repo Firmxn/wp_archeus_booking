@@ -235,11 +235,15 @@ class Booking_Public {
         $display_name = isset($booking_data['customer_name']) ? $booking_data['customer_name'] : '';
         $customer_email = isset($booking_data['customer_email']) ? $booking_data['customer_email'] : '';
 
-        // Basic booking information
-        $booking_date = isset($booking_data['booking_date']) ? $booking_data['booking_date'] : '';
-        $booking_time = isset($booking_data['booking_time']) ? $booking_data['booking_time'] : '';
+        // Basic booking information - FORMAT THEM PROPERLY
+        $booking_date_raw = isset($booking_data['booking_date']) ? $booking_data['booking_date'] : '';
+        $booking_time_raw = isset($booking_data['booking_time']) ? $booking_data['booking_time'] : '';
         $service_type = isset($booking_data['service_type']) ? $booking_data['service_type'] : '';
         $time_slot = isset($booking_data['time_slot']) ? $booking_data['time_slot'] : '';
+        
+        // Format date and time for email display
+        $booking_date = !empty($booking_date_raw) ? date_i18n(get_option('date_format'), strtotime($booking_date_raw)) : '';
+        $booking_time = !empty($booking_time_raw) ? $this->format_time($booking_time_raw) : '';
 
         // Replace basic tags
         $booking_id = isset($booking_data['booking_id']) ? $booking_data['booking_id'] : '';
@@ -328,6 +332,46 @@ class Booking_Public {
     }
 
     /**
+     * Format time for display (hardcoded HH:MM format)
+     * Handles both single time (HH:MM:SS) and time range (HH:MM:SS-HH:MM:SS)
+     */
+    private function format_time($time_value) {
+        switch ($time_value) {
+            case 'morning':
+                return __('Morning (9:00 AM - 12:00 PM)', 'archeus-booking');
+            case 'afternoon':
+                return __('Afternoon (1:00 PM - 5:00 PM)', 'archeus-booking');
+            case 'evening':
+                return __('Evening (6:00 PM - 9:00 PM)', 'archeus-booking');
+            default:
+                // Check if it's a time range (HH:MM:SS-HH:MM:SS)
+                if (strpos($time_value, '-') !== false) {
+                    $parts = explode('-', $time_value);
+                    if (count($parts) === 2) {
+                        $start = trim($parts[0]);
+                        $end = trim($parts[1]);
+                        // Remove seconds from both parts
+                        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $start)) {
+                            $start = substr($start, 0, 5);
+                        }
+                        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $end)) {
+                            $end = substr($end, 0, 5);
+                        }
+                        return $start . ' - ' . $end;  // 08:30 - 09:00
+                    }
+                }
+                
+                // Check if it's a single time (HH:MM:SS)
+                if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $time_value)) {
+                    return substr($time_value, 0, 5);  // HH:MM:SS -> HH:MM
+                }
+                
+                // If already formatted or other format, return as is
+                return $time_value;
+        }
+    }
+
+    /**
      * Wrap plain text content with HTML email template
      */
     private function wrap_email_template($content, $recipient_type) {
@@ -351,17 +395,6 @@ class Booking_Public {
                             <div style="color: #666; line-height: 1.6; font-size: 16px;">
                                 ' . wpautop($content) . '
                             </div>
-                            <table style="margin: 30px 0; width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td style="padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
-                                        <p style="margin: 0; color: #666; font-size: 14px;">
-                                            <strong>' . get_bloginfo('name') . '</strong><br>
-                                            ' . get_bloginfo('description') . '<br>
-                                            <a href="' . get_bloginfo('url') . '" style="color: #54b335;">' . get_bloginfo('url') . '</a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
                         </td>
                     </tr>
                 </table>

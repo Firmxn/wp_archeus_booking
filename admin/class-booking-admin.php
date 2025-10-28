@@ -1458,7 +1458,9 @@ class Booking_Admin {
         
         wp_localize_script('booking-admin-js', 'archeus_booking_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('archeus_booking_admin_nonce')
+            'nonce' => wp_create_nonce('archeus_booking_admin_nonce'),
+            'date_format' => get_option('date_format'),
+            'time_format' => get_option('time_format')
         ));
 
         // Load assets specifically for history page
@@ -1738,8 +1740,8 @@ class Booking_Admin {
                     <tr data-id="<?php echo $booking->id; ?>">
                         <td class="col-id"><?php echo ($current_page - 1) * $per_page + $index + 1; ?></td>
                         <td class="col-name" title="<?php echo esc_attr($booking->customer_name ?? ''); ?>"><?php echo esc_html($booking->customer_name ?? ''); ?></td>
-                        <td><?php echo date('M j, Y', strtotime($booking->booking_date)); ?></td>
-                        <td><?php echo esc_html($booking->booking_time); ?></td>
+                        <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($booking->booking_date))); ?></td>
+                        <td><?php echo esc_html($this->format_time($booking->booking_time)); ?></td>
                         <td><?php echo esc_html($booking->service_type); ?></td>
                         <td>
                             <select class="booking-status ab-select ab-dropdown" data-id="<?php echo $booking->id; ?>">
@@ -2265,7 +2267,7 @@ class Booking_Admin {
             'booking_id' => $booking->id,
             'customer_name' => !empty($booking->customer_name) ? $booking->customer_name : __('Pelanggan', 'archeus-booking'),
             'customer_email' => !empty($booking->customer_email) ? $booking->customer_email : '',
-            'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
+            'booking_date' => !empty($booking->booking_date) ? date_i18n(get_option('date_format'), strtotime($booking->booking_date)) : '',
             'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
             'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
             'status' => $status,
@@ -2273,9 +2275,9 @@ class Booking_Admin {
             'company_url' => get_bloginfo('url'),
             'admin_website' => admin_url(),
             'admin_email' => get_option('admin_email'),
-            'current_date' => date('Y-m-d'),
-            'current_time' => date('H:i:s'),
-            'current_datetime' => date('Y-m-d H:i:s'),
+            'current_date' => date_i18n(get_option('date_format')),
+            'current_time' => date_i18n(get_option('time_format')),
+            'current_datetime' => date_i18n(get_option('date_format') . ' ' . get_option('time_format')),
             'email_title' => $this->get_status_email_title($status)
         );
 
@@ -2328,7 +2330,7 @@ class Booking_Admin {
             'booking_id' => $booking->id,
             'customer_name' => !empty($booking->customer_name) ? $booking->customer_name : __('Pelanggan', 'archeus-booking'),
             'customer_email' => !empty($booking->customer_email) ? $booking->customer_email : '',
-            'booking_date' => !empty($booking->booking_date) ? date('M j, Y', strtotime($booking->booking_date)) : '',
+            'booking_date' => !empty($booking->booking_date) ? date_i18n(get_option('date_format'), strtotime($booking->booking_date)) : '',
             'booking_time' => !empty($booking->booking_time) ? $this->format_time($booking->booking_time) : '',
             'service_type' => !empty($booking->service_type) ? $booking->service_type : '',
             'status' => $status,
@@ -2336,9 +2338,9 @@ class Booking_Admin {
             'company_url' => get_bloginfo('url'),
             'admin_website' => admin_url(),
             'admin_email' => get_option('admin_email'),
-            'current_date' => date('Y-m-d'),
-            'current_time' => date('H:i:s'),
-            'current_datetime' => date('Y-m-d H:i:s'),
+            'current_date' => date_i18n(get_option('date_format')),
+            'current_time' => date_i18n(get_option('time_format')),
+            'current_datetime' => date_i18n(get_option('date_format') . ' ' . get_option('time_format')),
             'email_title' => $this->get_status_email_title($status),
             'rejection_reason' => !empty($rejection_reason) ? wp_kses_post($rejection_reason) : ''
         );
@@ -2395,97 +2397,97 @@ class Booking_Admin {
     private function get_default_status_email_template($status) {
         $templates = array(
             'pending' => __('<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #54b335;">Reservasi Sedang Diproses</h2>
-        <p>{greeting}</p>
-        <p>Terima kasih telah melakukan reservasi dengan kami. Reservasi Anda sedang dalam proses peninjauan.</p>
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
-            <p><strong>ID Reservasi:</strong> {booking_id}</p>
-            <p><strong>Layanan:</strong> {service_type}</p>
-            <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time}</p>
-        </div>
-        <p>Kami akan segera menghubungi Anda untuk mengkonfirmasi reservasi ini.</p>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
-            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                Email ini dikirim pada {current_date} pukul {current_time}
-            </p>
-        </div>
-    </div>
-</body>
-</html>', 'archeus-booking'),
+                            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                                    <h2 style="color: #54b335;">Reservasi Sedang Diproses</h2>
+                                    <p>{greeting}</p>
+                                    <p>Terima kasih telah melakukan reservasi dengan kami. Reservasi Anda sedang dalam proses peninjauan.</p>
+                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                        <h3 style="margin-top: 0; color: #54b335;">Detail Reservasi</h3>
+                                        <p><strong>ID Reservasi:</strong> {booking_id}</p>
+                                        <p><strong>Layanan:</strong> {service_type}</p>
+                                        <p><strong>Tanggal:</strong> {booking_date}</p>
+                                        <p><strong>Waktu:</strong> {booking_time}</p>
+                                    </div>
+                                    <p>Kami akan segera menghubungi Anda untuk mengkonfirmasi reservasi ini.</p>
+                                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                                        <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+                                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                                            Email ini dikirim pada {current_date} pukul {current_time}
+                                        </p>
+                                    </div>
+                                </div>
+                            </body>
+                            </html>', 'archeus-booking'),
             'approved' => __('<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #27ae60;">Reservasi Diterima!</h2>
-        <p>{greeting}</p>
-        <p>Selamat! Reservasi Anda telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda.</p>
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #27ae60;">Detail Reservasi</h3>
-            <p><strong>ID Reservasi:</strong> {booking_id}</p>
-            <p><strong>Layanan:</strong> {service_type}</p>
-            <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time}</p>
-        </div>
-        <p>Jika ada perubahan jadwal, kami akan menghubungi Anda segera.</p>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
-            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                Email ini dikirim pada {current_date} pukul {current_time}
-            </p>
-        </div>
-    </div>
-</body>
-</html>', 'archeus-booking'),
+                            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                                    <h2 style="color: #27ae60;">Reservasi Diterima!</h2>
+                                    <p>{greeting}</p>
+                                    <p>Selamat! Reservasi Anda telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda.</p>
+                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                        <h3 style="margin-top: 0; color: #27ae60;">Detail Reservasi</h3>
+                                        <p><strong>ID Reservasi:</strong> {booking_id}</p>
+                                        <p><strong>Layanan:</strong> {service_type}</p>
+                                        <p><strong>Tanggal:</strong> {booking_date}</p>
+                                        <p><strong>Waktu:</strong> {booking_time}</p>
+                                    </div>
+                                    <p>Jika ada perubahan jadwal, kami akan menghubungi Anda segera.</p>
+                                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                                        <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+                                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                                            Email ini dikirim pada {current_date} pukul {current_time}
+                                        </p>
+                                    </div>
+                                </div>
+                            </body>
+                            </html>', 'archeus-booking'),
             'rejected' => __('<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #e74c3c;">Reservasi Ditolak</h2>
-        <p>{greeting}</p>
-        <p>Maaf, reservasi Anda telah <strong>DITOLAK</strong>. Jika Anda memiliki pertanyaan, silakan hubungi kami.</p>
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #e74c3c;">Detail Reservasi</h3>
-            <p><strong>ID Reservasi:</strong> {booking_id}</p>
-            <p><strong>Layanan:</strong> {service_type}</p>
-            <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time}</p>
-        </div>
-        <p>Anda dapat melakukan reservasi kembali dengan jadwal yang berbeda jika tersedia.</p>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
-            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                Email ini dikirim pada {current_date} pukul {current_time}
-            </p>
-        </div>
-    </div>
-</body>
-</html>', 'archeus-booking'),
+                            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                                    <h2 style="color: #e74c3c;">Reservasi Ditolak</h2>
+                                    <p>{greeting}</p>
+                                    <p>Maaf, reservasi Anda telah <strong>DITOLAK</strong>. Jika Anda memiliki pertanyaan, silakan hubungi kami.</p>
+                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                        <h3 style="margin-top: 0; color: #e74c3c;">Detail Reservasi</h3>
+                                        <p><strong>ID Reservasi:</strong> {booking_id}</p>
+                                        <p><strong>Layanan:</strong> {service_type}</p>
+                                        <p><strong>Tanggal:</strong> {booking_date}</p>
+                                        <p><strong>Waktu:</strong> {booking_time}</p>
+                                    </div>
+                                    <p>Anda dapat melakukan reservasi kembali dengan jadwal yang berbeda jika tersedia.</p>
+                                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                                        <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+                                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                                            Email ini dikirim pada {current_date} pukul {current_time}
+                                        </p>
+                                    </div>
+                                </div>
+                            </body>
+                            </html>', 'archeus-booking'),
             'completed' => __('<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #27ae60;">Reservasi Selesai</h2>
-        <p>{greeting}</p>
-        <p>Reservasi Anda telah ditandai sebagai selesai. Terima kasih telah menggunakan layanan kami!</p>
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #27ae60;">Detail Reservasi</h3>
-            <p><strong>ID Reservasi:</strong> {booking_id}</p>
-            <p><strong>Layanan:</strong> {service_type}</p>
-            <p><strong>Tanggal:</strong> {booking_date}</p>
-            <p><strong>Waktu:</strong> {booking_time}</p>
-        </div>
-        <p>Kami berharap Anda puas dengan layanan kami. Jangan ragu untuk melakukan reservasi kembali.</p>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
-            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                Email ini dikirim pada {current_date} pukul {current_time}
-            </p>
-        </div>
-    </div>
-</body>
-</html>', 'archeus-booking')
+                                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                                        <h2 style="color: #27ae60;">Reservasi Selesai</h2>
+                                        <p>{greeting}</p>
+                                        <p>Reservasi Anda telah ditandai sebagai selesai. Terima kasih telah menggunakan layanan kami!</p>
+                                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                            <h3 style="margin-top: 0; color: #27ae60;">Detail Reservasi</h3>
+                                            <p><strong>ID Reservasi:</strong> {booking_id}</p>
+                                            <p><strong>Layanan:</strong> {service_type}</p>
+                                            <p><strong>Tanggal:</strong> {booking_date}</p>
+                                            <p><strong>Waktu:</strong> {booking_time}</p>
+                                        </div>
+                                        <p>Kami berharap Anda puas dengan layanan kami. Jangan ragu untuk melakukan reservasi kembali.</p>
+                                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                                            <p style="margin: 0; color: #666;">Hormat kami,<br>{company_name}</p>
+                                            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+                                                Email ini dikirim pada {current_date} pukul {current_time}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>', 'archeus-booking')
         );
 
         return isset($templates[$status]) ? $templates[$status] : $templates['pending'];
@@ -2512,12 +2514,6 @@ class Booking_Admin {
         $html = '<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">';
         $html .= '<div style="max-width: 600px; margin: 0 auto; padding: 20px;">';
         $html .= $content;
-        $html .= '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">';
-        $html .= '<p style="margin: 0; color: #666;">' . __('Hormat kami,', 'archeus-booking') . '<br><strong>' . get_bloginfo('name') . '</strong></p>';
-        $html .= '<p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">';
-        $html .= __('Email ini dikirim pada', 'archeus-booking') . ' ' . date('Y-m-d') . ' ' . __('pukul', 'archeus-booking') . ' ' . date('H:i:s');
-        $html .= '</p>';
-        $html .= '</div>';
         $html .= '</div>';
         $html .= '</body></html>';
 
@@ -2525,7 +2521,8 @@ class Booking_Admin {
     }
 
     /**
-     * Format time for display
+     * Format time for display (hardcoded HH:MM format)
+     * Handles both single time (HH:MM:SS) and time range (HH:MM:SS-HH:MM:SS)
      */
     private function format_time($time_value) {
         switch ($time_value) {
@@ -2536,6 +2533,29 @@ class Booking_Admin {
             case 'evening':
                 return __('Evening (6:00 PM - 9:00 PM)', 'archeus-booking');
             default:
+                // Check if it's a time range (HH:MM:SS-HH:MM:SS)
+                if (strpos($time_value, '-') !== false) {
+                    $parts = explode('-', $time_value);
+                    if (count($parts) === 2) {
+                        $start = trim($parts[0]);
+                        $end = trim($parts[1]);
+                        // Remove seconds from both parts
+                        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $start)) {
+                            $start = substr($start, 0, 5);
+                        }
+                        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $end)) {
+                            $end = substr($end, 0, 5);
+                        }
+                        return $start . ' - ' . $end;  // 08:30 - 09:00
+                    }
+                }
+                
+                // Check if it's a single time (HH:MM:SS)
+                if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $time_value)) {
+                    return substr($time_value, 0, 5);  // HH:MM:SS -> HH:MM
+                }
+                
+                // If already formatted or other format, return as is
                 return $time_value;
         }
     }
@@ -2569,8 +2589,20 @@ class Booking_Admin {
         foreach ($bookings as $booking) {
             $booking_array = (array) $booking;
             
-            // Unserialize additional fields if they exist
-            // No additional_fields serialization
+            // Format booking_date using WordPress date format
+            if (!empty($booking_array['booking_date'])) {
+                $booking_array['booking_date_formatted'] = date_i18n(get_option('date_format'), strtotime($booking_array['booking_date']));
+            }
+            
+            // Format booking_time (remove seconds)
+            if (!empty($booking_array['booking_time'])) {
+                $booking_array['booking_time_formatted'] = $this->format_time($booking_array['booking_time']);
+            }
+            
+            // Format created_at using WordPress date and time format
+            if (!empty($booking_array['created_at'])) {
+                $booking_array['created_at_formatted'] = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($booking_array['created_at']));
+            }
             
             $processed_bookings[] = $booking_array;
         }
@@ -2667,6 +2699,20 @@ class Booking_Admin {
             }
         }
 
+        // Format dates and times using WordPress settings
+        if (!empty($data['booking_date'])) {
+            $data['booking_date_formatted'] = date_i18n(get_option('date_format'), strtotime($data['booking_date']));
+        }
+        if (!empty($data['booking_time'])) {
+            $data['booking_time_formatted'] = $this->format_time($data['booking_time']);
+        }
+        if (!empty($data['created_at'])) {
+            $data['created_at_formatted'] = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($data['created_at']));
+        }
+        if (!empty($data['updated_at'])) {
+            $data['updated_at_formatted'] = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($data['updated_at']));
+        }
+        
         // Remove internal fields that don't need to be displayed
         unset($data['fields']);
         unset($data['payload']);
@@ -4737,7 +4783,7 @@ class Booking_Admin {
                                     <td><?php echo esc_html($item->customer_name); ?></td>
                                     <td><?php echo esc_html($item->customer_email); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
-                                    <td><?php echo esc_html($item->booking_time); ?></td>
+                                    <td><?php echo esc_html($this->format_time($item->booking_time)); ?></td>
                                     <td><?php echo esc_html($item->service_type); ?></td>
                                     <td><?php echo esc_html(!empty($item->price) ? 'Rp ' . number_format($item->price, 2, ',', '.') : '-'); ?></td>
                                     <td><?php echo esc_html(!empty($item->flow_name) ? $item->flow_name : '-'); ?></td>
@@ -5339,7 +5385,7 @@ class Booking_Admin {
                                     <tr>
                                         <td><?php echo $index + 1; ?></td>
                                         <td><strong><?php echo esc_html($slot->time_label); ?></strong></td>
-                                        <td><?php echo esc_html($slot->start_time . ' - ' . $slot->end_time); ?></td>
+                                        <td><?php echo esc_html(substr($slot->start_time, 0, 5) . ' - ' . substr($slot->end_time, 0, 5)); ?></td>
                                         <td><?php echo esc_html($slot->max_capacity); ?></td>
                                         <td class="col-actions">
                                             <div class="action-buttons">
@@ -6023,7 +6069,7 @@ class Booking_Admin {
             'customer_name' => $history_item->customer_name,
             'customer_email' => $history_item->customer_email,
             'booking_date' => date_i18n(get_option('date_format'), strtotime($history_item->booking_date)),
-            'booking_time' => $history_item->booking_time,
+            'booking_time' => $this->format_time($history_item->booking_time),
             'service_type' => $history_item->service_type,
             'price' => !empty($history_item->price) ? floatval($history_item->price) : 0.00,
             'status' => $history_item->status,
@@ -6327,7 +6373,7 @@ class Booking_Admin {
                 echo '<td>' . esc_html($item->customer_name) . '</td>';
                 echo '<td>' . esc_html($item->customer_email) . '</td>';
                 echo '<td>' . esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))) . '</td>';
-                echo '<td>' . esc_html($item->booking_time) . '</td>';
+                echo '<td>' . esc_html($this->format_time($item->booking_time)) . '</td>';
                 echo '<td>' . esc_html($item->service_type) . '</td>';
                 echo '<td>' . esc_html(!empty($item->price) ? 'Rp ' . number_format($item->price, 2, ',', '.') : '-') . '</td>';
                 echo '<td>' . esc_html(ucfirst($item->status)) . '</td>';
