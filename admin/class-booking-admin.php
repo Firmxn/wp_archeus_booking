@@ -1753,7 +1753,7 @@ class Booking_Admin {
                                 <option value="rejected" <?php selected($booking->status, 'rejected'); ?>><?php _e('Rejected', 'archeus-booking'); ?></option>
                             </select>
                         </td>
-                        <td><?php echo date('M j, Y g:i A', strtotime($booking->created_at)); ?></td>
+                        <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($booking->created_at)); ?></td>
                         <td>
                             <button class="view-details-btn button" data-id="<?php echo $booking->id; ?>" title="<?php esc_attr_e('Lihat Detail', 'archeus-booking'); ?>">
                                 <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
@@ -6624,7 +6624,7 @@ public function handle_export_history_csv() {
                     !empty($item->price) ? number_format($item->price, 2, ',', '.') : '0,00',
                     ucfirst($item->status),
                     $item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '',
-                    date('Y-m-d H:i:s', strtotime($item->moved_at))
+                    date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))
                 );
 
                 // Add custom field values
