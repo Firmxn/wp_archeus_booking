@@ -842,6 +842,8 @@ jQuery(document).ready(function ($) {
               completed: "#ab-count-completed",
               rejected: "#ab-count-rejected",
             };
+            
+            // Update previous status counter (decrease)
             if (prevStatus && __abMap[prevStatus]) {
               var __p = jQuery(__abMap[prevStatus]);
               if (__p.length) {
@@ -850,6 +852,8 @@ jQuery(document).ready(function ($) {
                 __p.text(Math.max(__pv - 1, 0));
               }
             }
+            
+            // Update new status counter (increase)
             if (newStatus && __abMap[newStatus]) {
               var __n = jQuery(__abMap[newStatus]);
               if (__n.length) {
@@ -858,6 +862,10 @@ jQuery(document).ready(function ($) {
                 __n.text(__nv + 1);
               }
             }
+            
+            // NOTE: Total counter stays the same because booking just moves
+            // from booking table to history table when status changes to completed/rejected
+            
           } catch (e) {}
           // Adjust visibility of 'completed' option
           if (newStatus === "approved") {

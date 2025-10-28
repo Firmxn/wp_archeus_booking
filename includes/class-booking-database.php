@@ -857,6 +857,82 @@ public function create_form($name, $fields = array()) {
         return $counts;
     }
 
+    /**
+     * Get combined booking counts from both booking and history tables
+     * This provides accurate statistics by combining:
+     * - pending & approved from wp_archeus_booking table
+     * - completed & rejected from wp_archeus_booking_history table
+     * 
+     * @param int $flow_id Optional flow ID filter (0 = all flows)
+     * @return array Combined counts array with keys: total, pending, approved, completed, rejected
+     */
+    public function get_combined_booking_counts($flow_id = 0) {
+        global $wpdb;
+        
+        $booking_table = $this->table_name;
+        $history_table = $wpdb->prefix . $this->table_prefix . 'booking_history';
+        
+        $counts = array(
+            'total' => 0,
+            'pending' => 0,
+            'approved' => 0,
+            'completed' => 0,
+            'rejected' => 0,
+        );
+        
+        $where_clause = '';
+        $params = array();
+        
+        if ($flow_id) {
+            $where_clause = 'WHERE flow_id = %d';
+            $params[] = intval($flow_id);
+        }
+        
+        // Get counts from BOOKING table (pending, approved)
+        $booking_sql = "SELECT COUNT(*) FROM {$booking_table} {$where_clause}";
+        if (!empty($params)) {
+            $booking_total = intval($wpdb->get_var($wpdb->prepare($booking_sql, $params)));
+        } else {
+            $booking_total = intval($wpdb->get_var($booking_sql));
+        }
+        
+        $status_where = !empty($where_clause) ? $where_clause . ' AND status = %s' : 'WHERE status = %s';
+        
+        $pending_sql = "SELECT COUNT(*) FROM {$booking_table} {$status_where}";
+        $pending_params = !empty($params) ? array_merge($params, array('pending')) : array('pending');
+        $counts['pending'] = intval($wpdb->get_var($wpdb->prepare($pending_sql, $pending_params)));
+        
+        $approved_params = !empty($params) ? array_merge($params, array('approved')) : array('approved');
+        $counts['approved'] = intval($wpdb->get_var($wpdb->prepare($pending_sql, $approved_params)));
+        
+        // Get counts from HISTORY table (completed, rejected)
+        $history_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $history_table));
+        
+        if ($history_exists) {
+            $history_sql = "SELECT COUNT(*) FROM {$history_table} {$where_clause}";
+            if (!empty($params)) {
+                $history_total = intval($wpdb->get_var($wpdb->prepare($history_sql, $params)));
+            } else {
+                $history_total = intval($wpdb->get_var($history_sql));
+            }
+            
+            $completed_sql = "SELECT COUNT(*) FROM {$history_table} {$status_where}";
+            $completed_params = !empty($params) ? array_merge($params, array('completed')) : array('completed');
+            $counts['completed'] = intval($wpdb->get_var($wpdb->prepare($completed_sql, $completed_params)));
+            
+            $rejected_params = !empty($params) ? array_merge($params, array('rejected')) : array('rejected');
+            $counts['rejected'] = intval($wpdb->get_var($wpdb->prepare($completed_sql, $rejected_params)));
+            
+            $counts['total'] = $booking_total + $history_total;
+        } else {
+            $counts['total'] = $booking_total;
+            $counts['completed'] = 0;
+            $counts['rejected'] = 0;
+        }
+        
+        return $counts;
+    }
+
   
     /**
      * Create services table

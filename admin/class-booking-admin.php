@@ -1646,8 +1646,15 @@ class Booking_Admin {
         $total_pages = ceil($total_bookings_count / $per_page);
 
         $bookings = $booking_db->get_bookings($args);
-        // Stats for default flow
-        if (method_exists($booking_db, 'get_booking_counts')) {
+        // Stats for default flow - use combined counts from booking + history tables
+        if (method_exists($booking_db, 'get_combined_booking_counts')) {
+            $counts = $booking_db->get_combined_booking_counts($default_flow_id);
+            $total_bookings = intval($counts['total']);
+            $pending_bookings = intval($counts['pending']);
+            $approved_bookings = intval($counts['approved']);
+            $completed_bookings = intval($counts['completed']);
+            $rejected_bookings = intval($counts['rejected']);
+        } elseif (method_exists($booking_db, 'get_booking_counts')) {
             $counts = $booking_db->get_booking_counts($default_flow_id);
             $total_bookings = intval($counts['total']);
             $pending_bookings = intval($counts['pending']);
@@ -2570,13 +2577,23 @@ class Booking_Admin {
             $processed_bookings[] = $booking_array;
         }
 
-        // Aggregate stats for selected flow (ignoring status filter)
-        $stats = method_exists($booking_db, 'get_booking_counts') ? $booking_db->get_booking_counts($flow_id) : array();
+        // Aggregate stats for selected flow (ignoring status filter) - use combined counts
+        if (method_exists($booking_db, 'get_combined_booking_counts')) {
+            $stats = $booking_db->get_combined_booking_counts($flow_id);
+        } elseif (method_exists($booking_db, 'get_booking_counts')) {
+            $stats = $booking_db->get_booking_counts($flow_id);
+        } else {
+            $stats = array();
+        }
 
         // Calculate total count for pagination (respecting flow filter)
         if ($flow_id) {
-            // Get total count for this specific flow
-            $flow_stats = $booking_db->get_booking_counts($flow_id);
+            // Get total count for this specific flow using combined counts
+            if (method_exists($booking_db, 'get_combined_booking_counts')) {
+                $flow_stats = $booking_db->get_combined_booking_counts($flow_id);
+            } else {
+                $flow_stats = $booking_db->get_booking_counts($flow_id);
+            }
             $total_count = isset($flow_stats['total']) ? intval($flow_stats['total']) : 0;
 
             // Debug: Log the flow stats and total count
