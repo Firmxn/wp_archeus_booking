@@ -4976,9 +4976,9 @@ class Booking_Admin {
                     </thead>
                     <tbody>
                         <?php if (!empty($history_data)) : ?>
-                            <?php $index = 0; foreach ($history_data as $item) : ?>
+                            <?php $start_number = ($page - 1) * $per_page + 1; $index = 0; foreach ($history_data as $item) : ?>
                                 <tr>
-                                    <td><?php echo esc_html($item->id); ?></td>
+                                    <td><?php echo esc_html($start_number + $index); ?></td>
                                     <td><?php echo esc_html($item->customer_name); ?></td>
                                     <td><?php echo esc_html($item->customer_email); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
@@ -6348,9 +6348,12 @@ class Booking_Admin {
             // Prepare data for response
             $bookings = array();
             if (!empty($history_data)) {
+                $start_number = ($page - 1) * $limit + 1;
+                $index = 0;
                 foreach ($history_data as $item) {
                     $bookings[] = array(
-                        'id' => $item->id,
+                        'id' => $item->id, // Keep original ID for other functionality
+                        'display_id' => $start_number + $index, // Sequential number for display
                         'customer_name' => $item->customer_name,
                         'customer_email' => $item->customer_email,
                         'booking_date' => date_i18n(get_option('date_format'), strtotime($item->booking_date)),
@@ -6361,6 +6364,7 @@ class Booking_Admin {
                         'status' => $item->status,
                         'moved_at' => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))
                     );
+                    $index++;
                 }
             }
 

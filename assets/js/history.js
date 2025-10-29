@@ -500,7 +500,7 @@ jQuery(document).ready(function($) {
             row += '</th>';
 
             // ID
-            row += '<td>' + escapeHtml(booking.id) + '</td>';
+            row += '<td>' + escapeHtml(booking.display_id) + '</td>';
 
             // Customer Name
             row += '<td>' + escapeHtml(booking.customer_name) + '</td>';
