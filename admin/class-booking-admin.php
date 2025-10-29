@@ -6732,7 +6732,7 @@ public function handle_export_history_csv() {
         $date_from = isset($_POST['date_from']) && !empty($_POST['date_from']) ? sanitize_text_field($_POST['date_from']) : '';
         $date_to = isset($_POST['date_to']) && !empty($_POST['date_to']) ? sanitize_text_field($_POST['date_to']) : '';
         $orderby = isset($_POST['orderby']) && !empty($_POST['orderby']) ? sanitize_text_field($_POST['orderby']) : 'moved_at';
-        $order = isset($_POST['order']) && !empty($_POST['order']) ? sanitize_text_field($_POST['order']) : 'DESC';
+        $order = isset($_POST['order']) && !empty($_POST['order']) ? strtoupper(sanitize_text_field($_POST['order'])) : 'DESC';
 
         // Get history data grouped by flow
         if ($flow_id !== null) {

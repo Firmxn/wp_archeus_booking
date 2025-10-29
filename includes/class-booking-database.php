@@ -2168,11 +2168,11 @@ public function create_form($name, $fields = array()) {
 
         // Date range filter
         if (!empty($date_from)) {
-            $where_clauses[] = "booking_date >= %s";
+            $where_clauses[] = "DATE(moved_at) >= %s";
             $params[] = $date_from;
         }
         if (!empty($date_to)) {
-            $where_clauses[] = "booking_date <= %s";
+            $where_clauses[] = "DATE(moved_at) <= %s";
             $params[] = $date_to;
         }
 
@@ -2335,11 +2335,11 @@ public function create_form($name, $fields = array()) {
 
         // Date range filter
         if (!empty($date_from)) {
-            $where_clauses[] = "booking_date >= %s";
+            $where_clauses[] = "DATE(moved_at) >= %s";
             $params[] = $date_from;
         }
         if (!empty($date_to)) {
-            $where_clauses[] = "booking_date <= %s";
+            $where_clauses[] = "DATE(moved_at) <= %s";
             $params[] = $date_to;
         }
 
