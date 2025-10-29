@@ -343,6 +343,89 @@
   border-radius: 50% !important;
 }
 
+/* Loading Overlay Styles */
+.ab-loading-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+}
+
+.ab-loading-spinner {
+  width: 60px !important;
+  height: 60px !important;
+  border: 6px solid #e5e7eb !important;
+  border-top: 6px solid #54b335 !important;
+  border-radius: 50% !important;
+  animation: abspin 1s linear infinite !important;
+}
+
+.ab-loading-text {
+  margin-top: 12px !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif !important;
+}
+
+@keyframes abspin {
+  0% { transform: rotate(0deg) !important; }
+  100% { transform: rotate(360deg) !important; }
+}
+
+/* Table Loading State */
+#booking-history-table tbody.loading {
+  position: relative !important;
+}
+
+#booking-history-table tbody.loading::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#booking-history-table tbody.loading::before {
+  content: "Loading..." !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  z-index: 1 !important;
+}
+
+/* Pagination Loading State */
+.tablenav.bottom.loading .pagination-links {
+  opacity: 0.5 !important;
+  pointer-events: none !important;
+}
+
+.tablenav.bottom.loading::after {
+  content: "" !important;
+  display: inline-block !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 2px solid #e5e7eb !important;
+  border-top: 2px solid #54b335 !important;
+  border-radius: 50% !important;
+  animation: abspin 0.8s linear infinite !important;
+  margin-left: 8px !important;
+  vertical-align: middle !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 782px) {
   .clear-history-button,

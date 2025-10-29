@@ -15,6 +15,7 @@ class Booking_Admin {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('wp_ajax_update_booking_status', array($this, 'handle_booking_status_update'));
         add_action('wp_ajax_get_bookings', array($this, 'handle_get_bookings'));
+        add_action('wp_ajax_get_history_bookings', array($this, 'handle_get_history_bookings'));
         add_action('wp_ajax_get_booking_details', array($this, 'handle_get_booking_details'));
         add_action('wp_ajax_delete_booking', array($this, 'handle_booking_deletion'));
         add_action('wp_ajax_delete_form', array($this, 'handle_form_deletion'));
@@ -1676,6 +1677,18 @@ class Booking_Admin {
 
         wp_enqueue_script('booking-admin-js', ARCHEUS_BOOKING_URL . 'assets/js/admin.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
 
+        // Load booking.js specifically for booking management page
+        if ($page === 'archeus-booking-management') {
+            wp_enqueue_script('booking-js', ARCHEUS_BOOKING_URL . 'assets/js/booking.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
+            wp_enqueue_style('booking-css', ARCHEUS_BOOKING_URL . 'assets/css/booking.css', array(), ARCHEUS_BOOKING_VERSION);
+
+            wp_localize_script('booking-js', 'ArcheusBookingAdmin', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('booking_management_nonce'),
+                'loading_text' => __('Loading...', 'archeus-booking')
+            ));
+        }
+
         // Load history.js specifically for history page
         if ($page === 'archeus-booking-history') {
             wp_enqueue_script('booking-history-js', ARCHEUS_BOOKING_URL . 'assets/js/history.js', array('jquery'), ARCHEUS_BOOKING_VERSION, true);
@@ -2020,7 +2033,7 @@ class Booking_Admin {
             </table>
 
             <!-- Pagination -->
-            <div class="tablenav bottom" <?php echo ($total_bookings_count <= 10) ? 'style="display:none;"' : ''; ?>>
+            <div class="tablenav bottom booking-pagination-container" <?php echo ($total_bookings_count <= 10) ? 'style="display:none;"' : ''; ?>>
                 <div class="tablenav-pages">
                     <span class="displaying-num">
                         <?php
@@ -2034,7 +2047,7 @@ class Booking_Admin {
                         );
                         ?>
                     </span>
-                    <span class="pagination-links">
+                    <span class="pagination-links booking-pagination-links">
                         <?php
                         $pagination_args = array(
                             'base' => add_query_arg('paged', '%#%'),
@@ -4714,13 +4727,13 @@ class Booking_Admin {
 
             // Handle pagination and filtering
             $page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
-            $per_page = 20;
+            $per_page = 10;
             $status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
             $flow_id = isset($_GET['flow_id']) ? intval($_GET['flow_id']) : '';
             $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
             $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
             $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
-            $orderby = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : 'created_at';
+            $orderby = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : 'moved_at';
             $order = isset($_GET['order']) ? strtoupper(sanitize_text_field($_GET['order'])) : 'DESC';
 
             // Validate date format and logic
@@ -4924,10 +4937,13 @@ class Booking_Admin {
                 </form>
 
                 <!-- History Table -->
-                <table class="wp-list-table widefat fixed striped" style="margin-top: 1rem; margin-right: 16px;">
+                <table id="booking-history-table" class="wp-list-table widefat fixed striped" style="margin-top: 1rem; margin-right: 16px;">
                     <thead>
                         <tr>
-                            <th scope="col"><?php _e('NO', 'archeus-booking'); ?></th>
+                            <th scope="col" class="manage-column column-cb check-column">
+                                <input type="checkbox" id="cb-select-all-1">
+                            </th>
+                            <th scope="col"><?php _e('ID', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Nama Pemesan', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Email', 'archeus-booking'); ?></th>
                             <th scope="col">
@@ -4951,9 +4967,9 @@ class Booking_Admin {
                                 </a>
                             </th>
                             <th scope="col">
-                                <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'created_at', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
+                                <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'moved_at', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
                                     <?php _e('Tanggal Perubahan', 'archeus-booking'); ?>
-                                    <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'created_at') : ?>
+                                    <?php if (isset($_GET['orderby']) && $_GET['orderby'] === 'moved_at') : ?>
                                         <span class="sorting-indicator"><?php echo isset($_GET['order']) && $_GET['order'] === 'ASC' ? '▲' : '▼'; ?></span>
                                     <?php endif; ?>
                                 </a>
@@ -4965,7 +4981,10 @@ class Booking_Admin {
                         <?php if (!empty($history_data)) : ?>
                             <?php $index = 0; foreach ($history_data as $item) : ?>
                                 <tr>
-                                    <td><?php echo ($page - 1) * $per_page + $index + 1; ?></td>
+                                    <th scope="row" class="check-column">
+                                        <input type="checkbox" name="booking[]" value="<?php echo esc_attr($item->id); ?>" />
+                                    </th>
+                                    <td><?php echo esc_html($item->id); ?></td>
                                     <td><?php echo esc_html($item->customer_name); ?></td>
                                     <td><?php echo esc_html($item->customer_email); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
@@ -4974,7 +4993,7 @@ class Booking_Admin {
                                     <td><?php echo esc_html(!empty($item->price) ? 'Rp ' . number_format($item->price, 2, ',', '.') : '-'); ?></td>
                                     <td><?php echo esc_html(!empty($item->flow_name) ? $item->flow_name : '-'); ?></td>
                                     <td><?php echo esc_html(ucfirst($item->status)); ?></td>
-                                    <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->created_at))); ?></td>
+                                    <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))); ?></td>
                                     <td>
                                         <button class="view-details-button" data-history-id="<?php echo esc_attr($item->id); ?>" title="<?php esc_attr_e('Lihat Detail', 'archeus-booking'); ?>">
                                             <?php _e('View Details', 'archeus-booking'); ?>
@@ -4984,65 +5003,45 @@ class Booking_Admin {
                             <?php $index++; endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="10"><?php _e('No history records found.', 'archeus-booking'); ?></td>
+                                <td colspan="12"><?php _e('No history records found.', 'archeus-booking'); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
 
-                <!-- Pagination -->
-                <?php if ($total_pages > 1) : ?>
-                    <div class="tablenav bottom">
-                        <div class="tablenav-pages">
+                <!-- AJAX Pagination -->
+                <div class="tablenav bottom history-pagination-container" <?php echo ($total_items <= 10) ? 'style="display:none;"' : ''; ?>>
+                    <div class="tablenav-pages">
+                        <span class="displaying-num">
                             <?php
+                            $start_item = ($page - 1) * $per_page + 1;
+                            $end_item = min($page * $per_page, $total_items);
+                            printf(
+                                __('Menampilkan %1$s–%2$s dari %3$s', 'archeus-booking'),
+                                number_format_i18n($start_item),
+                                number_format_i18n($end_item),
+                                '<span class="total-type-count">' . number_format_i18n($total_items) . '</span>'
+                            );
+                            ?>
+                        </span>
+                        <span class="pagination-links history-pagination-links">
+                            <?php
+                            // Generate initial pagination links (will be updated via AJAX)
                             $pagination_args = array(
                                 'base' => add_query_arg('paged', '%#%'),
                                 'format' => '',
-                                'prev_text' => __('&laquo;'),
-                                'next_text' => __('&raquo;'),
+                                'prev_text' => __('&laquo;', 'archeus-booking'),
+                                'next_text' => __('&raquo;', 'archeus-booking'),
                                 'total' => $total_pages,
-                                'current' => $page
+                                'current' => $page,
+                                'type' => 'plain',
+                                'add_args' => false
                             );
-
-                            if (!empty($status)) {
-                                $pagination_args['add_args'] = array('status' => $status);
-                            }
-
-                            if (!empty($search)) {
-                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
-                                    ? array_merge($pagination_args['add_args'], array('s' => $search))
-                                    : array('s' => $search);
-                            }
-
-                            if (!empty($date_from)) {
-                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
-                                    ? array_merge($pagination_args['add_args'], array('date_from' => $date_from))
-                                    : array('date_from' => $date_from);
-                            }
-
-                            if (!empty($date_to)) {
-                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
-                                    ? array_merge($pagination_args['add_args'], array('date_to' => $date_to))
-                                    : array('date_to' => $date_to);
-                            }
-
-                            if (!empty($orderby)) {
-                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
-                                    ? array_merge($pagination_args['add_args'], array('orderby' => $orderby))
-                                    : array('orderby' => $orderby);
-                            }
-
-                            if (!empty($order)) {
-                                $pagination_args['add_args'] = isset($pagination_args['add_args'])
-                                    ? array_merge($pagination_args['add_args'], array('order' => $order))
-                                    : array('order' => $order);
-                            }
-
                             echo paginate_links($pagination_args);
                             ?>
-                        </div>
+                        </span>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
 
             <!-- History Details Modal -->
@@ -6295,6 +6294,95 @@ class Booking_Admin {
         }
 
         wp_send_json_success($data);
+    }
+
+    /**
+     * Handle AJAX request to get history bookings with pagination
+     */
+    public function handle_get_history_bookings() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'booking_history_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', 'archeus-booking')
+            ));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action', 'archeus-booking')
+            ));
+        }
+
+        // Get pagination parameters
+        $page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+        $limit = isset($_POST['limit']) ? max(1, intval($_POST['limit'])) : 10;
+
+        // Get filter parameters
+        $status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+        $date_from = isset($_POST['date_from']) ? sanitize_text_field($_POST['date_from']) : '';
+        $date_to = isset($_POST['date_to']) ? sanitize_text_field($_POST['date_to']) : '';
+        $flow_id = isset($_POST['flow_id']) ? intval($_POST['flow_id']) : '';
+        $orderby = isset($_POST['orderby']) ? sanitize_text_field($_POST['orderby']) : 'moved_at';
+        $order = isset($_POST['order']) ? strtoupper(sanitize_text_field($_POST['order'])) : 'DESC';
+
+        // Validate date format and logic
+        if (!empty($date_from)) {
+            $date_from_obj = DateTime::createFromFormat('Y-m-d', $date_from);
+            $date_from = $date_from_obj ? $date_from_obj->format('Y-m-d') : '';
+        }
+        if (!empty($date_to)) {
+            $date_to_obj = DateTime::createFromFormat('Y-m-d', $date_to);
+            $date_to = $date_to_obj ? $date_to_obj->format('Y-m-d') : '';
+        }
+        // Swap dates if from > to
+        if (!empty($date_from) && !empty($date_to) && strtotime($date_from) > strtotime($date_to)) {
+            $temp = $date_from;
+            $date_from = $date_to;
+            $date_to = $temp;
+        }
+
+        try {
+            $booking_db = new Booking_Database();
+
+            // Get history data with filters
+            $history_status = !empty($status) ? $status : null;
+            $history_flow_id = !empty($flow_id) ? $flow_id : null;
+            $history_data = $booking_db->get_booking_history($history_status, $page, $limit, $search, $date_from, $date_to, $orderby, $order, $history_flow_id);
+            $total_items = $booking_db->get_history_count($history_status, $search, $date_from, $date_to, $history_flow_id);
+
+            // Prepare data for response
+            $bookings = array();
+            if (!empty($history_data)) {
+                foreach ($history_data as $item) {
+                    $bookings[] = array(
+                        'id' => $item->id,
+                        'customer_name' => $item->customer_name,
+                        'customer_email' => $item->customer_email,
+                        'booking_date' => date_i18n(get_option('date_format'), strtotime($item->booking_date)),
+                        'booking_time' => $this->format_time($item->booking_time),
+                        'service_type' => $item->service_type,
+                        'price' => !empty($item->price) ? floatval($item->price) : 0.00,
+                        'flow_name' => !empty($item->flow_name) ? $item->flow_name : '-',
+                        'status' => $item->status,
+                        'moved_at' => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))
+                    );
+                }
+            }
+
+            // Send success response
+            wp_send_json_success(array(
+                'bookings' => $bookings,
+                'total_count' => $total_items,
+                'current_page' => $page,
+                'per_page' => $limit
+            ));
+
+        } catch (Exception $e) {
+            wp_send_json_error(array(
+                'message' => __('An error occurred while loading history bookings.', 'archeus-booking') . ' ' . $e->getMessage()
+            ));
+        }
     }
 
     /**

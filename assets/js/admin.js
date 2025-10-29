@@ -3468,6 +3468,11 @@ jQuery(document).ready(function ($) {
 
   // Handle pagination clicks
   $(document).on('click', '.tablenav-pages a', function(e) {
+    // Check if we're on history or booking page - if so, don't handle this click
+    if (window.location.href.indexOf('archeus-booking-history') > -1 ||
+        window.location.href.indexOf('archeus-booking-management') > -1) {
+      return; // Let history.js or booking.js handle it
+    }
     e.preventDefault();
 
     var href = $(this).attr('href');
@@ -3568,6 +3573,12 @@ jQuery(document).ready(function ($) {
 
   // Update pagination display based on total count
   function updatePaginationDisplay(totalCount, currentPage, perPage) {
+    // Check if we're on history or booking page - if so, don't handle this
+    if (window.location.href.indexOf('archeus-booking-history') > -1 ||
+        window.location.href.indexOf('archeus-booking-management') > -1) {
+      return; // Let history.js or booking.js handle it
+    }
+
     var $pagination = $('.tablenav.bottom');
 
     // Debug: Log the parameters
@@ -3630,6 +3641,11 @@ jQuery(document).ready(function ($) {
 
   // Initialize pagination display on page load
   function initializePaginationDisplay() {
+    // Check if we're on history page - if so, don't initialize
+    if (window.location.href.indexOf('archeus-booking-history') > -1) {
+      return; // Let history.js handle it
+    }
+
     var $totalTypeCount = $('.total-type-count');
     if ($totalTypeCount.length) {
       var totalCount = parseInt($totalTypeCount.text()) || 0;
