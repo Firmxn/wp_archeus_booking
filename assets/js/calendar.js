@@ -1,5 +1,4 @@
 jQuery(document).ready(function($) {
-    console.log('Calendar script loaded and ready.');
 
     // Get max months setting from server
     var maxMonths = calendar_ajax.max_months || 6;

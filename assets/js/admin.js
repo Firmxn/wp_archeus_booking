@@ -1,7 +1,4 @@
-// Debug: Check if functions are loaded
-console.log('ARCHAEUS ADMIN JS LOADED!');
 jQuery(document).ready(function ($) {
-  console.log('ARCHAEUS ADMIN JS DOCUMENT READY!');
 
   // Security Functions for Admin Interface
   function escapeHtml(text) {
@@ -1572,7 +1569,6 @@ jQuery(document).ready(function ($) {
       try {
         var $newDropdowns = $("select.ab-dropdown").not('.field-type-select').not('[data-ab-dd]');
         if ($newDropdowns.length > 0) {
-          console.log('MutationObserver found new dropdowns:', $newDropdowns.length);
           enhanceAbDropdowns($(document));
         }
       } catch (e) {
@@ -3045,32 +3041,12 @@ jQuery(document).ready(function ($) {
     }
   });
 
-  // Debug: Check if functions are loaded
-  console.log("Archeus Admin JS loaded - Functions available:", {
-    showStatusChangeDialog: typeof window.showStatusChangeDialog,
-    showDeleteConfirmationDialog: typeof window.showDeleteConfirmationDialog,
-    showDeleteConfirm: typeof window.showDeleteConfirm,
-    updateBookingStatus: typeof window.updateBookingStatus,
-    jQuery: typeof jQuery,
-  });
-
-  // Debug: Check for dropdowns
-  console.log('Looking for dropdown elements...');
-  console.log('Found select.ab-dropdown:', $('select.ab-dropdown').length);
-  console.log('Found #booking-status-filter:', $('#booking-status-filter').length);
-
-  // Try to initialize dropdowns
+  // Initialize dropdowns
   if (typeof enhanceAbDropdowns === 'function') {
-    console.log('enhanceAbDropdowns function found, initializing...');
     enhanceAbDropdowns($(document));
-  } else {
-    console.log('enhanceAbDropdowns function NOT found!');
   }
 
   // Initial data is already loaded via PHP, no need for additional refresh
-  console.log(
-    "Initial data loaded, skipping automatic refresh to prevent conflicts with detail views"
-  );
 
   // Handle service form submission via AJAX
   $(document).on('submit', '.service-form .settings-form', function(e) {
@@ -3413,9 +3389,7 @@ jQuery(document).ready(function ($) {
 
   // Initialize auto-detected fields to ensure required checkbox is checked
   function initializeAutoDetectedFields() {
-    console.log('initializeAutoDetectedFields called');
     var $autoRows = $('.form-field-row[data-auto-detected="true"]');
-    console.log('Found auto-detected rows:', $autoRows.length);
 
     // Find all auto-detected field rows
     $autoRows.each(function() {
@@ -3432,7 +3406,6 @@ jQuery(document).ready(function ($) {
 
       // Check if this is customer_name or customer_email field
       if (keyValue === 'customer_name' || keyValue === 'customer_email') {
-        console.log('Found customer field, processing...');
 
         // Ensure required checkbox is always checked and disabled for customer_name and customer_email
         var $requiredCheckbox = $row.find('input[name^="field_required["]');
@@ -3458,7 +3431,6 @@ jQuery(document).ready(function ($) {
   }
 
   // Run initialization when page loads
-  console.log('Page loaded, running initializeAutoDetectedFields...');
   initializeAutoDetectedFields();
 
   // Also initialize when new fields are added
@@ -3651,19 +3623,12 @@ jQuery(document).ready(function ($) {
       var totalCount = parseInt($totalTypeCount.text()) || 0;
       var $pagination = $('.tablenav.bottom');
 
-      // Debug: Log the initial values
-      console.log('initializePaginationDisplay - totalCount:', totalCount, 'from element:', $totalTypeCount.text());
-
       // Show/hide pagination based on item count
       if (totalCount <= 10) {
-        console.log('Initial load - Hiding pagination because totalCount <= 10:', totalCount);
         $pagination.hide();
       } else {
-        console.log('Initial load - Showing pagination because totalCount > 10:', totalCount);
         $pagination.show();
       }
-    } else {
-      console.log('initializePaginationDisplay - No .total-type-count element found');
     }
   }
 

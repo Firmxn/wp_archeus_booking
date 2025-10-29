@@ -27,27 +27,18 @@
             var $pagination = $('.booking-pagination-container');
 
             // Debug: Log the initial values
-            console.log('initializeBookingPaginationDisplay - totalCount:', totalCount, 'from element:', $totalTypeCount.text());
-
             // Show/hide pagination based on item count
             if (totalCount <= 10) {
-                console.log('Initial load - Hiding booking pagination because totalCount <= 10:', totalCount);
                 $pagination.hide();
             } else {
-                console.log('Initial load - Showing booking pagination because totalCount > 10:', totalCount);
                 $pagination.show();
             }
-        } else {
-            console.log('initializeBookingPaginationDisplay - No .total-type-count element found');
         }
     }
 
     // AJAX Pagination functionality - SPECIFIC TO BOOKING PAGE ONLY
     $(document).on('click', '.booking-nav-button, .booking-page-button', function(e) {
         e.preventDefault();
-        console.log('Booking pagination clicked');
-        console.log('Clicked element:', $(this));
-        console.log('Data page attribute:', $(this).data('page'));
 
         var page = $(this).data('page');
 
@@ -100,7 +91,6 @@
                     nonce: ArcheusBookingAdmin.nonce,
                 },
                 success: function (resp) {
-                    console.log('Booking AJAX response received:', resp);
                     try {
                         if (typeof resp === "string") {
                             var firstBrace = resp.indexOf("{");
@@ -113,7 +103,6 @@
                         return;
                     }
                     if (resp && resp.success) {
-                        console.log('Booking AJAX success - data:', resp.data);
                         updateBookingTable(resp.data.bookings || resp.data);
                         // Update pagination display
                         if (resp.data && resp.data.total_count !== undefined) {
