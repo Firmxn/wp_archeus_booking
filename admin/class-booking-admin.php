@@ -4940,9 +4940,6 @@ class Booking_Admin {
                 <table id="booking-history-table" class="wp-list-table widefat fixed striped" style="margin-top: 1rem; margin-right: 16px;">
                     <thead>
                         <tr>
-                            <th scope="col" class="manage-column column-cb check-column">
-                                <input type="checkbox" id="cb-select-all-1">
-                            </th>
                             <th scope="col"><?php _e('ID', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Nama Pemesan', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Email', 'archeus-booking'); ?></th>
@@ -4981,9 +4978,6 @@ class Booking_Admin {
                         <?php if (!empty($history_data)) : ?>
                             <?php $index = 0; foreach ($history_data as $item) : ?>
                                 <tr>
-                                    <th scope="row" class="check-column">
-                                        <input type="checkbox" name="booking[]" value="<?php echo esc_attr($item->id); ?>" />
-                                    </th>
                                     <td><?php echo esc_html($item->id); ?></td>
                                     <td><?php echo esc_html($item->customer_name); ?></td>
                                     <td><?php echo esc_html($item->customer_email); ?></td>
@@ -5003,7 +4997,7 @@ class Booking_Admin {
                             <?php $index++; endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="12"><?php _e('No history records found.', 'archeus-booking'); ?></td>
+                                <td colspan="11"><?php _e('No history records found.', 'archeus-booking'); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -6720,7 +6714,14 @@ public function handle_export_history_csv() {
 
     try {
         // Include PhpSpreadsheet autoloader
-        require_once plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+        $autoload_path = plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+        if (file_exists($autoload_path)) {
+            require_once $autoload_path;
+        } else {
+            // Return error if vendor/autoload.php not found
+            wp_send_json_error(array('message' => 'Vendor dependencies not found. Please run composer install.'));
+            return;
+        }
 
         $booking_db = new Booking_Database();
 
@@ -6769,6 +6770,14 @@ public function handle_export_history_csv() {
 
         if (empty($grouped_data)) {
             wp_die('No history data found');
+        }
+
+        // Include PhpSpreadsheet autoloader
+        $autoload_path = plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+        if (file_exists($autoload_path)) {
+            require_once $autoload_path;
+        } else {
+            throw new Exception('Vendor dependencies not found. Please run composer install.');
         }
 
         // Use PhpSpreadsheet classes

@@ -71,21 +71,77 @@
 
 ## 🚀 Installation
 
-### Method 1: WordPress Admin
-1. Download the plugin ZIP file
+### ⚠️ **Important for Developers**
+This plugin uses **Composer** for dependency management. The `vendor/` folder is not included in the repository and must be generated after installation.
+
+### Method 1: Development Installation (Recommended for Developers)
+```bash
+# 1. Clone or extract the plugin
+git clone https://github.com/Firmxn/wp_archeus_booking.git
+cd wp_archeus_booking
+
+# 2. Install dependencies (REQUIRED!)
+composer install
+
+# 3. Upload to WordPress
+# - Copy entire folder to /wp-content/plugins/archeus-booking/
+# - OR zip the folder and upload via WordPress admin
+```
+
+### Method 2: WordPress Admin (Production Ready)
+1. **Download the complete ZIP** (with vendor folder included)
 2. Go to **Plugins → Add New → Upload Plugin**
 3. Upload `archeus-booking.zip`
 4. Activate the plugin
 
-### Method 2: FTP/SFTP
-1. Extract the ZIP file
+### Method 3: FTP/SFTP
+1. Extract ZIP file
 2. Upload `archeus-booking` folder to `/wp-content/plugins/`
-3. Go to WordPress admin and activate the plugin
+3. **Important**: Ensure `vendor/` folder is included
+4. Go to WordPress admin and activate the plugin
 
-### Method 3: Manual Installation
-1. Copy the plugin folder to your WordPress plugins directory
-2. Navigate to the Plugins page in your WordPress admin
-3. Find "Archeus Booking System" and click "Activate"
+## 🔧 Dependencies & Requirements
+
+### Required Dependencies
+- **PhpSpreadsheet**: For Excel export functionality
+- **PSR Components**: For autoloading and HTTP functionality
+
+### System Requirements
+- WordPress 5.0+
+- PHP 7.4+
+- MySQL 5.6+
+- Composer (for development only)
+
+### Common Issues & Solutions
+
+#### 🚨 Error: "Failed to open stream: No such file or directory vendor/autoload.php"
+**Cause**: Composer dependencies not installed
+**Solution**:
+```bash
+cd /path/to/archeus-booking
+composer install
+```
+
+#### 🚨 Error: "PhpSpreadsheet not found" when exporting
+**Cause**: Missing vendor folder or incomplete installation
+**Solution**:
+```bash
+composer require phpoffice/phpspreadsheet
+```
+
+#### 🚨 Error: "Export to Excel not working"
+**Cause**: Missing PhpSpreadsheet classes
+**Solution**: Ensure vendor folder exists and contains phpoffice/phpspreadsheet
+
+### Production Deployment
+For production environments, include the vendor folder:
+```bash
+# Build with all dependencies
+composer install --no-dev --optimize-autoloader
+
+# Create production-ready ZIP
+zip -r archeus-booking-production.zip . -x ".*" -x "__MACOSX" -x "*.git*"
+```
 
 ---
 
