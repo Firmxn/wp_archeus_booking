@@ -3959,18 +3959,17 @@ class Booking_Admin {
             'max_months' => $booking_calendar->get_max_months_display()
         ));
         ?>
+        
         <div class="wrap booking-admin-page">
             <h1 class="title-page"><?php _e('Calendar Management (Kelola Kalendar)', 'archeus-booking'); ?></h1>
             
             <div class="calendar-availability-container">
-                <!-- Calendar View -->
-                <!-- <div class="calendar-view admin-card"> -->
-                    <div class="notice notice-info ab-callout is-dismissible" style="padding:0;border-left-width:0;">
-                        <div class="ab-callout-inner">
-                            <div class="ab-callout-icon" aria-hidden="true">
-                                <span class="dashicons dashicons-calendar"></span>
-                            </div>
-                            <div class="ab-callout-body">
+                <div class="notice notice-info ab-callout is-dismissible" style="padding:0;border-left-width:0;">
+                    <div class="ab-callout-inner">
+                        <div class="ab-callout-icon" aria-hidden="true">
+                            <span class="dashicons dashicons-calendar"></span>
+                        </div>
+                        <div class="ab-callout-body">
                                 <h3 class="ab-callout-title"><?php echo esc_html__('Tampilkan di Sisi Pengguna', 'archeus-booking'); ?></h3>
                                 <p class="ab-callout-desc"><?php echo esc_html__('Gunakan shortcode berikut untuk menampilkan kalender kepada pengunjung (untuk alur reservasi gunakan shortcode pada Booking Flow).', 'archeus-booking'); ?></p>
 
@@ -3980,10 +3979,12 @@ class Booking_Admin {
                                         <span class="dashicons dashicons-clipboard"></span><span><?php echo esc_html__('Salin', 'archeus-booking'); ?></span>
                                     </button>
                                 </div>
-                            </div>
                         </div>
-                    <!-- </div> -->
-                    
+                    </div>
+                </div>
+
+                <!-- Calendar View -->
+                <div class="calendar-view admin-card">
                     <!-- Admin Calendar View - now using same structure as public calendar -->
                     <div class="booking-calendar-container">
                         <!-- <div> -->
@@ -4019,6 +4020,7 @@ class Booking_Admin {
                         </div>
                     </div>
                 </div>
+
                 <!-- Individual Date Setting -->
                 <div class="calendar-availability-form admin-card">
                     <h2><?php _e('Atur Ketersediaan Tanggal', 'archeus-booking'); ?></h2>
@@ -4144,9 +4146,6 @@ class Booking_Admin {
                         <?php submit_button(__('Submit', 'archeus-booking'), 'primary', 'save_calendar_settings'); ?>
                     </form>
                 </div>
-                
-
-                
             </div>
         </div>
         
@@ -4940,9 +4939,8 @@ class Booking_Admin {
                 <table id="booking-history-table" class="wp-list-table widefat fixed striped" style="margin-top: 1rem; margin-right: 16px;">
                     <thead>
                         <tr>
-                            <th scope="col"><?php _e('ID', 'archeus-booking'); ?></th>
+                            <th scope="col"><?php _e('NO', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Nama Pemesan', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Email', 'archeus-booking'); ?></th>
                             <th scope="col">
                                 <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'booking_date', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
                                     <?php _e('Tanggal', 'archeus-booking'); ?>
@@ -4954,7 +4952,6 @@ class Booking_Admin {
                             <th scope="col"><?php _e('Waktu', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Layanan', 'archeus-booking'); ?></th>
                             <th scope="col"><?php _e('Harga', 'archeus-booking'); ?></th>
-                            <th scope="col"><?php _e('Flow', 'archeus-booking'); ?></th>
                             <th scope="col">
                                 <a href="<?php echo esc_url(add_query_arg(array('orderby' => 'status', 'order' => (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'DESC' : 'ASC'))); ?>" class="manage-column column-title">
                                     <?php _e('Status', 'archeus-booking'); ?>
@@ -4980,12 +4977,10 @@ class Booking_Admin {
                                 <tr>
                                     <td><?php echo esc_html($start_number + $index); ?></td>
                                     <td><?php echo esc_html($item->customer_name); ?></td>
-                                    <td><?php echo esc_html($item->customer_email); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($item->booking_date))); ?></td>
                                     <td><?php echo esc_html($this->format_time($item->booking_time)); ?></td>
                                     <td><?php echo esc_html($item->service_type); ?></td>
                                     <td><?php echo esc_html(!empty($item->price) ? 'Rp ' . number_format($item->price, 2, ',', '.') : '-'); ?></td>
-                                    <td><?php echo esc_html(!empty($item->flow_name) ? $item->flow_name : '-'); ?></td>
                                     <td><?php echo esc_html(ucfirst($item->status)); ?></td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))); ?></td>
                                     <td>
@@ -4997,7 +4992,7 @@ class Booking_Admin {
                             <?php $index++; endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="11"><?php _e('No history records found.', 'archeus-booking'); ?></td>
+                                <td colspan="9"><?php _e('No history records found.', 'archeus-booking'); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -6649,8 +6644,8 @@ class Booking_Admin {
                 echo '<td>' . esc_html($item->service_type) . '</td>';
                 echo '<td>' . esc_html(!empty($item->price) ? 'Rp ' . number_format($item->price, 2, ',', '.') : '-') . '</td>';
                 echo '<td>' . esc_html(ucfirst($item->status)) . '</td>';
-                // Show rejection reason only if status is 'rejected'
-                echo '<td>' . esc_html($item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '') . '</td>';
+                // Show rejection reason with dash (-) if empty
+                echo '<td>' . esc_html(!empty($item->rejection_reason) ? $item->rejection_reason : '-') . '</td>';
                 echo '<td>' . esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))) . '</td>';
 
                 // Add custom field values
@@ -6908,9 +6903,9 @@ public function handle_export_history_csv() {
                     date('Y-m-d', strtotime($item->booking_date)),
                     $item->booking_time,
                     $item->service_type,
-                    !empty($item->price) ? number_format($item->price, 2, ',', '.') : '0,00',
+                    !empty($item->price) ? number_format($item->price, 2, ',', '.') : '-',
                     ucfirst($item->status),
-                    $item->status === 'rejected' && !empty($item->rejection_reason) ? $item->rejection_reason : '',
+                    !empty($item->rejection_reason) ? $item->rejection_reason : '-',
                     date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($item->moved_at))
                 );
 
