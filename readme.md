@@ -5,7 +5,7 @@
 ![WordPress](https://img.shields.io/badge/WordPress-6.5%2B-blue?style=for-the-badge&logo=wordpress&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple?style=for-the-badge&logo=php&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPLv2-green?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-1.0.0-orange?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.3.0-orange?style=for-the-badge)
 
 **A comprehensive WordPress booking plugin with intelligent form builder, service management, and calendar integration**
 
@@ -29,6 +29,30 @@
 - **Flexible Components**: Forms, Services, Time Slots, Confirmation pages
 - **Flow Templates**: Pre-built templates for common booking scenarios
 - **Conditional Logic**: Show/hide sections based on user input and selections
+- **Smart Fallback**: Auto-selects first available flow if ID not specified
+- **SessionStorage Persistence**: Form data preserved across page reloads and navigation
+
+### 📊 **Advanced Booking History & Archive System**
+- **Complete Audit Trail**: Track all booking lifecycle events from creation to completion
+- **Automatic Archiving**: Completed/rejected bookings moved to history table automatically
+- **Export Capabilities**: Export history to Excel (.xlsx) and CSV formats
+- **Date Range Filtering**: Filter exports by start date, end date, and custom ranges
+- **Detailed Tracking**: Completion notes, rejection reasons, and user tracking (who moved)
+- **Archive Management**: View, search, and manage archived bookings separately
+
+### 🔄 **Automated Database Migration System**
+- **Seamless Updates**: Automatic schema evolution on plugin updates
+- **Zero Downtime**: Backward compatible migrations preserve existing data
+- **Multiple Strategies**: Flow sections, status values, column management
+- **Smart Migration**: Detects and applies only necessary database changes
+- **Safe Upgrades**: No manual database intervention required
+
+### 🌐 **Multi-Language Smart Field Detection**
+- **Bilingual Support**: English and Indonesian label auto-detection
+- **15+ Name Patterns**: Detects "nama lengkap", "full name", "customer name", etc.
+- **10+ Email Patterns**: Recognizes "email", "alamat email", "e-mail", etc.
+- **Intelligent Mapping**: Automatically maps to customer_name and customer_email fields
+- **Conflict Resolution**: Handles duplicate field keys gracefully
 
 ### 🛠️ **Comprehensive Service Management**
 - **Service Catalog**: Manage different services with detailed configurations
@@ -52,8 +76,10 @@
 ### 📧 **Intelligent Email Notification System**
 - **Customizable Templates**: Edit email content for all notification types
 - **Multiple Triggers**: Customer confirmations, admin notifications, status changes
-- **Dynamic Content**: Smart tag replacement with {booking_id}, {customer_name}, etc.
-- **HTML Support**: Rich text emails with custom branding
+- **30+ Dynamic Tags**: Smart tag replacement with customer, booking, company, and time data
+- **Multi-Language Tags**: English and Indonesian tag aliases ({customer_name}, {nama_lengkap})
+- **HTML Support**: Rich text emails with custom branding and automatic template wrapping
+- **Conditional Sending**: Enable/disable individual notification types
 
 ### 📊 **Powerful Admin Dashboard**
 - **Comprehensive Overview**: All bookings in one centralized location
@@ -67,114 +93,347 @@
 - **Accessible Frontend**: WCAG compliant booking forms
 - **Cross-browser Compatibility**: Works on all modern browsers
 
+### 📤 **Professional Export System**
+- **Excel Export**: Generate .xlsx files using PhpSpreadsheet library
+- **CSV Export**: Standard comma-separated values format
+- **Advanced Filtering**: Filter by date range, status, service type
+- **Customizable Columns**: Export only the data you need
+- **Sorting Options**: Order by any field in ascending or descending order
+- **Bulk Operations**: Export hundreds of bookings in seconds
+
+### 🔌 **Page Builder Integration**
+- **Elementor Support**: Native compatibility with Elementor page builder
+- **Elementor Editor**: Works seamlessly in Elementor editor and preview modes
+- **Block Editor Ready**: Compatible with WordPress Gutenberg blocks
+- **Widget Support**: Use shortcodes in WordPress widgets
+- **Preview Compatible**: Full functionality in preview contexts
+
+### ⚡ **Performance & Automation**
+- **Automated Cleanup**: Cron-based cleanup of expired availability and schedules
+- **Probability-Based Execution**: Smart cleanup runs 10% of time to reduce server load
+- **Manual Cleanup Option**: Force cleanup on demand via admin interface
+- **Optimized Queries**: Database indexes on critical columns for fast searches
+- **AJAX-Driven Admin**: Reduces page loads and improves response time
+
 ---
 
 ## 🚀 Installation
 
-### ⚠️ **Important for Developers**
-This plugin uses **Composer** for dependency management. The `vendor/` folder is not included in the repository and must be generated after installation.
+### ⚠️ **CRITICAL: Composer Dependencies**
+This plugin **REQUIRES** PhpSpreadsheet for Excel export functionality. The `vendor/` folder is **NOT** included in the Git repository.
 
-### Method 1: Development Installation (Recommended for Developers)
+### Method 1: Development Installation (For Developers)
 ```bash
-# 1. Clone or extract the plugin
-git clone https://github.com/Firmxn/wp_archeus_booking.git
-cd wp_archeus_booking
+# 1. Clone or download the plugin
+cd /path/to/wordpress/wp-content/plugins/
+git clone https://github.com/Firmxn/wp_archeus_booking.git archeus-booking
+cd archeus-booking
 
-# 2. Install dependencies (REQUIRED!)
+# 2. Install Composer dependencies (REQUIRED!)
 composer install
 
-# 3. Upload to WordPress
-# - Copy entire folder to /wp-content/plugins/archeus-booking/
-# - OR zip the folder and upload via WordPress admin
+# 3. Verify installation
+ls vendor/phpoffice/phpspreadsheet  # Should exist
+ls vendor/autoload.php              # Should exist
+
+# 4. Activate in WordPress
+# Go to WordPress Admin → Plugins → Activate "Archeus Booking System"
 ```
 
-### Method 2: WordPress Admin (Production Ready)
-1. **Download the complete ZIP** (with vendor folder included)
-2. Go to **Plugins → Add New → Upload Plugin**
-3. Upload `archeus-booking.zip`
-4. Activate the plugin
+### Method 2: WordPress Admin Upload (Production Ready)
+1. **Download the complete package** including `vendor/` folder
+2. Go to WordPress Admin → **Plugins → Add New → Upload Plugin**
+3. Upload the ZIP file
+4. Click **Install Now**, then **Activate**
+5. Navigate to **Bookings** menu to start configuration
 
-### Method 3: FTP/SFTP
-1. Extract ZIP file
-2. Upload `archeus-booking` folder to `/wp-content/plugins/`
-3. **Important**: Ensure `vendor/` folder is included
-4. Go to WordPress admin and activate the plugin
+### Method 3: FTP/SFTP (Manual Upload)
+1. Extract the plugin ZIP file
+2. **Verify** that `vendor/` folder exists in the extracted folder
+3. Upload `archeus-booking/` folder to `/wp-content/plugins/`
+4. Go to WordPress admin → Plugins → Activate
 
-## 🔧 Dependencies & Requirements
-
-### Required Dependencies
-- **PhpSpreadsheet**: For Excel export functionality
-- **PSR Components**: For autoloading and HTTP functionality
-
-### System Requirements
-- WordPress 5.0+
-- PHP 7.4+
-- MySQL 5.6+
-- Composer (for development only)
-
-### Common Issues & Solutions
-
-#### 🚨 Error: "Failed to open stream: No such file or directory vendor/autoload.php"
-**Cause**: Composer dependencies not installed
-**Solution**:
+### Method 4: Production Build (For Distribution)
 ```bash
-cd /path/to/archeus-booking
-composer install
-```
-
-#### 🚨 Error: "PhpSpreadsheet not found" when exporting
-**Cause**: Missing vendor folder or incomplete installation
-**Solution**:
-```bash
-composer require phpoffice/phpspreadsheet
-```
-
-#### 🚨 Error: "Export to Excel not working"
-**Cause**: Missing PhpSpreadsheet classes
-**Solution**: Ensure vendor folder exists and contains phpoffice/phpspreadsheet
-
-### Production Deployment
-For production environments, include the vendor folder:
-```bash
-# Build with all dependencies
+# Install production dependencies (optimized)
 composer install --no-dev --optimize-autoloader
 
 # Create production-ready ZIP
-zip -r archeus-booking-production.zip . -x ".*" -x "__MACOSX" -x "*.git*"
+zip -r archeus-booking-production.zip archeus-booking/ \
+  -x "*.git*" -x "*node_modules*" -x "*.DS_Store" -x "*__MACOSX*"
+
+# The ZIP now includes vendor/ and is ready for distribution
 ```
+
+## 🔧 Dependencies & Requirements
+
+### Required Dependencies (via Composer)
+```json
+{
+  "require": {
+    "phpoffice/phpspreadsheet": "^5.2"
+  }
+}
+```
+- **PhpSpreadsheet ^5.2**: Excel export functionality (.xlsx file generation)
+- **PSR Components**: Auto-loaded by PhpSpreadsheet (PSR-4, PSR-7, PSR-HTTP)
+
+### System Requirements
+- **WordPress**: 5.0 or higher (tested up to 6.6)
+- **PHP**: 7.4 or higher (8.0+ recommended)
+- **MySQL**: 5.6 or higher (or MariaDB 10.0+)
+- **PHP Extensions**: `zip`, `xml`, `gd` (for PhpSpreadsheet)
+- **Memory Limit**: 256M recommended (for large exports)
+- **Composer**: Required for development installation only
+
+### Browser Compatibility
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+---
+
+## 🔥 Troubleshooting
+
+### Common Installation Issues
+
+#### 🚨 Error: "vendor/autoload.php not found"
+**Cause**: Composer dependencies not installed  
+**Solution**:
+```bash
+cd /path/to/wp-content/plugins/archeus-booking
+composer install
+# Verify: ls vendor/autoload.php
+```
+
+#### 🚨 Error: "Class 'PhpOffice\PhpSpreadsheet\Spreadsheet' not found"
+**Cause**: PhpSpreadsheet not properly installed  
+**Solution**:
+```bash
+# Remove vendor and reinstall
+rm -rf vendor/
+composer install
+
+# Or install explicitly
+composer require phpoffice/phpspreadsheet:^5.2
+```
+
+#### 🚨 Export to Excel fails silently
+**Causes & Solutions**:
+1. **Memory limit too low**:
+   - Add to `wp-config.php`: `define('WP_MEMORY_LIMIT', '256M');`
+   - Or increase PHP memory_limit in `php.ini`
+
+2. **Missing PHP extensions**:
+   ```bash
+   # Check installed extensions
+   php -m | grep -E 'zip|xml|gd'
+   
+   # Install missing extensions (Ubuntu/Debian)
+   sudo apt-get install php-zip php-xml php-gd
+   ```
+
+3. **File permissions**:
+   ```bash
+   # Ensure web server can write to upload directory
+   chmod 755 /wp-content/uploads/
+   ```
+
+#### 🚨 Database errors on activation
+**Solution**: Try deactivating and reactivating the plugin
+```bash
+# Via WP-CLI
+wp plugin deactivate archeus-booking
+wp plugin activate archeus-booking
+
+# This will re-run database table creation
+```
+
+#### 🚨 Shortcode not displaying
+**Causes**:
+- Missing flow ID: Use `[archeus_booking id="1"]` not `[archeus_booking]`
+- No flows created: Create a flow in Bookings → Booking Flow first
+- Theme conflict: Check JavaScript console for errors
+
+### Performance Issues
+
+#### Slow admin dashboard
+**Solutions**:
+1. Reduce pagination limit in history (default: 50 rows)
+2. Clear old booking history regularly
+3. Optimize database tables:
+   ```sql
+   OPTIMIZE TABLE wp_archeus_booking;
+   OPTIMIZE TABLE wp_archeus_booking_history;
+   ```
+
+#### Export timing out
+**Solutions**:
+1. Increase PHP max_execution_time:
+   ```php
+   // In wp-config.php
+   set_time_limit(300); // 5 minutes
+   ```
+2. Export smaller date ranges
+3. Use CSV instead of Excel for large datasets
 
 ---
 
 ## ⚡ Quick Start
 
-1. **Configure Services** → Bookings → Service Management
-2. **Set Time Slots** → Bookings → Time Slot Management
-3. **Create Forms** → Bookings → Booking Forms
-4. **Build Flows** → Bookings → Booking Flow Management
-5. **Embed Shortcode**: `[archeus_booking id="1"]` on any page
-6. **Display Calendar**: Use `[archeus_booking_calendar]` for availability view
+1. **Configure Services** → Bookings → Services → Add services with pricing and duration
+2. **Set Time Slots** → Bookings → Time Slots → Define available booking windows
+3. **Create Forms** → Bookings → Forms → Build custom forms with smart field detection
+4. **Build Flows** → Bookings → Booking Flow → Combine Calendar + Services + Time Slots + Forms
+5. **Embed Shortcode**: Add `[archeus_booking id="1"]` to any page/post
+6. **Customize Emails** → Bookings → Email → Configure templates with 30+ dynamic tags
+7. **Manage Bookings** → Bookings → Dashboard → Approve, complete, or reject bookings
+8. **Export Data** → Bookings → History → Export to Excel or CSV
 
 ---
 
 ## 📖 Usage
 
-### Basic Booking Form
+### Shortcode Examples
+
+#### Basic Booking Flow
 ```shortcode
 [archeus_booking id="1"]
 ```
 
-### Availability Calendar
+#### Auto-Select First Flow (Fallback)
+```shortcode
+[archeus_booking]
+<!-- Automatically selects the first flow or flow with existing data -->
+```
+
+#### Alternative Attribute Names
+```shortcode
+[archeus_booking flow="1"]
+[archeus_booking flow_id="1"]
+<!-- All variations work the same way -->
+```
+
+#### Standalone Availability Calendar
 ```shortcode
 [archeus_booking_calendar]
+<!-- Displays calendar only, without booking form -->
 ```
 
 ### Advanced Configuration
-The plugin supports extensive customization options:
-- Custom form fields with validation
-- Multiple service types with different pricing
-- Complex time slot configurations
-- Custom email templates
-- Integration with payment gateways (via hooks)
+The plugin supports extensive customization:
+- **Custom Form Fields**: 8 field types with validation rules
+- **Multi-Language Detection**: English and Indonesian auto-detection
+- **Service Management**: Multiple services with different pricing and durations
+- **Time Slot Capacity**: Control maximum bookings per slot
+- **Email Templates**: Customize with 30+ dynamic tags in both languages
+- **Status Workflow**: pending → approved → completed/rejected with history archiving
+- **Export Options**: Excel (.xlsx) and CSV with advanced filtering
+- **Page Builder Integration**: Elementor, Gutenberg, widgets
+- **Developer Hooks**: Multiple actions and filters for customization
+
+---
+
+## 🗄️ Database Architecture
+
+### Main Database Tables
+
+| Table Name | Purpose | Key Fields |
+|------------|---------|------------|
+| `wp_archeus_booking` | **Unified booking records** | `id`, `customer_name`, `customer_email`, `booking_date`, `booking_time`, `service_type`, `price`, `status`, `flow_id`, `fields` (JSON), `payload` (JSON) |
+| `wp_archeus_booking_forms` | **Form definitions** | `id`, `name`, `fields` (serialized array of field configurations) |
+| `wp_archeus_booking_history` | **Archive for completed/rejected bookings** | `id`, `original_booking_id`, `status`, `moved_at`, `moved_by`, `completion_notes`, `rejection_reason` |
+| `wp_archeus_booking_services` | **Service catalog** | `id`, `name`, `description`, `price`, `duration`, `created_at` |
+| `wp_archeus_booking_schedules` | **Time slot assignments** | `id`, `service_id`, `date`, `start_time`, `end_time`, `max_capacity`, `current_bookings` |
+| `wp_archeus_booking_time_slots` | **Time slot templates** | `id`, `time_label`, `start_time`, `end_time`, `max_capacity` |
+| `wp_archeus_booking_availability` | **Calendar availability** | `id`, `date`, `availability_status`, `daily_limit` |
+
+### Dynamic Per-Flow Tables
+- **Automatically created** for each booking flow
+- **Naming format**: `wp_archeus_{sanitized_flow_name}`
+- Contains flow-specific booking data with dynamic columns
+- Supports custom field columns added automatically based on form fields
+- Includes core columns: `id`, `flow_id`, `booking_date`, `booking_time`, `service_type`, `status`, `payload`, `created_at`, `updated_at`
+
+### Database Features
+- **JSON Field Storage**: Flexible data storage in `fields` and `payload` columns
+- **Automatic Indexing**: Indexes on `booking_date`, `status`, `service_type`, `flow_id` for performance
+- **Schema Evolution**: Automated migrations via `dbDelta()` function
+- **Backward Compatibility**: Existing data preserved during schema updates
+- **Cleanup Automation**: Cron-based cleanup of expired availability (10% probability per request)
+
+---
+
+## 📧 Email Template Tags
+
+The plugin provides **30+ dynamic tags** for email customization with **bilingual support** (English & Indonesian).
+
+### Customer Information Tags
+| Tag | Indonesian Alias | Description |
+|-----|------------------|-------------|
+| `{customer_name}` | `{nama_lengkap}`, `{nama}` | Customer's full name |
+| `{customer_email}` | `{email_pelanggan}`, `{alamat_email}` | Customer's email address |
+
+### Booking Details Tags
+| Tag | Indonesian Alias | Description |
+|-----|------------------|-------------|
+| `{booking_id}` | - | Unique booking ID number |
+| `{booking_date}` | `{tanggal_reservasi}` | Formatted booking date |
+| `{booking_time}` | `{waktu_reservasi}` | Formatted booking time (HH:MM) |
+| `{service_type}` | `{layanan}`, `{jenis_layanan}` | Selected service name |
+| `{time_slot}` | `{slot_waktu}` | Time slot range (e.g., "09:00 - 10:00") |
+| `{status}` | - | Current booking status |
+| `{new_status}` | - | Updated status (for status change emails) |
+| `{price}` | - | Service price |
+
+### Company Information Tags
+| Tag | Indonesian Alias | Description |
+|-----|------------------|-------------|
+| `{company_name}` | `{nama_perusahaan}` | WordPress site name |
+| `{company_url}` | `{url_perusahaan}` | WordPress site URL |
+| `{admin_email}` | `{email_admin}` | Admin email address |
+
+### Date/Time Tags
+| Tag | Description |
+|-----|-------------|
+| `{current_date}` | Current date (WordPress date format) |
+| `{current_time}` | Current time (WordPress time format) |
+| `{current_datetime}` | Current date and time combined |
+
+### Contextual Tags
+| Tag | Description |
+|-----|-------------|
+| `{greeting}` | Auto-generated greeting ("Halo {name}," for customer, "Halo Admin," for admin) |
+| `{email_title}` | Auto-generated email title based on email type |
+
+### Custom Field Tags
+- **Any custom form field**: Use `{field_key}` to insert custom field values
+- Example: If you have a field with key `phone_number`, use `{phone_number}` in email templates
+- Arrays are automatically converted to comma-separated values
+
+### Email Template Example
+```html
+<p>Dear {customer_name},</p>
+
+<p>Thank you for your booking request!</p>
+
+<p><strong>Booking Details:</strong></p>
+<ul>
+  <li>Booking ID: {booking_id}</li>
+  <li>Service: {service_type}</li>
+  <li>Date: {booking_date}</li>
+  <li>Time: {booking_time}</li>
+  <li>Time Slot: {time_slot}</li>
+</ul>
+
+<p>We will confirm your booking shortly.</p>
+
+<p>Best regards,<br>
+{company_name}<br>
+{company_url}</p>
+```
 
 ---
 
@@ -264,9 +523,48 @@ The plugin provides numerous hooks and filters for customization:
 
 ## 📋 Changelog
 
+### [1.3.0] - Current Version
+#### 🎉 Major Features
+- ✨ **Booking History & Archive System**: Complete audit trail with automatic archiving for completed/rejected bookings
+- ✨ **Professional Export**: Excel (.xlsx) using PhpSpreadsheet and CSV export with advanced filtering
+- ✨ **Database Migration System**: Automated schema evolution with zero-downtime upgrades
+- ✨ **Multi-Language Smart Detection**: Bilingual field auto-detection (English + Indonesian) with 15+ name patterns and 10+ email patterns
+- ✨ **30+ Email Template Tags**: Comprehensive dynamic tag system with Indonesian aliases
+- ✨ **Elementor Integration**: Native page builder support with editor and preview compatibility
+- ✨ **SessionStorage Persistence**: Form state preservation across page reloads
+
+#### 🔧 Enhancements
+- 🔄 Improved status workflow: `pending → approved → completed/rejected` with history archiving
+- 📊 Booking history with completion notes, rejection reasons, and user tracking
+- 📤 Export with date range filtering and custom sorting (ASC/DESC)
+- 📧 Email template system with bilingual tag support
+- 📅 Calendar with booking count display and max months setting
+- ⚡ Automated cleanup with probability-based execution (10% per request)
+- 🔌 Page builder integration (Elementor, Gutenberg, widgets)
+- 🎯 Smart booking flow fallback (auto-select if ID missing)
+
+#### 🐛 Bug Fixes
+- Fixed dropdown positioning issues in form builder
+- Fixed status migration for legacy bookings (confirmed→approved, cancelled→rejected)
+- Fixed column pruning for identity fields in per-flow tables
+- Corrected date filtering logic in export (booking_date → moved_at)
+
+#### 🚀 Performance & Security
+- Optimized database queries with proper indexing
+- Probability-based cleanup to reduce server load
+- Enhanced input sanitization and nonce validation
+- AJAX-driven admin interface for reduced page loads
+- Cron-based automated cleanup for expired availability
+
+#### 🔄 Database Migrations
+- `migrate_flow_sections()` - Booking flow section updates
+- `migrate_status_values()` - Status value normalization
+- `prune_identity_columns_all_flows()` - Remove duplicate customer fields
+- `ensure_flow_id_column_all_flows()` - Add missing flow_id columns
+
 ### [1.0.0] - 2024-10-13
 - ✨ Initial stable release
-- 🎨 Complete form builder with smart auto-detection
+- 🎨 Complete form builder with drag-and-drop functionality
 - 🔄 Flexible booking flow management system
 - 🛠️ Comprehensive service management interface
 - ⏰ Advanced time slot configuration with capacity control
@@ -274,8 +572,7 @@ The plugin provides numerous hooks and filters for customization:
 - 📅 Interactive calendar with availability management
 - 📊 Full admin dashboard with advanced filtering
 - 📱 Fully responsive design for all devices
-- 🔧 Fixed dropdown positioning issues in form builder
-- 🚀 Performance optimizations and security improvements
+- 🔒 Security-focused implementation with WordPress standards
 
 ---
 
