@@ -26,7 +26,22 @@ class Booking_Public {
     // Note: auto-translation of labels to field keys removed by request.
 
     /**
-     * Get email content with proper logic - no defaults if custom content exists or empty
+     * Get default email templates - CRITICAL for fallback
+     */
+    private function get_default_email_templates() {
+        return array(
+            'customer_confirmation_body' => '<div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; padding: 30px; color: #333;"><div style="text-align: center; margin-bottom: 25px;"><h2 style="color: #54b335; margin: 0; font-size: 24px;">Reservasi Berhasil Diterima</h2><p style="color: #555; font-size: 15px; margin-top: 5px;">{greeting}</p></div><p style="font-size: 15px; line-height: 1.6;">Terima kasih telah melakukan reservasi dengan <strong style="color: #54b335;">ID #{booking_id}</strong> untuk layanan <strong>{service_type}</strong>. Reservasi Anda telah berhasil diterima dan saat ini sedang <strong>menunggu konfirmasi</strong> dari tim kami.</p><div style="background-color: #f8fafc; border-left: 4px solid #54b335; padding: 15px 20px; border-radius: 6px; margin: 25px 0;"><h3 style="margin-top: 0; color: #54b335; font-size: 18px;">Detail Reservasi Anda</h3><p style="margin: 8px 0;"><strong>ID Reservasi:</strong> {booking_id}</p><p style="margin: 8px 0;"><strong>Layanan:</strong> {service_type}</p><p style="margin: 8px 0;"><strong>Tanggal:</strong> {booking_date}</p><p style="margin: 8px 0;"><strong>Waktu:</strong> {booking_time}</p><p style="margin: 8px 0;"><strong>Nama:</strong> {customer_name}</p><p style="margin: 8px 0;"><strong>Email:</strong> {customer_email}</p><p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #f59e0b;">Menunggu Konfirmasi</span></p></div><p style="font-size: 15px; line-height: 1.6;">Kami akan segera menghubungi Anda melalui email atau telepon untuk memberikan <strong>konfirmasi lebih lanjut</strong>. Mohon untuk tetap memantau email Anda untuk pembaruan status reservasi.</p><p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 20px;">Jika Anda memiliki pertanyaan, silakan hubungi kami di <a href="mailto:{admin_email}" style="color: #54b335; text-decoration: none;">{admin_email}</a></p><div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;"><p style="margin: 0; color: #444; font-weight: 600;">Hormat kami,</p><p style="margin: 5px 0 15px 0; color: #54b335; font-weight: bold;">{company_name}</p><p style="font-size: 12px; color: #999;">Email ini dikirim pada {current_date} pukul {current_time}.<br>Mohon untuk tidak membalas email ini secara langsung.</p></div></div>',
+            'admin_notification_body' => '<div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; padding: 30px; color: #333;"><div style="text-align: center; margin-bottom: 25px;"><h2 style="color: #54b335; margin: 0; font-size: 24px;">Reservasi Baru Diterima</h2><p style="color: #555; font-size: 15px; margin-top: 5px;">Halo Admin,</p></div><p style="font-size: 15px; line-height: 1.6;">Telah masuk <strong>reservasi baru</strong> dari pengguna. Mohon segera ditinjau dan dikonfirmasi agar pengguna mendapatkan pembaruan status secepatnya.</p><div style="background-color: #f8fafc; border-left: 4px solid #54b335; padding: 15px 20px; border-radius: 6px; margin: 25px 0;"><h3 style="margin-top: 0; color: #54b335; font-size: 18px;">Detail Reservasi</h3><p style="margin: 8px 0;"><strong>ID Reservasi:</strong> {booking_id}</p><p style="margin: 8px 0;"><strong>Nama:</strong> {customer_name}</p><p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:{customer_email}" style="color: #54b335; text-decoration: none;">{customer_email}</a></p><p style="margin: 8px 0;"><strong>Layanan:</strong> {service_type}</p><p style="margin: 8px 0;"><strong>Tanggal:</strong> {booking_date}</p><p style="margin: 8px 0;"><strong>Waktu:</strong> {booking_time}</p></div><div style="text-align: center; margin: 30px 0;"><a href="{admin_website}" style="display: inline-block; background-color: #54b335; color: #fff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">Konfirmasi Reservasi Sekarang</a></div><div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;"><p style="margin: 0; color: #444; font-weight: 600;">Sistem Reservasi</p><p style="margin: 5px 0 15px 0; color: #54b335; font-weight: bold;">{company_name}</p><p style="font-size: 12px; color: #999;">Email ini dikirim pada {current_date} pukul {current_time}.<br>Mohon tindak lanjuti reservasi baru secepatnya.</p></div></div>',
+            'pending_email_body' => '<div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; padding: 30px; color: #333;"><div style="text-align: center; margin-bottom: 25px;"><h2 style="color: #f59e0b; margin: 0; font-size: 24px;">Reservasi Sedang Diproses</h2><p style="color: #555; font-size: 15px; margin-top: 5px;">{greeting}</p></div><p style="font-size: 15px; line-height: 1.6;">Terima kasih telah melakukan reservasi dengan kami. Reservasi Anda dengan <strong style="color: #f59e0b;">ID #{booking_id}</strong> sedang dalam <strong>proses peninjauan</strong>.</p><div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px 20px; border-radius: 6px; margin: 25px 0;"><h3 style="margin-top: 0; color: #f59e0b; font-size: 18px;">Detail Reservasi</h3><p style="margin: 8px 0;"><strong>ID Reservasi:</strong> {booking_id}</p><p style="margin: 8px 0;"><strong>Layanan:</strong> {service_type}</p><p style="margin: 8px 0;"><strong>Tanggal:</strong> {booking_date}</p><p style="margin: 8px 0;"><strong>Waktu:</strong> {booking_time}</p><p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #f59e0b; font-weight: 600;">Menunggu Konfirmasi</span></p></div><p style="font-size: 15px; line-height: 1.6;">Kami akan segera menghubungi Anda untuk mengkonfirmasi reservasi ini. Mohon pastikan email dan nomor telepon Anda aktif.</p><div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;"><p style="margin: 0; color: #444; font-weight: 600;">Hormat kami,</p><p style="margin: 5px 0 15px 0; color: #54b335; font-weight: bold;">{company_name}</p><p style="font-size: 12px; color: #999;">Email ini dikirim pada {current_date} pukul {current_time}.</p></div></div>',
+            'approved_email_body' => '<div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; padding: 30px; color: #333;"><div style="text-align: center; margin-bottom: 25px;"><h2 style="color: #10b981; margin: 0; font-size: 24px;">🎉 Reservasi Disetujui!</h2><p style="color: #555; font-size: 15px; margin-top: 5px;">{greeting}</p></div><p style="font-size: 15px; line-height: 1.6;">Selamat! Reservasi Anda dengan <strong style="color: #10b981;">ID #{booking_id}</strong> telah <strong>DISETUJUI</strong>. Kami sangat menantikan kedatangan Anda!</p><div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 15px 20px; border-radius: 6px; margin: 25px 0;"><h3 style="margin-top: 0; color: #10b981; font-size: 18px;">Detail Reservasi yang Disetujui</h3><p style="margin: 8px 0;"><strong>ID Reservasi:</strong> {booking_id}</p><p style="margin: 8px 0;"><strong>Layanan:</strong> {service_type}</p><p style="margin: 8px 0;"><strong>Tanggal:</strong> {booking_date}</p><p style="margin: 8px 0;"><strong>Waktu:</strong> {booking_time}</p><p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #10b981; font-weight: 600;">✓ Disetujui</span></p></div><div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0;"><h4 style="margin-top: 0; color: #333; font-size: 16px;">Yang Perlu Anda Lakukan:</h4><ul style="margin: 0; padding-left: 20px; color: #555;"><li style="margin: 8px 0;">Harap datang <strong>15 menit sebelum</strong> waktu reservasi</li><li style="margin: 8px 0;">Bawa <strong>ID Reservasi #{booking_id}</strong> untuk konfirmasi</li><li style="margin: 8px 0;">Jika ada perubahan, hubungi kami segera</li></ul></div><p style="font-size: 15px; line-height: 1.6;">Jika Anda memiliki pertanyaan atau perlu membatalkan, silakan hubungi kami di <a href="mailto:{admin_email}" style="color: #10b981; text-decoration: none;">{admin_email}</a></p><div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;"><p style="margin: 0; color: #444; font-weight: 600;">Sampai jumpa!</p><p style="margin: 5px 0 15px 0; color: #54b335; font-weight: bold;">{company_name}</p><p style="font-size: 12px; color: #999;">Email ini dikirim pada {current_date} pukul {current_time}.</p></div></div>',
+            'rejected_email_body' => '<div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; padding: 30px; color: #333;"><div style="text-align: center; margin-bottom: 25px;"><h2 style="color: #ef4444; margin: 0; font-size: 24px;">Pemberitahuan Reservasi</h2><p style="color: #555; font-size: 15px; margin-top: 5px;">{greeting}</p></div><p style="font-size: 15px; line-height: 1.6;">Mohon maaf, reservasi Anda dengan <strong>ID #{booking_id}</strong> untuk layanan <strong>{service_type}</strong> tidak dapat kami proses saat ini.</p><div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px 20px; border-radius: 6px; margin: 25px 0;"><h3 style="margin-top: 0; color: #ef4444; font-size: 18px;">Detail Reservasi</h3><p style="margin: 8px 0;"><strong>ID Reservasi:</strong> {booking_id}</p><p style="margin: 8px 0;"><strong>Layanan:</strong> {service_type}</p><p style="margin: 8px 0;"><strong>Tanggal:</strong> {booking_date}</p><p style="margin: 8px 0;"><strong>Waktu:</strong> {booking_time}</p><p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #ef4444; font-weight: 600;">✗ Ditolak</span></p></div><p style="font-size: 15px; line-height: 1.6;">Anda dapat melakukan <strong>reservasi ulang</strong> dengan memilih tanggal atau layanan lain yang tersedia. Atau hubungi kami di <a href="mailto:{admin_email}" style="color: #54b335; text-decoration: none;">{admin_email}</a> untuk informasi lebih lanjut.</p><div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;"><p style="margin: 0; color: #444; font-weight: 600;">Terima kasih atas pengertian Anda,</p><p style="margin: 5px 0 15px 0; color: #54b335; font-weight: bold;">{company_name}</p><p style="font-size: 12px; color: #999;">Email ini dikirim pada {current_date} pukul {current_time}.</p></div></div>',
+            'completed_email_body' => '<div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; padding: 30px; color: #333;"><div style="text-align: center; margin-bottom: 25px;"><h2 style="color: #8b5cf6; margin: 0; font-size: 24px;">✨ Reservasi Selesai</h2><p style="color: #555; font-size: 15px; margin-top: 5px;">{greeting}</p></div><p style="font-size: 15px; line-height: 1.6;">Terima kasih telah menggunakan layanan kami! Reservasi Anda dengan <strong style="color: #8b5cf6;">ID #{booking_id}</strong> telah <strong>selesai</strong>.</p><div style="background-color: #faf5ff; border-left: 4px solid #8b5cf6; padding: 15px 20px; border-radius: 6px; margin: 25px 0;"><h3 style="margin-top: 0; color: #8b5cf6; font-size: 18px;">Ringkasan Layanan</h3><p style="margin: 8px 0;"><strong>ID Reservasi:</strong> {booking_id}</p><p style="margin: 8px 0;"><strong>Layanan:</strong> {service_type}</p><p style="margin: 8px 0;"><strong>Tanggal:</strong> {booking_date}</p><p style="margin: 8px 0;"><strong>Waktu:</strong> {booking_time}</p><p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #8b5cf6; font-weight: 600;">✓ Selesai</span></p></div><div style="background-color: #f8fafc; padding: 20px; border-radius: 6px; margin: 20px 0; text-align: center;"><h4 style="margin-top: 0; color: #333; font-size: 16px;">Bagaimana Pengalaman Anda?</h4><p style="margin: 10px 0; color: #666;">Kami sangat menghargai feedback Anda untuk meningkatkan kualitas layanan.</p><p style="margin: 15px 0 0 0;"><a href="mailto:{admin_email}?subject=Feedback untuk Reservasi {booking_id}" style="display: inline-block; background-color: #8b5cf6; color: #fff; text-decoration: none; padding: 10px 24px; border-radius: 6px; font-weight: 600;">Kirim Feedback</a></p></div><p style="font-size: 15px; line-height: 1.6;">Kami berharap dapat melayani Anda kembali di masa mendatang. Jika ada pertanyaan, jangan ragu untuk menghubungi kami.</p><div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;"><p style="margin: 0; color: #444; font-weight: 600;">Sampai jumpa lagi!</p><p style="margin: 5px 0 15px 0; color: #54b335; font-weight: bold;">{company_name}</p><p style="font-size: 12px; color: #999;">Email ini dikirim pada {current_date} pukul {current_time}.</p></div></div>'
+        );
+    }
+
+    /**
+     * Get email content with FALLBACK to default templates
+     * CRITICAL: Always returns content, never empty - ensures emails always sent
      */
     private function get_email_content($email_settings, $content_key) {
         // Check if content exists and is not empty
@@ -38,8 +53,14 @@ class Booking_Public {
             }
         }
 
-        // If no content exists or it's empty, return empty string
-        // Don't use default templates unless explicitly requested
+        // FALLBACK: Return default template to ensure email always sent
+        // This prevents "no email sent" issue when admin deletes content
+        $defaults = $this->get_default_email_templates();
+        if (isset($defaults[$content_key])) {
+            return $defaults[$content_key];
+        }
+
+        // Final fallback: return empty (should never reach here)
         return '';
     }
 
@@ -268,14 +289,14 @@ class Booking_Public {
 
         // Company information
         $message = str_replace('{company_name}', get_bloginfo('name'), $message);
-        $message = str_replace('{company_url}', get_bloginfo('url'), $message);
-        $message = str_replace('{admin_website}', admin_url(), $message);
+        $message = str_replace('{company_url}', trailingslashit(get_bloginfo('url')) . 'wp-login.php', $message);
+        $message = str_replace('{admin_website}', trailingslashit(get_bloginfo('url')) . 'wp-login.php', $message);
         $message = str_replace('{admin_email}', get_option('admin_email'), $message);
 
         // Indonesian language tags (aliases)
         $message = str_replace('{nama_perusahaan}', get_bloginfo('name'), $message);
-        $message = str_replace('{url_perusahaan}', get_bloginfo('url'), $message);
-        $message = str_replace('{url_admin}', admin_url(), $message);
+        $message = str_replace('{url_perusahaan}', trailingslashit(get_bloginfo('url')) . 'wp-login.php', $message);
+        $message = str_replace('{url_admin}', trailingslashit(get_bloginfo('url')) . 'wp-login.php', $message);
         $message = str_replace('{email_admin}', get_option('admin_email'), $message);
 
         // Status change specific tags (for consistency, though primarily used in admin)
@@ -324,7 +345,8 @@ class Booking_Public {
         }
 
         // If template doesn't contain HTML structure, wrap it with default template
-        if (strpos($message, '<html') === false && strpos($message, '<!DOCTYPE') === false) {
+        // Don't wrap if template already contains HTML div structure (indicates custom HTML template)
+        if (strpos($message, '<html') === false && strpos($message, '<!DOCTYPE') === false && strpos($message, '<div') === false) {
             $message = $this->wrap_email_template($message, $recipient_type);
         }
 
@@ -765,6 +787,10 @@ class Booking_Public {
 
                     if ($insert_id !== false) {
                         // Do not increment capacity on pending; will increment when approved by admin
+                        
+                        // Add booking ID to booking data for email notifications
+                        $booking_data['booking_id'] = $insert_id;
+                        
                         // Send email notifications
                         $this->send_confirmation_email($booking_data);
                         $this->send_admin_notification($booking_data);
@@ -851,6 +877,9 @@ class Booking_Public {
             error_log('Booking Flow Debug - Insert result (no time slot): ' . ($insert_id !== false ? 'Success ID: ' . $insert_id : 'Failed'));
 
             if ($insert_id !== false) {
+                // Add booking ID to booking data for email notifications
+                $booking_data['booking_id'] = $insert_id;
+                
                 // Send email notifications
                 $this->send_confirmation_email($booking_data);
                 $this->send_admin_notification($booking_data);
@@ -999,8 +1028,8 @@ class Booking_Public {
             'service_type' => isset($booking_data['service_type']) ? $booking_data['service_type'] : '',
             'time_slot' => isset($booking_data['booking_time']) ? $booking_data['booking_time'] : '',
             'company_name' => get_bloginfo('name'),
-            'company_url' => get_bloginfo('url'),
-            'admin_website' => admin_url(),
+            'company_url' => trailingslashit(get_bloginfo('url')) . 'wp-login.php',
+            'admin_website' => trailingslashit(get_bloginfo('url')) . 'wp-login.php',
             'admin_email' => get_option('admin_email'),
             'current_date' => date('Y-m-d'),
             'current_time' => date('H:i:s'),
@@ -1027,6 +1056,7 @@ class Booking_Public {
         $subject = str_replace('{slot_waktu}', $data['time_slot'], $subject);
         $subject = str_replace('{nama_perusahaan}', $data['company_name'], $subject);
         $subject = str_replace('{url_perusahaan}', $data['company_url'], $subject);
+        $subject = str_replace('{company_url}', $data['company_url'], $subject);
         $subject = str_replace('{url_admin}', $data['admin_website'], $subject);
         $subject = str_replace('{admin_website}', $data['admin_website'], $subject);
         $subject = str_replace('{email_admin}', $data['admin_email'], $subject);
