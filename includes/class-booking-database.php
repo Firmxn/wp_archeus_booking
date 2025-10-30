@@ -1742,10 +1742,18 @@ public function create_form($name, $fields = array()) {
     }
 
     /**
-     * Ensure specific columns exist for a flow table with given SQL types.
+     * DEPRECATED (v1.3.0): Ensure specific columns exist for a flow table with given SQL types.
+     * 
+     * @deprecated 1.3.0 Plugin now uses unified table (wp_archeus_booking) with JSON fields.
+     *                    Per-flow tables are no longer created. Method kept for backward compatibility.
+     *                    Will be removed in v1.5.0.
+     * 
      * $columns_spec = array('column_name' => 'SQL_TYPE', ...)
      */
     public function ensure_columns_for_flow($flow_name, $columns_spec) {
+        // DEPRECATED: This method does nothing in unified table architecture
+        _deprecated_function(__METHOD__, '1.3.0', 'Use unified table with JSON fields instead');
+        return false; // Return false to indicate method is deprecated
         global $wpdb;
         $table = $this->get_flow_table_name($flow_name);
         $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
@@ -1830,9 +1838,15 @@ public function create_form($name, $fields = array()) {
     }
 
     /**
-     * Hapus kolom identitas/snapshot lama dari semua tabel per-flow jika ada.
+     * DEPRECATED (v1.3.0): Hapus kolom identitas/snapshot lama dari semua tabel per-flow jika ada.
+     * 
+     * @deprecated 1.3.0 Plugin now uses unified table (wp_archeus_booking). Per-flow tables no longer used.
+     *                    Method kept for backward compatibility. Will be removed in v1.5.0.
      */
     public function prune_identity_columns_all_flows() {
+        // DEPRECATED: This method does nothing in unified table architecture
+        _deprecated_function(__METHOD__, '1.3.0', 'No longer needed with unified table architecture');
+        return; // Early return - no operation needed
         global $wpdb;
         $flows = $this->get_booking_flows();
         foreach ($flows as $flow) {
@@ -1850,9 +1864,16 @@ public function create_form($name, $fields = array()) {
     }
 
     /**
-     * Ensure flow_id column exists on all per-flow tables and backfill values.
+     * DEPRECATED (v1.3.0): Ensure flow_id column exists on all per-flow tables and backfill values.
+     * 
+     * @deprecated 1.3.0 Plugin now uses unified table (wp_archeus_booking) with flow_id column.
+     *                    Per-flow tables no longer used. Method kept for backward compatibility.
+     *                    Will be removed in v1.5.0.
      */
     public function ensure_flow_id_column_all_flows() {
+        // DEPRECATED: This method does nothing in unified table architecture
+        _deprecated_function(__METHOD__, '1.3.0', 'Unified table already has flow_id column');
+        return; // Early return - no operation needed
         global $wpdb;
         $flows = $this->get_booking_flows();
         if (!is_array($flows)) return;

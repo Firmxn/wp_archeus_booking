@@ -337,13 +337,19 @@ $wpdb->prepare("SELECT * FROM {$wpdb->prefix}archeus_booking WHERE id = %d", $bo
 # 1. Navigate to plugin directory (Windows path)
 cd C:\Code\my-wordpress\wordpress\wp-content\plugins\archeus-booking
 
-# 2. Install PHP dependencies
+# 2. Install PHP dependencies (REQUIRED for Excel export functionality)
 composer install
 
-# 3. Test plugin activation (via WordPress admin or WP-CLI)
+# 3. For production deployment (optimized)
+composer install --no-dev --optimize-autoloader
+
+# 4. Verify vendor folder exists
+ls -la vendor/
+
+# 5. Test plugin activation (via WordPress admin or WP-CLI)
 wp plugin activate archeus-booking
 
-# 4. Check database tables created
+# 6. Check database tables created
 wp db query "SHOW TABLES LIKE 'wp_archeus_%'"
 
 # 5. Verify plugin is active
@@ -1073,6 +1079,66 @@ public function ajax_handler() {
 3. Don't break existing shortcodes
 4. Test admin and frontend separately
 5. Consider multisite compatibility
+
+## 🔧 Composer Dependencies Management
+
+### ⚠️ Important Notes for Developers
+
+**Vendor Folder Not in Git**
+- `vendor/` folder is excluded from Git repository (see `.gitignore`)
+- Must be generated locally after cloning
+- Contains PhpSpreadsheet and PSR components for Excel export
+
+### Required Dependencies
+- **PhpSpreadsheet**: Excel export functionality (.xlsx files)
+- **PSR Components**: Autoloading and HTTP functionality
+- **MarkBaker Libraries**: Matrix calculations for PhpSpreadsheet
+
+### Local Development Setup
+```bash
+# After cloning repository
+cd archeus-booking
+
+# Install all dependencies (REQUIRED!)
+composer install
+
+# Verify vendor folder was created
+ls -la vendor/
+
+# Plugin should now work without PhpSpreadsheet errors
+```
+
+### Common Issues & Solutions
+
+#### 🚨 Error: "Failed to open stream: vendor/autoload.php"
+**Cause**: Dependencies not installed
+**Solution**: Run `composer install` in plugin directory
+
+#### 🚨 Error: "PhpSpreadsheet not found" during export
+**Cause**: Missing or incomplete vendor folder
+**Solution**:
+```bash
+# Clean install
+rm -rf vendor
+composer install
+```
+
+#### 🚨 Error: "Export to Excel not working"
+**Cause**: PhpSpreadsheet classes not available
+**Solution**: Check if `vendor/phpoffice/phpspreadsheet/` exists
+
+### Production Deployment
+
+**Include Vendor in Release ZIP**:
+```bash
+# Build for production (optimized, no dev dependencies)
+composer install --no-dev --optimize-autoloader
+
+# Create production ZIP with vendor included
+zip -r archeus-booking-production.zip . -x ".*" -x "__MACOSX" -x "*.git*"
+```
+
+**Note**: Production ZIP should be uploaded to WordPress.org for end users
 
 ### For Autonomous Agents (Devin, Cursor Agent Mode, etc.)
 

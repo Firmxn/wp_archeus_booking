@@ -350,17 +350,32 @@ The plugin supports extensive customization:
 | `wp_archeus_booking_time_slots` | **Time slot templates** | `id`, `time_label`, `start_time`, `end_time`, `max_capacity` |
 | `wp_archeus_booking_availability` | **Calendar availability** | `id`, `date`, `availability_status`, `daily_limit` |
 
-### Dynamic Per-Flow Tables
-- **Automatically created** for each booking flow
-- **Naming format**: `wp_archeus_{sanitized_flow_name}`
-- Contains flow-specific booking data with dynamic columns
-- Supports custom field columns added automatically based on form fields
-- Includes core columns: `id`, `flow_id`, `booking_date`, `booking_time`, `service_type`, `status`, `payload`, `created_at`, `updated_at`
+### Unified Booking Table Architecture
+
+The plugin uses a **single unified table** (`wp_archeus_booking`) to store all bookings from all flows:
+
+**Key Design:**
+- **Single Source of Truth**: All bookings stored in one table (`wp_archeus_booking`)
+- **Flow Identification**: `flow_id` and `flow_name` columns identify the originating flow
+- **JSON Flexibility**: Custom form fields stored in `fields` (JSON) column
+- **Complete Data**: Full booking payload stored in `payload` (JSON) column
+- **No Per-Flow Tables**: Plugin does NOT create separate tables per flow for active bookings
+- **Simplified Queries**: Easy to search across all bookings regardless of flow
+
+**Benefits:**
+- ✅ Single query to retrieve all bookings
+- ✅ No table proliferation (no separate table per flow)
+- ✅ Easier database maintenance and optimization
+- ✅ Better performance with properly indexed unified table
+- ✅ Simplified backup and migration process
+- ✅ Consistent data structure across all flows
 
 ### Database Features
-- **JSON Field Storage**: Flexible data storage in `fields` and `payload` columns
-- **Automatic Indexing**: Indexes on `booking_date`, `status`, `service_type`, `flow_id` for performance
-- **Schema Evolution**: Automated migrations via `dbDelta()` function
+- **Unified Architecture**: Single table for all flows eliminates complexity and table proliferation
+- **JSON Field Storage**: Flexible custom field storage in `fields` and `payload` columns
+- **Flow Tracking**: `flow_id` and `flow_name` columns for flow identification and filtering
+- **Automatic Indexing**: Optimized indexes on `booking_date`, `status`, `service_type`, `flow_id` for fast queries
+- **Schema Evolution**: Automated migrations via `dbDelta()` function ensure smooth updates
 - **Backward Compatibility**: Existing data preserved during schema updates
 - **Cleanup Automation**: Cron-based cleanup of expired availability (10% probability per request)
 
@@ -546,21 +561,22 @@ The plugin provides numerous hooks and filters for customization:
 #### 🐛 Bug Fixes
 - Fixed dropdown positioning issues in form builder
 - Fixed status migration for legacy bookings (confirmed→approved, cancelled→rejected)
-- Fixed column pruning for identity fields in per-flow tables
-- Corrected date filtering logic in export (booking_date → moved_at)
+- Corrected date filtering logic in export (booking_date → moved_at for history table)
+- Legacy table cleanup for installations upgrading from pre-unified-table versions
 
 #### 🚀 Performance & Security
-- Optimized database queries with proper indexing
+- Optimized database queries with proper indexing on unified table
 - Probability-based cleanup to reduce server load
 - Enhanced input sanitization and nonce validation
 - AJAX-driven admin interface for reduced page loads
 - Cron-based automated cleanup for expired availability
 
 #### 🔄 Database Migrations
+- Unified table architecture - single `wp_archeus_booking` table for all flows
+- Automated schema evolution with backward compatibility
 - `migrate_flow_sections()` - Booking flow section updates
-- `migrate_status_values()` - Status value normalization
-- `prune_identity_columns_all_flows()` - Remove duplicate customer fields
-- `ensure_flow_id_column_all_flows()` - Add missing flow_id columns
+- `migrate_status_values()` - Status value normalization (confirmed→approved, cancelled→rejected)
+- Legacy migration support for pre-1.3.0 installations
 
 ### [1.0.0] - 2024-10-13
 - ✨ Initial stable release

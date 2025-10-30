@@ -93,14 +93,19 @@ class Booking_Plugin {
             if (method_exists($db_instance, 'migrate_status_values')) {
                 $db_instance->migrate_status_values();
             }
-            // Prune identity columns (customer_name, customer_email) from per-flow tables
-            if (method_exists($db_instance, 'prune_identity_columns_all_flows')) {
-                $db_instance->prune_identity_columns_all_flows();
-            }
-            // Ensure flow_id column exists and backfilled for all per-flow tables
-            if (method_exists($db_instance, 'ensure_flow_id_column_all_flows')) {
-                $db_instance->ensure_flow_id_column_all_flows();
-            }
+            
+            // DEPRECATED (v1.3.0): Per-flow table migrations no longer needed with unified table architecture
+            // These methods are kept for backward compatibility but will be removed in v1.5.0
+            // Plugin now uses single unified table (wp_archeus_booking) for all bookings
+            
+            // // Prune identity columns (customer_name, customer_email) from per-flow tables
+            // if (method_exists($db_instance, 'prune_identity_columns_all_flows')) {
+            //     $db_instance->prune_identity_columns_all_flows();
+            // }
+            // // Ensure flow_id column exists and backfilled for all per-flow tables
+            // if (method_exists($db_instance, 'ensure_flow_id_column_all_flows')) {
+            //     $db_instance->ensure_flow_id_column_all_flows();
+            // }
         }
 
         // Ensure email settings are properly configured

@@ -281,16 +281,17 @@ Yes! The shortcode supports multiple variations:
 * Enhancement: Smart booking flow fallback (auto-select if ID missing)
 * Fix: Dropdown positioning issues in form builder
 * Fix: Status migration for legacy bookings (confirmed→approved, cancelled→rejected)
-* Fix: Column pruning for identity fields in per-flow tables
-* Fix: Date filtering logic in export (booking_date → moved_at for history)
-* Performance: Optimized database queries with proper indexing
+* Fix: Date filtering logic in export (booking_date → moved_at for history table)
+* Fix: Legacy table cleanup for pre-unified-table installations
+* Performance: Optimized database queries with proper indexing on unified table
 * Performance: Probability-based cleanup to reduce server load
 * Performance: AJAX-driven admin interface for reduced page loads
 * Security: Enhanced input sanitization and nonce validation
+* Database: Unified table architecture - single wp_archeus_booking table for all flows
+* Database: Automated schema evolution with backward compatibility
 * Database: migrate_flow_sections() - Booking flow section updates
 * Database: migrate_status_values() - Status value normalization
-* Database: prune_identity_columns_all_flows() - Remove duplicate customer fields
-* Database: ensure_flow_id_column_all_flows() - Add missing flow_id columns
+* Database: Legacy migration support for pre-1.3.0 installations
 
 = 1.0.0 =
 * Initial stable release

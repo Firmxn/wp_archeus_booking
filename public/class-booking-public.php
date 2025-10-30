@@ -726,22 +726,23 @@ class Booking_Public {
                     $booking_data['booking_date'] = $date; // Ensure booking_date is set
                     $booking_data['booking_time'] = $start_time . '-' . $end_time; // Store time range in booking_time
 
-                    // Save to per-flow table only (no global bookings table)
-                    // Ensure columns for file fields use VARCHAR(255)
-                    $file_columns = array();
-                    foreach (array_keys($_FILES ?: array()) as $fk) { $file_columns[$fk] = 'VARCHAR(255)'; }
-                    if (method_exists($booking_db, 'ensure_columns_for_flow')) {
-                        // Build full spec: default LONGTEXT for all non-core keys
-                        $all_spec = array();
-                        foreach ($combined_data as $kk => $_vv) {
-                            if (!in_array($kk, array('customer_name','customer_email','booking_date','booking_time','service_type'))) {
-                                $all_spec[$kk] = 'LONGTEXT';
-                            }
-                        }
-                        // Override file keys as VARCHAR(255)
-                        foreach ($file_columns as $fk => $type) { $all_spec[$fk] = $type; }
-                        if (!empty($all_spec)) { $booking_db->ensure_columns_for_flow($flow->name, $all_spec); }
-                    }
+                    // NOTE: Bookings are saved to unified table (wp_archeus_booking)
+                    // DEPRECATED: Per-flow table column creation removed in v1.3.0
+                    // All custom fields are stored in JSON 'fields' and 'payload' columns
+                    
+                    // $file_columns = array();
+                    // foreach (array_keys($_FILES ?: array()) as $fk) { $file_columns[$fk] = 'VARCHAR(255)'; }
+                    // DEPRECATED (v1.3.0): ensure_columns_for_flow() no longer needed with unified table
+                    // if (method_exists($booking_db, 'ensure_columns_for_flow')) {
+                    //     $all_spec = array();
+                    //     foreach ($combined_data as $kk => $_vv) {
+                    //         if (!in_array($kk, array('customer_name','customer_email','booking_date','booking_time','service_type'))) {
+                    //             $all_spec[$kk] = 'LONGTEXT';
+                    //         }
+                    //     }
+                    //     foreach ($file_columns as $fk => $type) { $all_spec[$fk] = $type; }
+                    //     if (!empty($all_spec)) { $booking_db->ensure_columns_for_flow($flow->name, $all_spec); }
+                    // }
 
                     // Build payload with all inputs as flat columns (no additional_fields)
                     $flow_payload = $booking_data;
@@ -818,24 +819,26 @@ class Booking_Public {
                 }
             }
 
-            // Save to per-flow table only (without time slot)
-            // Ensure columns for file fields use VARCHAR(255)
-            $file_columns = array();
-            foreach (array_keys($_FILES ?: array()) as $fk) { $file_columns[$fk] = 'VARCHAR(255)'; }
-            if (method_exists($booking_db, 'ensure_columns_for_flow')) {
-                $all_spec = array();
-                foreach ($combined_data as $kk => $_vv) {
-                    // Only exclude core booking fields, allow custom fields with any name including customer_name/customer_email
-                    if (!in_array($kk, array('booking_date','booking_time','service_type'))) {
-                        $all_spec[$kk] = 'LONGTEXT';
-                    }
-                }
-                foreach ($file_columns as $fk => $type) { $all_spec[$fk] = $type; }
-                if (!empty($all_spec)) {
-                    error_log('Booking Flow Debug - Creating columns for flow: ' . print_r($all_spec, true));
-                    $booking_db->ensure_columns_for_flow($flow->name, $all_spec);
-                }
-            }
+            // NOTE: Bookings are saved to unified table (wp_archeus_booking)
+            // DEPRECATED: Per-flow table column creation removed in v1.3.0
+            // All custom fields are stored in JSON 'fields' and 'payload' columns
+            
+            // $file_columns = array();
+            // foreach (array_keys($_FILES ?: array()) as $fk) { $file_columns[$fk] = 'VARCHAR(255)'; }
+            // DEPRECATED (v1.3.0): ensure_columns_for_flow() no longer needed with unified table
+            // if (method_exists($booking_db, 'ensure_columns_for_flow')) {
+            //     $all_spec = array();
+            //     foreach ($combined_data as $kk => $_vv) {
+            //         if (!in_array($kk, array('booking_date','booking_time','service_type'))) {
+            //             $all_spec[$kk] = 'LONGTEXT';
+            //         }
+            //     }
+            //     foreach ($file_columns as $fk => $type) { $all_spec[$fk] = $type; }
+            //     if (!empty($all_spec)) {
+            //         error_log('Booking Flow Debug - Creating columns for flow: ' . print_r($all_spec, true));
+            //         $booking_db->ensure_columns_for_flow($flow->name, $all_spec);
+            //     }
+            // }
 
             // Build payload with all inputs as flat columns (no additional_fields)
             $flow_payload = $booking_data;
