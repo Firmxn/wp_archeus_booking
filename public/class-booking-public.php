@@ -696,25 +696,19 @@ class Booking_Public {
                 $blocking_statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
                 $existing_blocking_bookings = 0;
 
-                if (class_exists('Booking_Database')) {
-                    $db = new Booking_Database();
-                    $flows = $db->get_booking_flows();
+                // Query UNIFIED TABLE (v1.3.0+) instead of deprecated per-flow tables
+                $unified_table = $wpdb->prefix . 'archeus_booking';
+                $placeholders = implode(',', array_fill(0, count($blocking_statuses), '%s'));
+                $sql = "SELECT COUNT(*) FROM {$unified_table} 
+                        WHERE booking_date = %s 
+                        AND booking_time = %s 
+                        AND status IN ($placeholders)";
+                $params = array_merge(
+                    array($date, $start_time . '-' . $end_time), 
+                    $blocking_statuses
+                );
 
-                    foreach ($flows as $flow) {
-                        $table = $db->get_flow_table_name($flow->name);
-                        // Check if table exists
-                        $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-                        if ($table_exists !== $table) continue;
-
-                        // Check for bookings with blocking statuses for this specific time slot
-                        $placeholders = implode(',', array_fill(0, count($blocking_statuses), '%s'));
-                        $sql = "SELECT COUNT(*) FROM {$table} WHERE booking_date = %s AND booking_time = %s AND status IN ($placeholders)";
-                        $params = array_merge(array($date, $start_time . '-' . $end_time), $blocking_statuses);
-
-                        $count = $wpdb->get_var($wpdb->prepare($sql, $params));
-                        $existing_blocking_bookings += intval($count);
-                    }
-                }
+                $existing_blocking_bookings = intval($wpdb->get_var($wpdb->prepare($sql, $params)));
 
                 // Check schedule capacity AND no blocking bookings
                 $schedule_available = ($schedule && ($schedule->current_bookings < $schedule->max_capacity));

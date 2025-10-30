@@ -1282,22 +1282,19 @@ public function create_form($name, $fields = array()) {
             $blocking_statuses = get_option('booking_blocking_statuses', array('approved', 'completed'));
             $existing_blocking_bookings = 0;
 
-            // Check for bookings with blocking statuses for this specific time slot
-            $flows = $this->get_booking_flows();
-            foreach ($flows as $flow) {
-                $table = $this->get_flow_table_name($flow->name);
-                // Check if table exists
-                $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-                if ($table_exists !== $table) continue;
+            // Query UNIFIED TABLE (v1.3.0+) instead of deprecated per-flow tables
+            $unified_table = $this->table_name; // wp_archeus_booking
+            $placeholders = implode(',', array_fill(0, count($blocking_statuses), '%s'));
+            $sql = "SELECT COUNT(*) FROM {$unified_table} 
+                    WHERE booking_date = %s 
+                    AND booking_time = %s 
+                    AND status IN ($placeholders)";
+            $params = array_merge(
+                array($date, $schedule->start_time . '-' . $schedule->end_time), 
+                $blocking_statuses
+            );
 
-                // Check for bookings with blocking statuses for this specific time slot
-                $placeholders = implode(',', array_fill(0, count($blocking_statuses), '%s'));
-                $sql = "SELECT COUNT(*) FROM {$table} WHERE booking_date = %s AND booking_time = %s AND status IN ($placeholders)";
-                $params = array_merge(array($date, $schedule->start_time . '-' . $schedule->end_time), $blocking_statuses);
-
-                $count = $wpdb->get_var($wpdb->prepare($sql, $params));
-                $existing_blocking_bookings += intval($count);
-            }
+            $existing_blocking_bookings = intval($wpdb->get_var($wpdb->prepare($sql, $params)));
 
             // If slot still has capacity AND no blocking bookings
             if ($slot_remaining > 0 && $existing_blocking_bookings == 0) {

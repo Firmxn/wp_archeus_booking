@@ -274,14 +274,23 @@ class Booking_Shortcodes {
                                                 <?php
                                                     $price_val = isset($svc->price) ? (float)$svc->price : 0;
                                                     if ($price_val <= 0) {
-                                                        echo esc_html(__('Gratis', 'archeus-booking'));
+                                                        echo esc_html(__('Sesuai Ketentuan', 'archeus-booking'));
                                                     } else {
                                                         $formatted = 'Rp ' . number_format($price_val, 0, ',', '.');
                                                         echo esc_html($formatted);
                                                     }
                                                 ?>
                                             </div>
-                                            <p class="service-duration"><?php echo esc_html(sprintf(__('Durasi %d menit', 'archeus-booking'), (int)$svc->duration)); ?></p>
+                                            <p class="service-duration">
+                                                <?php 
+                                                    $duration = isset($svc->duration) ? (int)$svc->duration : 0;
+                                                    if ($duration > 0) {
+                                                        echo esc_html(sprintf(__('Durasi %d menit', 'archeus-booking'), $duration));
+                                                    } else {
+                                                        echo esc_html(__('Durasi fleksibel sesuai kebutuhan', 'archeus-booking'));
+                                                    }
+                                                ?>
+                                            </p>
                                         </label>
                                     <?php endforeach; ?>
                                 </div>

@@ -3076,6 +3076,14 @@ jQuery(document).ready(function ($) {
 
     // Prepare form data with sanitization
     var serviceDescription = sanitizeAdminInput($form.find('textarea[name="service_description"]').val());
+    
+    // Parse duration with zero support (allow 0 for flexible duration)
+    var durationInput = $form.find('input[name="service_duration"]').val();
+    var serviceDuration = parseInt(durationInput);
+    if (isNaN(serviceDuration) || serviceDuration < 0) {
+        serviceDuration = 30; // Default to 30 if invalid or negative
+    }
+    
     var formData = {
       action: isUpdate ? 'update_service' : 'create_service',
       nonce: archeus_booking_ajax.nonce,
@@ -3083,7 +3091,7 @@ jQuery(document).ready(function ($) {
       service_name: serviceName,
       service_description: serviceDescription,
       service_price: parseFloat($form.find('input[name="service_price"]').val()) || 0,
-      service_duration: parseInt($form.find('input[name="service_duration"]').val()) || 30
+      service_duration: serviceDuration
     };
 
     // Send AJAX request

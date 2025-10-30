@@ -4650,14 +4650,14 @@ class Booking_Admin {
                                 <th scope="row"><label for="service_price"><?php _e('Harga', 'archeus-booking'); ?></label></th>
                                 <td>
                                     <input type="number" id="service_price" name="service_price" value="<?php echo $edit_service ? esc_attr($edit_service->price) : '0'; ?>" step="0.01" min="0" class="regular-text">
-                                    <p class="description"><?php _e('Masukkan harga layanan (dapat 0 untuk layanan gratis)', 'archeus-booking'); ?></p>
+                                    <p class="description"><?php _e('Masukkan harga layanan (dapat 0 untuk layanan gratis atau sesuai ketentuan yang berlaku)', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row"><label for="service_duration"><?php _e('Durasi (menit)', 'archeus-booking'); ?></label></th>
                                 <td>
-                                    <input type="number" id="service_duration" name="service_duration" value="<?php echo $edit_service ? esc_attr($edit_service->duration) : '30'; ?>" min="1" class="regular-text">
-                                    <p class="description"><?php _e('Masukkan durasi layanan (dalam menit)', 'archeus-booking'); ?></p>
+                                    <input type="number" id="service_duration" name="service_duration" value="<?php echo $edit_service ? esc_attr($edit_service->duration) : '30'; ?>" min="0" class="regular-text">
+                                    <p class="description"><?php _e('Masukkan durasi layanan (dalam menit). Gunakan 0 untuk durasi fleksibel.', 'archeus-booking'); ?></p>
                                 </td>
                             </tr>
                           </table>
@@ -4690,8 +4690,14 @@ class Booking_Admin {
                                         <td><?php echo $index + 1; ?></td>
                                         <td><strong><?php echo esc_html($service->name); ?></strong></td>
                                         <td><?php echo wp_trim_words(esc_html($service->description), 10); ?></td>
-                                        <td><?php echo $service->price > 0 ? 'Rp ' . number_format($service->price, 0, ',', '.') : __('Gratis', 'archeus-booking'); ?></td>
-                                        <td><?php echo esc_html($service->duration); ?> <?php _e('minutes', 'archeus-booking'); ?></td>
+                                        <td><?php echo $service->price > 0 ? 'Rp ' . number_format($service->price, 0, ',', '.') : __('Sesuai Ketentuan', 'archeus-booking'); ?></td>
+                                        <td><?php 
+                                            if ($service->duration > 0) {
+                                                echo esc_html($service->duration) . ' ' . __('minutes', 'archeus-booking');
+                                            } else {
+                                                _e('Fleksibel', 'archeus-booking');
+                                            }
+                                        ?></td>
                                         <td class="col-actions">
                                             <div class="action-buttons">
                                                 <a href="<?php echo admin_url('admin.php?page=archeus-booking-services&action=edit&service_id=' . $service->id); ?>" class="button button-warning edit-button" title="<?php esc_attr_e('Ubah Layanan', 'archeus-booking'); ?>">
