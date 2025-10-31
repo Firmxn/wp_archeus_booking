@@ -344,7 +344,7 @@ class Booking_Shortcodes {
                                                 case 'file':
                                                         $input_id = esc_attr($field_key) . '_' . esc_attr($form_id);
                                                         echo '<div class="file-upload">';
-                                                        echo '<input type="file" class="bf-file-input" id="' . $input_id . '" name="' . esc_attr($field_key) . '" ' . (!empty($field_data['required']) ? 'required' : '') . '>';
+                                                        echo '<input type="file" class="bf-file-input" id="' . $input_id . '" name="' . esc_attr($field_key) . '" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" ' . (!empty($field_data['required']) ? 'required' : '') . '>';
                                                         echo '<label for="' . $input_id . '" class="bf-file-btn">' . esc_html__('Pilih File', 'archeus-booking') . '</label>';
                                                         echo '<span class="bf-file-name">' . esc_html__('Belum ada file', 'archeus-booking') . '</span>';
                                                         echo '<button type="button" class="bf-file-clear" aria-label="' . esc_attr__('Hapus file', 'archeus-booking') . '" title="' . esc_attr__('Hapus', 'archeus-booking') . '"></button>';

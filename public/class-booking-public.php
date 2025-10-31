@@ -627,11 +627,27 @@ class Booking_Public {
         foreach ($combined_data as $key => $value) {
             if (!in_array($key, ['customer_name', 'customer_email', 'booking_date', 'booking_time', 'service_type'])) {
                 if (isset($_FILES[$key])) {
-                    $customer_name = isset($combined_data['customer_name']) ? $combined_data['customer_name'] : '';
-                    $service_type = isset($combined_data['service_type']) ? $combined_data['service_type'] : '';
-                    $file = $this->handle_file_upload($_FILES[$key], $customer_name, $service_type);
-                    if ($file) { $combined_data[$key] = $file; }
-                    else { $combined_data[$key] = sanitize_text_field($value); }
+                    // Check if file was actually uploaded (not empty)
+                    $file_uploaded = !empty($_FILES[$key]['name']);
+                    
+                    if ($file_uploaded) {
+                        $customer_name = isset($combined_data['customer_name']) ? $combined_data['customer_name'] : '';
+                        $service_type = isset($combined_data['service_type']) ? $combined_data['service_type'] : '';
+                        $file = $this->handle_file_upload($_FILES[$key], $customer_name, $service_type);
+                        
+                        if ($file) {
+                            $combined_data[$key] = $file;
+                        } else {
+                            // File upload failed validation - return error
+                            wp_send_json_error(array(
+                                'message' => __('File upload gagal. Format yang diterima: JPG, PNG, PDF. Maksimal ukuran: 5MB.', 'archeus-booking')
+                            ));
+                            return;
+                        }
+                    } else {
+                        // No file uploaded - keep empty or text value
+                        $combined_data[$key] = sanitize_text_field($value);
+                    }
                 } else {
                     $combined_data[$key] = sanitize_text_field($value);
                 }
@@ -640,10 +656,24 @@ class Booking_Public {
         // Ensure file-only fields (not present in combined_data) are captured as well by scanning $_FILES
         foreach (array_keys($_FILES ?: array()) as $k) {
             if (!isset($combined_data[$k])) {
-                $customer_name = isset($combined_data['customer_name']) ? $combined_data['customer_name'] : '';
-                $service_type = isset($combined_data['service_type']) ? $combined_data['service_type'] : '';
-                $file = $this->handle_file_upload($_FILES[$k], $customer_name, $service_type);
-                if ($file) { $combined_data[$k] = $file; }
+                // Check if file was actually uploaded
+                $file_uploaded = !empty($_FILES[$k]['name']);
+                
+                if ($file_uploaded) {
+                    $customer_name = isset($combined_data['customer_name']) ? $combined_data['customer_name'] : '';
+                    $service_type = isset($combined_data['service_type']) ? $combined_data['service_type'] : '';
+                    $file = $this->handle_file_upload($_FILES[$k], $customer_name, $service_type);
+                    
+                    if ($file) {
+                        $combined_data[$k] = $file;
+                    } else {
+                        // File upload failed validation - return error
+                        wp_send_json_error(array(
+                            'message' => __('File upload gagal. Format yang diterima: JPG, PNG, PDF. Maksimal ukuran: 5MB.', 'archeus-booking')
+                        ));
+                        return;
+                    }
+                }
             }
         }
 
@@ -909,23 +939,23 @@ class Booking_Public {
             return false;
         }
         
-        // Validate file type (you can extend this as needed)
-        $allowed_types = array('image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf');
+        // Validate file type - only accept JPG, PNG, PDF for vaccine proof documents
+        $allowed_types = array('image/jpeg', 'image/jpg', 'image/png', 'application/pdf');
         $file_type = sanitize_mime_type($file['type']);
 
         // Additional security: Check file extension matches type
-        $allowed_extensions = array('jpg', 'jpeg', 'png', 'gif', 'pdf');
+        $allowed_extensions = array('jpg', 'jpeg', 'png', 'pdf');
         $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
         // Check file extension
         if (!in_array($file_extension, $allowed_extensions)) {
-            error_log('File upload validation failed: Extension not allowed - ' . $file_extension);
+            error_log('File upload validation failed: Extension not allowed - ' . $file_extension . '. Allowed: jpg, jpeg, png, pdf');
             return false;
         }
 
-        // Check file type
+        // Check file type (MIME type)
         if (!in_array($file_type, $allowed_types)) {
-            error_log('File upload validation failed: MIME type not allowed - ' . $file_type);
+            error_log('File upload validation failed: MIME type not allowed - ' . $file_type . '. Allowed: image/jpeg, image/png, application/pdf');
             return false;
         }
 

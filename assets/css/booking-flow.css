@@ -738,7 +738,7 @@
 
 /* Custom File Upload */
 .file-upload {
-  /* position: relative; */
+  position: relative; /* CRITICAL: Required for absolute positioned input */
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -752,7 +752,7 @@
   min-height: 64px;
   box-sizing: border-box; /* Ensure padding included in width */
   max-width: 100%; /* Prevent expanding beyond parent */
-  overflow: hidden; /* Clip any overflow content */
+  overflow: hidden; /* Clip visual overflow but input remains accessible */
 }
 
 .file-upload:hover {
@@ -768,11 +768,13 @@
 
 .bf-file-input {
   position: absolute;
+  top: 0;
+  left: 0;
   opacity: 0;
   width: 100%;
   height: 100%;
   cursor: pointer;
-  z-index: 2;
+  z-index: 10; /* Increased from 2 - ensure above all siblings */
   font-size: 14px;
 }
 

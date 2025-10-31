@@ -555,8 +555,8 @@ jQuery(document).ready(function($) {
                         if (!isEmpty) {
                             var file = $field[0].files[0];
                             var maxSize = 5 * 1024 * 1024; // 5MB
-                            var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
-                            var allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
+                            var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                            var allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
                             // Check file size
                             if (file.size > maxSize) {
@@ -569,7 +569,7 @@ jQuery(document).ready(function($) {
                             // Check file type
                             if (!allowedTypes.includes(file.type)) {
                                 valid = false;
-                                alert('Tipe file tidak diizinkan. Hanya JPG, PNG, GIF, dan PDF.');
+                                alert('Tipe file tidak diizinkan. Hanya JPG, PNG, dan PDF yang diterima untuk bukti vaksin.');
                                 $errorTarget.addClass('error');
                                 return false;
                             }
@@ -578,7 +578,7 @@ jQuery(document).ready(function($) {
                             var fileExtension = file.name.split('.').pop().toLowerCase();
                             if (!allowedExtensions.includes(fileExtension)) {
                                 valid = false;
-                                alert('Ekstensi file tidak diizinkan. Hanya JPG, PNG, GIF, dan PDF.');
+                                alert('Ekstensi file tidak diizinkan. Hanya JPG, PNG, dan PDF yang diterima untuk bukti vaksin.');
                                 $errorTarget.addClass('error');
                                 return false;
                             }
