@@ -952,9 +952,16 @@ jQuery(document).ready(function($) {
                     sessionStorage.removeItem('archeus_form_data');
                     sessionStorage.removeItem('archeus_selected_service');
 
-                    // Show success message
+                    // Show success message and hide booking flow
                     var msg = (resp.data && resp.data.message) ? resp.data.message : 'Reservasi berhasil dikirim. Silakan cek email untuk konfirmasi.';
-                    $('.booking-flow-container').html('<div class="success-message">' + msg + '</div>');
+                    var $container = $('.booking-flow-container');
+                    
+                    // Replace entire container content with success message
+                    $container.html('<div class="success-message">' + msg + '</div>');
+                    
+                    // Remove all booking flow classes to clean up styles
+                    $container.removeClass('booking-flow-container');
+                    $container.addClass('booking-success-wrapper');
                 } else {
                     var err = (resp && resp.data && resp.data.message) ? resp.data.message : 'Gagal mengirim booking.';
                     alert(err);
@@ -978,7 +985,14 @@ jQuery(document).ready(function($) {
                             sessionStorage.removeItem('archeus_form_data');
                             sessionStorage.removeItem('archeus_selected_service');
                             var msg = (parsed.data && parsed.data.message) ? parsed.data.message : 'Reservasi berhasil dikirim. Silakan cek email untuk konfirmasi.';
-                            $('.booking-flow-container').html('<div class="success-message">' + msg + '</div>');
+                            var $container = $('.booking-flow-container');
+                            
+                            // Replace entire container content with success message
+                            $container.html('<div class="success-message">' + msg + '</div>');
+                            
+                            // Remove all booking flow classes to clean up styles
+                            $container.removeClass('booking-flow-container');
+                            $container.addClass('booking-success-wrapper');
                             return;
                         }
                     }
@@ -992,7 +1006,14 @@ jQuery(document).ready(function($) {
                     sessionStorage.removeItem('archeus_selected_time_slot');
                     sessionStorage.removeItem('archeus_form_data');
                     sessionStorage.removeItem('archeus_selected_service');
-                    $('.booking-flow-container').html('<div class="success-message">Reservasi Anda berhasil dikirim. Silakan cek email; kami akan mengabarkan hasil reservasi melalui email.</div>');
+                    var $container = $('.booking-flow-container');
+                    
+                    // Replace entire container content with success message
+                    $container.html('<div class="success-message">Reservasi Anda berhasil dikirim. Silakan cek email; kami akan mengabarkan hasil reservasi melalui email.</div>');
+                    
+                    // Remove all booking flow classes to clean up styles
+                    $container.removeClass('booking-flow-container');
+                    $container.addClass('booking-success-wrapper');
                     return;
                 }
 

@@ -666,6 +666,17 @@
   text-align: center;
 }
 
+/* Booking Success Wrapper - replaces booking-flow-container on success */
+.booking-success-wrapper {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .success-message {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
