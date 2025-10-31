@@ -96,6 +96,7 @@
 
 .form-group {
   margin-bottom: 0;
+  min-width: 0; /* Allow form-group to shrink properly in grid */
 }
 
 /* Full width untuk textarea dan file upload */
@@ -110,6 +111,7 @@
 .form-group .file-upload,
 .form-group.full-width {
   width: 100%;
+  max-width: 100%; /* Prevent overflow */
 }
 
 .form-group label {
@@ -748,6 +750,9 @@
   cursor: pointer;
   transition: all 0.25s ease;
   min-height: 64px;
+  box-sizing: border-box; /* Ensure padding included in width */
+  max-width: 100%; /* Prevent expanding beyond parent */
+  overflow: hidden; /* Clip any overflow content */
 }
 
 .file-upload:hover {
@@ -777,8 +782,10 @@
   border: none;
   border-radius: 6px;
   color: white !important;
-  width: 10%;
-  padding: 0 !important;
+  flex: 0 0 auto; /* Don't grow/shrink, auto width */
+  min-width: 100px; /* Minimum button width */
+  max-width: 120px; /* Maximum button width */
+  padding: 0 12px !important;
   height: 40px !important;
   line-height: 40px !important;
   margin: 0 !important;
@@ -797,7 +804,8 @@
 
 .bf-file-name {
   margin-top: 0px;
-  width: 85%;
+  flex: 1 1 auto; /* Grow to fill available space */
+  min-width: 0; /* Allow flex item to shrink below content size */
   font-size: 13px;
   font-weight: 400 !important;
   padding: 12px;
@@ -816,6 +824,11 @@
 
   font-size: 14px;
   font-weight: 500;
+  
+  /* Prevent long filenames from wrapping - truncate with ellipsis */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .file-upload.has-file .bf-file-name {
@@ -825,7 +838,8 @@
 }
 
 .bf-file-clear {
-  width: 5% !important;
+  flex: 0 0 40px; /* Fixed width, don't grow/shrink */
+  width: 40px !important;
   padding: 0 !important;
   background: #9ca3af;
   color: white;

@@ -4789,9 +4789,6 @@ class Booking_Admin {
                     <?php endif; ?>
                 </div>
             </div>
-            
-            <?php wp_enqueue_style('admin-services-css', ARCHEUS_BOOKING_URL . 'assets/css/admin-services.css', array(), ARCHEUS_BOOKING_VERSION); ?>
-
             </div>
         <?php
     }
